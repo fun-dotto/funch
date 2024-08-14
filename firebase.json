@@ -1,0 +1,11 @@
+{
+  "hosting": {
+    "site": "funch",
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}
