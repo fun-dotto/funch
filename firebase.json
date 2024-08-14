@@ -1,7 +1,7 @@
 {
   "hosting": {
     "site": "funch",
-    "public": "public",
+    "public": "build",
     "ignore": [
       "firebase.json",
       "**/.*",
