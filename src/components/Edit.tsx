@@ -1,4 +1,4 @@
-import React from "react";
+// import React from "react";
 import { useParams } from "react-router-dom";
 
 const Edit = () => {
@@ -34,11 +34,11 @@ const Edit = () => {
     timeZone: "Asia/Tokyo",
     day: "numeric",
   };
-  const debugOptions: Intl.DateTimeFormatOptions = {
-    timeZone: "Asia/Tokyo",
-    month: "2-digit",
-    day: "2-digit",
-  };
+  // const debugOptions: Intl.DateTimeFormatOptions = {
+  //   timeZone: "Asia/Tokyo",
+  //   month: "2-digit",
+  //   day: "2-digit",
+  // };
   const yearJST = new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
     year: "numeric",

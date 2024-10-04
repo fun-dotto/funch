@@ -1,21 +1,8 @@
-import React from "react";
+// import React from "react";
 import { Link } from "react-router-dom";
 
 const Home = () => {
-  const targetDay = new Date(2024, 10 - 1);
-  const dayOptions = {
-    timeZone: "Asia/Tokyo",
-    day: "numeric",
-  };
-  const monthOptions = {
-    timeZone: "Asia/Tokyo",
-    month: "numeric",
-  };
-  const monthStartDay = new Date(targetDay);
-  monthStartDay.setDate(1);
-  const monthEndDay = new Date(targetDay);
-  monthEndDay.setMonth(targetDay.getMonth() + 1, 0);
-
+  const today = new Date();
   return (
     <div>
       <div>
@@ -25,21 +12,10 @@ const Home = () => {
           </button>
         </Link>
       </div>
-      <div>{targetDay.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}</div>
       <div>
-        {monthStartDay.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}
-      </div>
-      <div>
-        {monthEndDay.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}
-      </div>
-      <div>
-        {new Intl.DateTimeFormat("ja-JP", {
-          timeZone: "Asia/Tokyo",
-          month: "numeric",
-        }).format(targetDay)}
-      </div>
-      <div>
-        <Link to="/edit/2024/10">編集</Link>
+        <Link to={`/edit/${today.getFullYear()}/${today.getMonth() + 1}`}>
+          編集
+        </Link>
       </div>
     </div>
   );
