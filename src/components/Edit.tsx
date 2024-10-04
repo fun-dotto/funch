@@ -91,17 +91,22 @@ const Edit = () => {
                   {new Intl.DateTimeFormat("ja-JP", dayOptions).format(v)}
                   <div>
                     <select name="0000" id="0000">
-                      <option value="a">a</option>
-                      <option value="b">b</option>
-                      <option value="c">c</option>
-                      <option value="d">d</option>
+                      <option value=""></option>
+                      <option value="主菜">主菜</option>
+                      <option value="副菜・サラダ">副菜・サラダ</option>
+                      <option value="丼物・カレー">丼物・カレー</option>
+                      <option value="麺類">麺類</option>
+                      <option value="ごはん">ごはん</option>
+                      <option value="汁物">汁物</option>
+                      <option value="デザート">デザート</option>
                     </select>
                     ：
-                    <select name="0000" id="0000">
-                      <option value="a">a</option>
-                      <option value="b">b</option>
-                      <option value="c">c</option>
-                      <option value="d">d</option>
+                    <select name="0001" id="0001">
+                      <option value=""></option>
+                      <option value="チキン竜田丼">チキン竜田丼</option>
+                      <option value="さらさらトン茶">さらさらトン茶</option>
+                      <option value="鶏から南蛮丼">鶏から南蛮丼</option>
+                      <option value="塩ダレ唐揚げ丼">塩ダレ唐揚げ丼</option>
                     </select>
                   </div>
                 </>
