@@ -4,6 +4,7 @@ import CoopData from "../assets/menu.json";
 
 export class Menu{
   status: number;
+  size: string | null;
   item_code: number;
   display_name: string;
   ingredients: string;
@@ -17,6 +18,7 @@ export class Menu{
   // nutritionalvalue: Map<string, number>;
 
   constructor(status: number,
+    size: string | null,
     item_code: number,
     display_name: string,
     ingredients: string,
@@ -30,6 +32,7 @@ export class Menu{
     // nutritionalvalue: Map<string, number>,
   ) {
     this.status = status;
+    this.size = size;
     this.item_code = item_code;
     this.display_name = display_name;
     this.ingredients = ingredients;
@@ -48,6 +51,7 @@ export const importMenu = () => {
   return CoopData.map((data) => {
     return new Menu(
       data.status,
+      data.size,
       Number(data.item_code),
       data.display_name,
       data.ingredients,
@@ -64,5 +68,9 @@ export const importMenu = () => {
 }
 
 export const getCategoryMenu = (category_code: number) => {
-  return importMenu().filter((m) => m.category_code == category_code);
+  const c = importMenu().filter((m) => m.category_code == category_code && !m.display_name.startsWith("(大)"));
+  if (category_code != 7) {
+    return c.filter((m) => m.size != "大" && m.size != "小" && m.size != "ミニ");
+  }
+  return c;
 }

@@ -2,7 +2,7 @@
 import { useParams } from "react-router-dom";
 import { FaChevronDown, FaChevronRight, FaTrashAlt } from "react-icons/fa";
 import { FC, ReactNode, useState } from "react";
-import { getCategoryMenu, importMenu, Menu } from "../repository/menu";
+import { getCategoryMenu, Menu } from "../repository/menu";
 import {
   DndContext,
   DragOverlay,
@@ -14,11 +14,14 @@ import {
 const Edit = () => {
   const { year, month } = useParams();
   const [menuData, setMenuData] = useState(new Map<UniqueIdentifier, Menu[]>());
+  const [monthMenuData, setMonthMenuData] = useState<Menu[]>([]);
   const [activeMenu, setActiveMenu] = useState<Menu | null>(null);
   const categoryOptions = [
     { value: "1", label: "主菜" },
-    { value: "2", label: "副菜・サラダ" },
-    { value: "4", label: "丼物・カレー" },
+    { value: "2", label: "副菜" },
+    { value: "9", label: "サラダ" },
+    { value: "4", label: "丼物" },
+    { value: "5", label: "カレー" },
     { value: "11", label: "麺類" },
     { value: "7", label: "ごはん" },
     { value: "8", label: "汁物" },
@@ -107,6 +110,12 @@ const Edit = () => {
     });
   };
 
+  const removeMonthMenu = (item_code: number) => {
+    setMonthMenuData((prev) => {
+      return prev.filter((m) => m.item_code != item_code);
+    });
+  };
+
   const calendarWeekStr = ["月", "火", "水", "木", "金"];
 
   return (
@@ -129,24 +138,37 @@ const Edit = () => {
           }
           console.log(over);
           if (activeMenu != null) {
-            setMenuData((prev) => {
-              const date = over.id;
-              const newMenuData = new Map(prev);
-              const dateMenu = newMenuData.get(date);
-              if (dateMenu != undefined) {
+            if (over.id == "month") {
+              setMonthMenuData((prev) => {
                 if (
-                  dateMenu.find((m) => m.item_code == activeMenu.item_code) ==
+                  prev.find((m) => m.item_code == activeMenu.item_code) ==
                   undefined
                 ) {
-                  dateMenu.push(activeMenu);
-                  newMenuData.set(date, dateMenu);
+                  return [...prev, activeMenu];
+                } else {
+                  return prev;
                 }
-              } else {
-                newMenuData.set(date, [activeMenu]);
-              }
-              console.log(newMenuData);
-              return newMenuData;
-            });
+              });
+            } else {
+              setMenuData((prev) => {
+                const date = over.id;
+                const newMenuData = new Map(prev);
+                const dateMenu = newMenuData.get(date);
+                if (dateMenu != undefined) {
+                  if (
+                    dateMenu.find((m) => m.item_code == activeMenu.item_code) ==
+                    undefined
+                  ) {
+                    dateMenu.push(activeMenu);
+                    newMenuData.set(date, dateMenu);
+                  }
+                } else {
+                  newMenuData.set(date, [activeMenu]);
+                }
+                console.log(newMenuData);
+                return newMenuData;
+              });
+            }
           }
 
           setActiveMenu(() => null);
@@ -201,6 +223,23 @@ const Edit = () => {
             </div>
             <div className="mt-12">
               <h3>{monthJST}の共通メニュー</h3>
+              <div className="w-2/5">
+                <Droppable date={targetDay} id="month">
+                  <div className="flex flex-col mt-4">
+                    {monthMenuData.map((m) => {
+                      return (
+                        <div className="flex justify-between items-center my-1">
+                          <div>{m.display_name}</div>
+                          <FaTrashAlt
+                            className="cursor-pointer inline text-gray-500"
+                            onClick={() => removeMonthMenu(m.item_code)}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Droppable>
+              </div>
             </div>
           </div>
         </div>
