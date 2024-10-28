@@ -6,13 +6,14 @@ import { getCategoryMenu, importMenu, Menu } from "../repository/menu";
 import {
   DndContext,
   DragOverlay,
+  UniqueIdentifier,
   useDraggable,
   useDroppable,
 } from "@dnd-kit/core";
 
 const Edit = () => {
   const { year, month } = useParams();
-  const [menuData, setMenuData] = useState(new Map<Date, Menu[]>());
+  const [menuData, setMenuData] = useState(new Map<UniqueIdentifier, Menu[]>());
   const [activeMenu, setActiveMenu] = useState<Menu | null>(null);
   const categoryOptions = [
     { value: "1", label: "主菜" },
@@ -53,11 +54,12 @@ const Edit = () => {
     timeZone: "Asia/Tokyo",
     day: "numeric",
   };
-  // const debugOptions: Intl.DateTimeFormatOptions = {
-  //   timeZone: "Asia/Tokyo",
-  //   month: "2-digit",
-  //   day: "2-digit",
-  // };
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  };
   const yearJST = new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
     year: "numeric",
@@ -92,6 +94,18 @@ const Edit = () => {
     }
   }
 
+  const removeMenu = (date: string, item_code: number) => {
+    setMenuData((prev) => {
+      const newMenuData = new Map(prev);
+      const dateMenu = newMenuData.get(date);
+      if (dateMenu != undefined) {
+        const newDateMenu = dateMenu.filter((m) => m.item_code != item_code);
+        newMenuData.set(date, newDateMenu);
+      }
+      return newMenuData;
+    });
+  };
+
   const calendarWeekStr = ["月", "火", "水", "木", "金"];
 
   return (
@@ -113,6 +127,27 @@ const Edit = () => {
             return;
           }
           console.log(over);
+          if (activeMenu != null) {
+            setMenuData((prev) => {
+              const date = over.id;
+              const newMenuData = new Map(prev);
+              const dateMenu = newMenuData.get(date);
+              if (dateMenu != undefined) {
+                if (
+                  dateMenu.find((m) => m.item_code == activeMenu.item_code) ==
+                  undefined
+                ) {
+                  dateMenu.push(activeMenu);
+                  newMenuData.set(date, dateMenu);
+                }
+              } else {
+                newMenuData.set(date, [activeMenu]);
+              }
+              console.log(newMenuData);
+              return newMenuData;
+            });
+          }
+
           setActiveMenu(() => null);
         }}
       >
@@ -129,18 +164,39 @@ const Edit = () => {
                 </div>
               ))}
 
-              {calendar.map((v) => (
-                <div className="w-full bg-gray-200 border-gray-300 rounded p-2">
-                  {v >= monthStartDay && v <= monthEndDay && (
-                    <Droppable date={v} id={v.toISOString().split("T")[0]}>
-                      {new Intl.DateTimeFormat("ja-JP", dayOptions).format(v)}
-                      <div className="flex items-center">
-                        {/* <SelectMenu /> */}
-                      </div>
-                    </Droppable>
-                  )}
-                </div>
-              ))}
+              {calendar.map((v) => {
+                const dateId = new Intl.DateTimeFormat(
+                  "ja-JP",
+                  dateOptions
+                ).format(v);
+                const oneDayMenuData = menuData.get(dateId);
+                console.log(oneDayMenuData);
+                return (
+                  <div className="w-full bg-gray-300 border-gray-300 rounded">
+                    {v >= monthStartDay && v <= monthEndDay && (
+                      <Droppable date={v} id={dateId}>
+                        {new Intl.DateTimeFormat("ja-JP", dayOptions).format(v)}
+                        <div className="flex flex-col mt-4">
+                          {oneDayMenuData &&
+                            oneDayMenuData.map((m) => {
+                              return (
+                                <div className="flex justify-between items-center my-1">
+                                  <div>{m.display_name}</div>
+                                  <FaTrashAlt
+                                    className="cursor-pointer inline text-gray-500"
+                                    onClick={() =>
+                                      removeMenu(dateId, m.item_code)
+                                    }
+                                  />
+                                </div>
+                              );
+                            })}
+                        </div>
+                      </Droppable>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             <div className="mt-12">
               <h3>{monthJST}の共通メニュー</h3>
@@ -210,12 +266,15 @@ type DroppableProp = {
 export const Droppable: FC<DroppableProp> = ({ date, children, id }) => {
   const { setNodeRef, isOver } = useDroppable({
     id,
+    data: { date },
   });
 
   return (
     <div
       ref={setNodeRef}
-      className={`h-20 border ${isOver ? "bg-gray-500" : "bg-white"}`}
+      className={`w-full h-full min-h-24 p-2 border rounded ${
+        isOver ? "bg-green-200" : "bg-gray-200"
+      }`}
     >
       {children}
     </div>
