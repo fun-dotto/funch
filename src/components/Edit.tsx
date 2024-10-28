@@ -1,6 +1,6 @@
 // import React from "react";
 import { useParams } from "react-router-dom";
-import { FaTrashAlt } from "react-icons/fa";
+import { FaChevronDown, FaChevronRight, FaTrashAlt } from "react-icons/fa";
 import { FC, ReactNode, useState } from "react";
 import { getCategoryMenu, importMenu, Menu } from "../repository/menu";
 import {
@@ -20,6 +20,7 @@ const Edit = () => {
     { value: "2", label: "副菜・サラダ" },
     { value: "4", label: "丼物・カレー" },
     { value: "11", label: "麺類" },
+    { value: "7", label: "ごはん" },
     { value: "8", label: "汁物" },
     { value: "10", label: "デザート" },
   ];
@@ -204,14 +205,40 @@ const Edit = () => {
           </div>
         </div>
         <aside className="fixed top-0 right-0 w-96 h-screen bg-white overflow-x-hidden overflow-y-scroll z-10">
-          {importMenu().map((m) => {
-            return <Draggable id={String(m.item_code)} menu={m} />;
-          })}
+          {categoryOptions.map((c) => DraggableByCategory(c))}
         </aside>
         <DragOverlay>
           {activeMenu && <DraggableBlockSource menu={activeMenu} />}
         </DragOverlay>
       </DndContext>
+    </>
+  );
+};
+
+const DraggableByCategory = ({
+  value,
+  label,
+}: {
+  value: string;
+  label: string;
+}) => {
+  const category_code = Number(value);
+  const menus = getCategoryMenu(category_code);
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <div
+        className="mx-2 my-4 flex items-center cursor-pointer"
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        {open ? <FaChevronDown /> : <FaChevronRight />}
+        {label}
+      </div>
+
+      {open &&
+        menus.map((m) => {
+          return <Draggable id={String(m.item_code)} menu={m} />;
+        })}
     </>
   );
 };
@@ -229,7 +256,7 @@ export const DraggableBlockSource: FC<DraggableBlockSourceType> = ({
 }) => {
   return (
     <div
-      className={`z-30 p-2 m-1 border rounded text-center bg-white select-none w-fit ${
+      className={`z-30 p-2 my-1 mx-4 border rounded text-center bg-white select-none w-fit ${
         isDragging ? "cursor-grabbing" : "cursor-grab"
       }`}
     >
