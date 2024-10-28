@@ -77,7 +77,7 @@ const Edit = () => {
         {yearJST}
         {monthJST}
       </h2>
-      <div className="m-4 text-center">
+      <div className="my-2 mx-auto">
         <div className="grid grid-cols-7 justify-items-stretch text-left gap-0.5">
           {calendarWeekStr.map((v) => (
             <div className="w-full bg-gray-200 border-gray-300 rounded p-2 text-center">
@@ -113,6 +113,9 @@ const Edit = () => {
               )}
             </div>
           ))}
+        </div>
+        <div>
+          <h3>{monthJST}の共通メニュー</h3>
         </div>
       </div>
     </>
