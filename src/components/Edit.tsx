@@ -1,6 +1,11 @@
 // import React from "react";
-import { useParams } from "react-router-dom";
-import { FaChevronDown, FaChevronRight, FaTrashAlt } from "react-icons/fa";
+import { Link, useParams } from "react-router-dom";
+import {
+  FaChevronDown,
+  FaChevronLeft,
+  FaChevronRight,
+  FaTrashAlt,
+} from "react-icons/fa";
 import { FC, ReactNode, useState } from "react";
 import { getCategoryMenu, Menu } from "../repository/menu";
 import {
@@ -10,6 +15,7 @@ import {
   useDraggable,
   useDroppable,
 } from "@dnd-kit/core";
+import * as wanakana from "wanakana";
 
 const Edit = () => {
   const { year, month } = useParams();
@@ -27,6 +33,7 @@ const Edit = () => {
     { value: "8", label: "汁物" },
     { value: "10", label: "デザート" },
   ];
+  const sortNumber = [1, 2, 9, 4, 5, 11, 7, 8, 10];
   let canView = true;
   let targetYear = 0;
   let targetMonth = -1;
@@ -54,6 +61,10 @@ const Edit = () => {
   monthStartDay.setDate(1);
   const monthEndDay = new Date(targetDay);
   monthEndDay.setMonth(targetDay.getMonth() + 1, 0);
+  const nextMonth = new Date(targetDay);
+  nextMonth.setMonth(targetDay.getMonth() + 1);
+  const prevMonth = new Date(targetDay);
+  prevMonth.setMonth(targetDay.getMonth() - 1);
   const dayOptions: Intl.DateTimeFormatOptions = {
     timeZone: "Asia/Tokyo",
     day: "numeric",
@@ -118,6 +129,22 @@ const Edit = () => {
 
   const calendarWeekStr = ["月", "火", "水", "木", "金"];
 
+  const menuSort = (a: Menu, b: Menu) => {
+    const diff1 =
+      sortNumber.indexOf(a.category_code) - sortNumber.indexOf(b.category_code);
+    if (diff1 != 0) {
+      return diff1;
+    }
+    // 軽量化のため、10文字までで比較
+    const diff2 = wanakana
+      .toKana(a.display_name_roman.slice(0, 10))
+      .localeCompare(wanakana.toKana(b.display_name_roman.slice(0, 10)), "ja");
+    if (diff2 != 0) {
+      return diff2;
+    }
+    return a.display_name.localeCompare(b.display_name, "ja");
+  };
+
   return (
     <>
       <DndContext
@@ -144,7 +171,9 @@ const Edit = () => {
                   prev.find((m) => m.item_code == activeMenu.item_code) ==
                   undefined
                 ) {
-                  return [...prev, activeMenu];
+                  const monthMenu = [...prev, activeMenu];
+                  monthMenu.sort(menuSort);
+                  return monthMenu;
                 } else {
                   return prev;
                 }
@@ -160,6 +189,7 @@ const Edit = () => {
                     undefined
                   ) {
                     dateMenu.push(activeMenu);
+                    dateMenu.sort(menuSort);
                     newMenuData.set(date, dateMenu);
                   }
                 } else {
@@ -175,10 +205,42 @@ const Edit = () => {
         }}
       >
         <div className="sm:mr-96 z-10">
-          <h2>
-            {yearJST}
-            {monthJST}
-          </h2>
+          <div className="flex justify-between">
+            <h2>
+              {yearJST}
+              {monthJST}
+            </h2>
+            <div className="flex">
+              <Link
+                to={`/edit/${prevMonth.getFullYear()}/${
+                  prevMonth.getMonth() + 1
+                }`}
+              >
+                <div className="mx-2 flex items-center">
+                  <FaChevronLeft />
+                  前の月
+                </div>
+              </Link>
+              <Link
+                to={`/edit/${nextMonth.getFullYear()}/${
+                  nextMonth.getMonth() + 1
+                }`}
+              >
+                <div className="mx-2 flex items-center">
+                  次の月
+                  <FaChevronRight />
+                </div>
+              </Link>
+            </div>
+          </div>
+          <div className="mt-4 text-right">
+            <button
+              type="button"
+              className="bg-blue-500 text-xl text-white rounded py-2 px-3 hover:bg-blue-700"
+            >
+              保存する
+            </button>
+          </div>
           <div className="my-2 mx-auto">
             <div className="grid grid-cols-5 justify-items-stretch text-left gap-0.5">
               {calendarWeekStr.map((v) => (
@@ -201,19 +263,12 @@ const Edit = () => {
                         {new Intl.DateTimeFormat("ja-JP", dayOptions).format(v)}
                         <div className="flex flex-col mt-4">
                           {oneDayMenuData &&
-                            oneDayMenuData.map((m) => {
-                              return (
-                                <div className="flex justify-between items-center my-1">
-                                  <div>{m.display_name}</div>
-                                  <FaTrashAlt
-                                    className="cursor-pointer inline text-gray-500"
-                                    onClick={() =>
-                                      removeMenu(dateId, m.item_code)
-                                    }
-                                  />
-                                </div>
-                              );
-                            })}
+                            oneDayMenuData.map((m) =>
+                              InMenu({
+                                menu: m,
+                                onClick: () => removeMenu(dateId, m.item_code),
+                              })
+                            )}
                         </div>
                       </Droppable>
                     )}
@@ -226,17 +281,12 @@ const Edit = () => {
               <div className="w-2/5">
                 <Droppable date={targetDay} id="month">
                   <div className="flex flex-col mt-4">
-                    {monthMenuData.map((m) => {
-                      return (
-                        <div className="flex justify-between items-center my-1">
-                          <div>{m.display_name}</div>
-                          <FaTrashAlt
-                            className="cursor-pointer inline text-gray-500"
-                            onClick={() => removeMonthMenu(m.item_code)}
-                          />
-                        </div>
-                      );
-                    })}
+                    {monthMenuData.map((m) =>
+                      InMenu({
+                        menu: m,
+                        onClick: () => removeMonthMenu(m.item_code),
+                      })
+                    )}
                   </div>
                 </Droppable>
               </div>
@@ -251,6 +301,27 @@ const Edit = () => {
         </DragOverlay>
       </DndContext>
     </>
+  );
+};
+
+const InMenu = ({
+  menu,
+  onClick,
+}: {
+  menu: Menu;
+  onClick: React.MouseEventHandler<SVGElement>;
+}) => {
+  return (
+    <div className="flex justify-between items-center my-1">
+      <div>
+        {menu.display_name}
+        <span className="text-xs">¥{menu.price_kumika}</span>
+      </div>
+      <FaTrashAlt
+        className="cursor-pointer inline text-gray-500"
+        onClick={onClick}
+      />
+    </div>
   );
 };
 
@@ -295,11 +366,12 @@ export const DraggableBlockSource: FC<DraggableBlockSourceType> = ({
 }) => {
   return (
     <div
-      className={`z-30 p-2 my-1 mx-4 border rounded text-center bg-white select-none w-fit ${
+      className={`z-30 p-2 my-1 mx-4 border rounded bg-white select-none w-fit ${
         isDragging ? "cursor-grabbing" : "cursor-grab"
       }`}
     >
       {menu.display_name}
+      <span className="text-xs">¥{menu.price_kumika}</span>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import CoopData from "../assets/menu.json";
-
+import * as wanakana from "wanakana";
 
 
 export class Menu{
@@ -7,6 +7,7 @@ export class Menu{
   size: string | null;
   item_code: number;
   display_name: string;
+  display_name_roman: string;
   ingredients: string;
   price_kumika: number;
   image_url: string[];
@@ -21,6 +22,7 @@ export class Menu{
     size: string | null,
     item_code: number,
     display_name: string,
+    display_name_roman: string,
     ingredients: string,
     price_kumika: number,
     image_url: string[],
@@ -35,6 +37,7 @@ export class Menu{
     this.size = size;
     this.item_code = item_code;
     this.display_name = display_name;
+    this.display_name_roman = display_name_roman;
     this.ingredients = ingredients;
     this.price_kumika = price_kumika;
     this.image_url = image_url;
@@ -54,6 +57,7 @@ export const importMenu = () => {
       data.size,
       Number(data.item_code),
       data.display_name,
+      data.display_name_roman,
       data.ingredients,
       data.price_kumika,
       data.image_url,
@@ -70,7 +74,16 @@ export const importMenu = () => {
 export const getCategoryMenu = (category_code: number) => {
   const c = importMenu().filter((m) => m.category_code == category_code && !m.display_name.startsWith("(大)"));
   if (category_code != 7) {
-    return c.filter((m) => m.size != "大" && m.size != "小" && m.size != "ミニ");
+    return c.filter((m) => m.size != "大" && m.size != "小" && m.size != "ミニ").sort(menuSort);
   }
-  return c;
+  return c.sort(menuSort);
+}
+
+const menuSort = (a: Menu, b: Menu) => {
+  // 軽量化のため、10文字までで比較
+  const diff = wanakana.toKana(a.display_name_roman.slice(0, 10)).localeCompare(wanakana.toKana(b.display_name_roman.slice(0, 10)), 'ja');
+  if (diff != 0) {
+    return diff;
+  }
+  return a.display_name.localeCompare(b.display_name, 'ja');
 }
