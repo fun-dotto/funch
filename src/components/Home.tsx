@@ -1,13 +1,12 @@
 // import React from "react";
-import { onAuthStateChanged, signInWithPopup } from "firebase/auth";
-import { useContext, useEffect } from "react";
+import { onAuthStateChanged, signInWithPopup, User } from "firebase/auth";
+import { useEffect, useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { auth, provider } from "../infrastructure/firebase";
-import { UserContext } from "./providers/FunchUser";
 
 const Home = () => {
-  const { user, setUser } = useContext(UserContext);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {

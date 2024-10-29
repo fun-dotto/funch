@@ -1,5 +1,5 @@
 // import React from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import {
   FaCheck,
   FaChevronDown,
@@ -17,7 +17,7 @@ import {
   useDroppable,
 } from "@dnd-kit/core";
 import * as wanakana from "wanakana";
-import { database } from "../infrastructure/firebase";
+import { auth, database } from "../infrastructure/firebase";
 import {
   collection,
   doc,
@@ -37,18 +37,12 @@ const Edit = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const categoryOptions = [
-    { value: "1", label: "主菜" },
-    { value: "2", label: "副菜" },
-    { value: "9", label: "サラダ" },
-    { value: "4", label: "丼物" },
-    { value: "5", label: "カレー" },
-    { value: "11", label: "麺類" },
-    { value: "7", label: "ごはん" },
-    { value: "8", label: "汁物" },
-    { value: "10", label: "デザート" },
-  ];
-  const sortNumber = [1, 2, 9, 4, 5, 11, 7, 8, 10];
+
+  const user = auth.currentUser;
+  if (user == null) {
+    return <Navigate replace to="/" />;
+  }
+
   let canView = true;
   let targetYear = 0;
   let targetMonth = -1;
@@ -130,13 +124,18 @@ const Edit = () => {
           const menuCodes = data.menu as number[];
           const menus = menuCodes
             .map((m: number) => {
-              return importMenu().find(
-                (menu) =>
-                  menu.item_code == m &&
-                  menu.size != "大" &&
-                  menu.size != "小" &&
-                  menu.size != "ミニ"
-              );
+              return importMenu().find((menu) => {
+                if (menu.category_code == 7) {
+                  return menu.item_code == m;
+                } else {
+                  return (
+                    menu.item_code == m &&
+                    menu.size != "大" &&
+                    menu.size != "小" &&
+                    menu.size != "ミニ"
+                  );
+                }
+              });
             })
             .filter((m) => m != undefined) as Menu[];
           setMonthMenuData(() => menus);
@@ -156,13 +155,18 @@ const Edit = () => {
         const menuCodes = data.menu as number[];
         const menus = menuCodes
           .map((m: number) => {
-            return importMenu().find(
-              (menu) =>
-                menu.item_code == m &&
-                menu.size != "大" &&
-                menu.size != "小" &&
-                menu.size != "ミニ"
-            );
+            return importMenu().find((menu) => {
+              if (menu.category_code == 7) {
+                return menu.item_code == m;
+              } else {
+                return (
+                  menu.item_code == m &&
+                  menu.size != "大" &&
+                  menu.size != "小" &&
+                  menu.size != "ミニ"
+                );
+              }
+            });
           })
           .filter((m) => m != undefined) as Menu[];
 
@@ -205,6 +209,19 @@ const Edit = () => {
       }
     }
   }
+
+  const categoryOptions = [
+    { value: "1", label: "主菜" },
+    { value: "2", label: "副菜" },
+    { value: "9", label: "サラダ" },
+    { value: "4", label: "丼物" },
+    { value: "5", label: "カレー" },
+    { value: "11", label: "麺類" },
+    { value: "7", label: "ごはん" },
+    { value: "8", label: "汁物" },
+    { value: "10", label: "デザート" },
+  ];
+  const sortNumber = [1, 2, 9, 4, 5, 11, 7, 8, 10];
 
   const removeMenu = (date: string, item_code: number) => {
     setMenuData((prev) => {
