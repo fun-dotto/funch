@@ -139,7 +139,6 @@ const Edit = () => {
               );
             })
             .filter((m) => m != undefined) as Menu[];
-          console.log(menus);
           setMonthMenuData(() => menus);
         }
       } else {
@@ -167,7 +166,6 @@ const Edit = () => {
           })
           .filter((m) => m != undefined) as Menu[];
 
-        console.log(menus);
         setMenuData((prev) => {
           const newMenuData = new Map(prev);
           newMenuData.set(
@@ -247,7 +245,6 @@ const Edit = () => {
   const saveMenu = async () => {
     setSaving(true);
     setSaved(false);
-    console.log("saving");
     menuData.forEach(async (value, key) => {
       const d = new Date(key);
       const menuItemCodes = value.map((m) => m.item_code);
@@ -265,7 +262,6 @@ const Edit = () => {
       month: targetMonth,
       menu: monthMenuItemCodes,
     });
-    console.log("saved");
     setSaving(false);
     setSaved(true);
     new Promise((resolve) => setTimeout(resolve, 3000)).then(() => {
@@ -281,7 +277,6 @@ const Edit = () => {
           if (active == null) {
             return;
           }
-          console.log(active);
           if (active.data.current != null) {
             setActiveMenu(() => active.data.current!.menu);
           }
@@ -291,7 +286,6 @@ const Edit = () => {
           if (over == null) {
             return;
           }
-          console.log(over);
           if (activeMenu != null) {
             if (over.id == "month") {
               setMonthMenuData((prev) => {
