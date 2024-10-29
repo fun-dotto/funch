@@ -1,12 +1,13 @@
 // import React from "react";
-import { onAuthStateChanged, signInWithPopup, User } from "firebase/auth";
-import { useEffect, useState } from "react";
+import { onAuthStateChanged, signInWithPopup } from "firebase/auth";
+import { useContext, useEffect } from "react";
 import { FaGoogle } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { auth, provider } from "../infrastructure/firebase";
+import { UserContext } from "./providers/FunchUser";
 
 const Home = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, setUser } = useContext(UserContext);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -18,7 +19,7 @@ const Home = () => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [setUser]);
   const handleLogout = () => {
     auth.signOut();
     // ログアウト後の処理を記述する（例：リダイレクトなど）
@@ -67,7 +68,7 @@ const Home = () => {
             className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 flex items-center"
             onClick={signInwithGoogle}
           >
-            <FaGoogle /> ログイン
+            <FaGoogle /> 未来大Googleアカウントでログイン
           </button>
         </div>
       )}

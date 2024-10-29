@@ -6,7 +6,7 @@ import {
   FaChevronRight,
   FaTrashAlt,
 } from "react-icons/fa";
-import { FC, ReactNode, useEffect, useState } from "react";
+import { FC, ReactNode, useState } from "react";
 import { getCategoryMenu, Menu } from "../repository/menu";
 import {
   DndContext,
@@ -16,33 +16,29 @@ import {
   useDroppable,
 } from "@dnd-kit/core";
 import * as wanakana from "wanakana";
-import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "../infrastructure/firebase";
 
 const Edit = () => {
   const { year, month } = useParams();
   const [menuData, setMenuData] = useState(new Map<UniqueIdentifier, Menu[]>());
   const [monthMenuData, setMonthMenuData] = useState<Menu[]>([]);
   const [activeMenu, setActiveMenu] = useState<Menu | null>(null);
+  const categoryOptions = [
+    { value: "1", label: "主菜" },
+    { value: "2", label: "副菜" },
+    { value: "9", label: "サラダ" },
+    { value: "4", label: "丼物" },
+    { value: "5", label: "カレー" },
+    { value: "11", label: "麺類" },
+    { value: "7", label: "ごはん" },
+    { value: "8", label: "汁物" },
+    { value: "10", label: "デザート" },
+  ];
+  const sortNumber = [1, 2, 9, 4, 5, 11, 7, 8, 10];
   let canView = true;
   let targetYear = 0;
   let targetMonth = -1;
 
-  const [user, setUser] = useState<User | null>(null);
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        setUser(null);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-  if (user == null) {
-    canView = false;
-  } else if (year == undefined || month == undefined) {
+  if (year == undefined || month == undefined) {
     canView = false;
   } else {
     targetYear = parseInt(year);
@@ -60,19 +56,6 @@ const Edit = () => {
   if (!canView) {
     return <div>無効です</div>;
   }
-
-  const categoryOptions = [
-    { value: "1", label: "主菜" },
-    { value: "2", label: "副菜" },
-    { value: "9", label: "サラダ" },
-    { value: "4", label: "丼物" },
-    { value: "5", label: "カレー" },
-    { value: "11", label: "麺類" },
-    { value: "7", label: "ごはん" },
-    { value: "8", label: "汁物" },
-    { value: "10", label: "デザート" },
-  ];
-  const sortNumber = [1, 2, 9, 4, 5, 11, 7, 8, 10];
 
   const targetDay = new Date(targetYear, targetMonth - 1);
   const monthStartDay = new Date(targetDay);
