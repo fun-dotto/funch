@@ -1,22 +1,76 @@
 // import React from "react";
+import { onAuthStateChanged, signInWithPopup, User } from "firebase/auth";
+import { useEffect, useState } from "react";
+import { FaGoogle } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { auth, provider } from "../infrastructure/firebase";
 
 const Home = () => {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+  const handleLogout = () => {
+    auth.signOut();
+    // ログアウト後の処理を記述する（例：リダイレクトなど）
+  };
+  const signInwithGoogle = async () => {
+    try {
+      await signInWithPopup(auth, provider).then((result) => {
+        const user = result.user;
+        if (!user.email?.endsWith("@fun.ac.jp")) {
+          handleLogout();
+          alert("fun.ac.jpのアカウントでログインしてください");
+        }
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const today = new Date();
   return (
     <div className="view">
-      <div>
-        <Link to="/login">
-          <button className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2">
-            ログイン
+      {user ? (
+        // ログインしている場合の表示
+        <>
+          <div>
+            <p>{user.email} でログイン中</p>
+            <button
+              type="button"
+              className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2"
+              onClick={handleLogout}
+            >
+              ログアウト
+            </button>
+          </div>
+          <div>
+            <Link to={`/edit/${today.getFullYear()}/${today.getMonth() + 1}`}>
+              編集
+            </Link>
+          </div>
+        </>
+      ) : (
+        // ログインしていない場合の表示
+        <div>
+          <button
+            type="button"
+            className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 flex items-center"
+            onClick={signInwithGoogle}
+          >
+            <FaGoogle /> ログイン
           </button>
-        </Link>
-      </div>
-      <div>
-        <Link to={`/edit/${today.getFullYear()}/${today.getMonth() + 1}`}>
-          編集
-        </Link>
-      </div>
+        </div>
+      )}
     </div>
   );
 };
