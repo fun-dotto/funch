@@ -16,6 +16,8 @@ import {
   useDroppable,
 } from "@dnd-kit/core";
 import * as wanakana from "wanakana";
+import { database } from "../infrastructure/firebase";
+import { doc, setDoc, Timestamp } from "firebase/firestore";
 
 const Edit = () => {
   const { year, month } = useParams();
@@ -73,8 +75,8 @@ const Edit = () => {
   const dateOptions: Intl.DateTimeFormatOptions = {
     timeZone: "Asia/Tokyo",
     year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
+    month: "numeric",
+    day: "numeric",
   };
   const yearJST = new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
@@ -84,6 +86,21 @@ const Edit = () => {
     timeZone: "Asia/Tokyo",
     month: "numeric",
   }).format(monthStartDay);
+  const formatDateJST = (date: Date, m: boolean) => {
+    const options: Intl.DateTimeFormatOptions = {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: "Asia/Tokyo",
+    };
+    const formatter = new Intl.DateTimeFormat("ja-JP", options);
+    const parts = formatter.formatToParts(date);
+    const year = parts.find((part) => part.type === "year")?.value;
+    const month = parts.find((part) => part.type === "month")?.value;
+    const day = parts.find((part) => part.type === "day")?.value;
+
+    return m ? `${year}${month}` : `${year}${month}${day}`;
+  };
 
   const calendar: Date[] = [];
   const calendarStartDate = new Date(monthStartDay);
@@ -146,6 +163,28 @@ const Edit = () => {
     return a.display_name.localeCompare(b.display_name, "ja");
   };
 
+  const saveMenu = async () => {
+    console.log("saving");
+    menuData.forEach(async (value, key) => {
+      const d = new Date(key);
+      const menuItemCodes = value.map((m) => m.item_code);
+      const id = formatDateJST(d, false);
+      await setDoc(doc(database, "funch_day", id), {
+        date: Timestamp.fromDate(d),
+        menu: menuItemCodes,
+      });
+    });
+
+    const monthMenuItemCodes = monthMenuData.map((m) => m.item_code);
+    const id = formatDateJST(targetDay, true);
+    await setDoc(doc(database, "funch_month", id), {
+      year: targetYear,
+      month: targetMonth,
+      menu: monthMenuItemCodes,
+    });
+    console.log("saved");
+  };
+
   return (
     <>
       <DndContext
@@ -196,7 +235,6 @@ const Edit = () => {
                 } else {
                   newMenuData.set(date, [activeMenu]);
                 }
-                console.log(newMenuData);
                 return newMenuData;
               });
             }
@@ -238,6 +276,7 @@ const Edit = () => {
             <button
               type="button"
               className="bg-blue-500 text-xl text-white rounded py-2 px-3 hover:bg-blue-700"
+              onClick={saveMenu}
             >
               保存する
             </button>
@@ -256,7 +295,6 @@ const Edit = () => {
                   dateOptions
                 ).format(v);
                 const oneDayMenuData = menuData.get(dateId);
-                console.log(oneDayMenuData);
                 return (
                   <div className="w-full bg-gray-300 border-gray-300 rounded">
                     {v >= monthStartDay && v <= monthEndDay && (
