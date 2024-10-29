@@ -1,13 +1,14 @@
 // import React from "react";
 import { Link, useParams } from "react-router-dom";
 import {
+  FaCheck,
   FaChevronDown,
   FaChevronLeft,
   FaChevronRight,
   FaTrashAlt,
 } from "react-icons/fa";
-import { FC, ReactNode, useState } from "react";
-import { getCategoryMenu, Menu } from "../repository/menu";
+import { FC, ReactNode, useEffect, useState } from "react";
+import { getCategoryMenu, importMenu, Menu } from "../repository/menu";
 import {
   DndContext,
   DragOverlay,
@@ -17,13 +18,25 @@ import {
 } from "@dnd-kit/core";
 import * as wanakana from "wanakana";
 import { database } from "../infrastructure/firebase";
-import { doc, setDoc, Timestamp } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  Timestamp,
+  where,
+} from "firebase/firestore";
 
 const Edit = () => {
   const { year, month } = useParams();
   const [menuData, setMenuData] = useState(new Map<UniqueIdentifier, Menu[]>());
   const [monthMenuData, setMonthMenuData] = useState<Menu[]>([]);
   const [activeMenu, setActiveMenu] = useState<Menu | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const categoryOptions = [
     { value: "1", label: "主菜" },
     { value: "2", label: "副菜" },
@@ -102,6 +115,74 @@ const Edit = () => {
     return m ? `${year}${month}` : `${year}${month}${day}`;
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      const docMonthRef = doc(
+        database,
+        "funch_month",
+        formatDateJST(targetDay, true)
+      );
+      const docMonthSnap = await getDoc(docMonthRef);
+      if (docMonthSnap.exists()) {
+        const data = docMonthSnap.data();
+        if (data != undefined) {
+          const menuCodes = data.menu as number[];
+          const menus = menuCodes
+            .map((m: number) => {
+              return importMenu().find(
+                (menu) =>
+                  menu.item_code == m &&
+                  menu.size != "大" &&
+                  menu.size != "小" &&
+                  menu.size != "ミニ"
+              );
+            })
+            .filter((m) => m != undefined) as Menu[];
+          console.log(menus);
+          setMonthMenuData(() => menus);
+        }
+      } else {
+        setMonthMenuData(() => []);
+      }
+      const docRef = query(
+        collection(database, "funch_day"),
+        where("date", ">=", Timestamp.fromDate(monthStartDay)),
+        where("date", "<=", Timestamp.fromDate(monthEndDay))
+      );
+      const docSnap = await getDocs(docRef);
+      docSnap.forEach((doc) => {
+        const data = doc.data();
+        const date = new Date(data.date.seconds * 1000);
+        const menuCodes = data.menu as number[];
+        const menus = menuCodes
+          .map((m: number) => {
+            return importMenu().find(
+              (menu) =>
+                menu.item_code == m &&
+                menu.size != "大" &&
+                menu.size != "小" &&
+                menu.size != "ミニ"
+            );
+          })
+          .filter((m) => m != undefined) as Menu[];
+
+        console.log(menus);
+        setMenuData((prev) => {
+          const newMenuData = new Map(prev);
+          newMenuData.set(
+            new Intl.DateTimeFormat("ja-JP", dateOptions).format(date),
+            menus
+          );
+          return newMenuData;
+        });
+      });
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      setLoading(false);
+    };
+    fetchData();
+  }, [year, month]);
+
   const calendar: Date[] = [];
   const calendarStartDate = new Date(monthStartDay);
   calendarStartDate.setDate(
@@ -164,6 +245,8 @@ const Edit = () => {
   };
 
   const saveMenu = async () => {
+    setSaving(true);
+    setSaved(false);
     console.log("saving");
     menuData.forEach(async (value, key) => {
       const d = new Date(key);
@@ -183,6 +266,11 @@ const Edit = () => {
       menu: monthMenuItemCodes,
     });
     console.log("saved");
+    setSaving(false);
+    setSaved(true);
+    new Promise((resolve) => setTimeout(resolve, 3000)).then(() => {
+      setSaved(false);
+    });
   };
 
   return (
@@ -275,8 +363,13 @@ const Edit = () => {
           <div className="mt-4 text-right">
             <button
               type="button"
-              className="bg-blue-500 text-xl text-white rounded py-2 px-3 hover:bg-blue-700"
+              className={` text-xl text-white rounded py-2 px-3 ${
+                saving
+                  ? "cursor-not-allowed bg-gray-500"
+                  : "cursor-pointer bg-blue-500 hover:bg-blue-700"
+              }`}
               onClick={saveMenu}
+              disabled={saving}
             >
               保存する
             </button>
@@ -339,6 +432,22 @@ const Edit = () => {
           {activeMenu && <DraggableBlockSource menu={activeMenu} />}
         </DragOverlay>
       </DndContext>
+      {loading && (
+        <div className="absolute w-screen h-screen top-0 left-0 bg-gray-500 bg-opacity-50 z-50">
+          <div className="absolute w-screen h-screen grid items-center text-center text-2xl">
+            loading...
+          </div>
+        </div>
+      )}
+
+      <div
+        className={`absolute top-4 right-4 py-3 px-6 bg-gray-600 text-white rounded z-40 transition-opacity flex items-center ${
+          !saved && "opacity-0"
+        }`}
+      >
+        <FaCheck className="mr-2" />
+        保存しました！
+      </div>
     </>
   );
 };
