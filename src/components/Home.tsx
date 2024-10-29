@@ -22,7 +22,7 @@ const Home = () => {
   }, [setUser]);
   const handleLogout = () => {
     auth.signOut();
-    // ログアウト後の処理を記述する（例：リダイレクトなど）
+    setUser(null);
   };
   const signInwithGoogle = async () => {
     try {
