@@ -1,5 +1,6 @@
 import CoopData from "../assets/menu.json";
 import * as wanakana from "wanakana";
+import { PriceModel } from "./price";
 
 
 export class Menu{
@@ -86,4 +87,15 @@ const menuSort = (a: Menu, b: Menu) => {
     return diff;
   }
   return a.display_name.localeCompare(b.display_name, 'ja');
+}
+
+
+export type OriginalMenu ={
+  id: string;
+  title: string;
+  price: PriceModel;
+  image: string;
+  large: boolean;
+  small: boolean;
+  category: number;
 }

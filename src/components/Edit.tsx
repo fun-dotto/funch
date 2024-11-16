@@ -109,6 +109,7 @@ const Edit = () => {
     return m ? `${year}${month}` : `${year}${month}${day}`;
   };
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
