@@ -8,7 +8,12 @@ import {
   FaTrashAlt,
 } from "react-icons/fa";
 import { FC, ReactNode, useEffect, useState } from "react";
-import { getCategoryMenu, importMenu, Menu } from "../repository/menu";
+import {
+  getCategoryMenu,
+  importMenu,
+  Menu,
+  OriginalMenu,
+} from "../repository/menu";
 import {
   DndContext,
   DragOverlay,
@@ -21,19 +26,31 @@ import { auth, database } from "../infrastructure/firebase";
 import {
   collection,
   doc,
+  DocumentReference,
   getDoc,
   getDocs,
+  orderBy,
   query,
   setDoc,
   Timestamp,
   where,
 } from "firebase/firestore";
+import { PriceModel } from "../repository/price";
 
 const Edit = () => {
   const { year, month } = useParams();
   const [menuData, setMenuData] = useState(new Map<UniqueIdentifier, Menu[]>());
+  const [originalMenuData, setOriginalMenuData] = useState(
+    new Map<UniqueIdentifier, OriginalMenu[]>()
+  );
+  const [originalMenuList, setOriginalMenuList] = useState<OriginalMenu[]>([]);
   const [monthMenuData, setMonthMenuData] = useState<Menu[]>([]);
+  const [monthOriginalMenuData, setMonthOriginalMenuData] = useState<
+    OriginalMenu[]
+  >([]);
   const [activeMenu, setActiveMenu] = useState<Menu | null>(null);
+  const [activeOriginalMenu, setActiveOriginalMenu] =
+    useState<OriginalMenu | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -113,6 +130,54 @@ const Edit = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      let newOriginalMenuList: OriginalMenu[] = [];
+      if (originalMenuList.length == 0) {
+        const docPriceRef = query(
+          collection(database, "funch_price"),
+          orderBy("medium", "desc")
+        );
+        const docPriceSnap = await getDocs(docPriceRef);
+        const newPriceList: PriceModel[] = [];
+        docPriceSnap.forEach((doc) => {
+          const data = doc.data();
+          const id = doc.id;
+          const small = data.small;
+          const medium = data.medium;
+          const large = data.large;
+          const categories = data.categories as number[];
+          newPriceList.push({ id, small, medium, large, categories });
+        });
+
+        const docOriginalMenuRef = query(
+          collection(database, "funch_original_menu")
+        );
+        const docOriginalMenuSnap = await getDocs(docOriginalMenuRef);
+        docOriginalMenuSnap.forEach((doc) => {
+          const data = doc.data();
+          const id = doc.id;
+          const title = data.title;
+          const priceId = data.price.id;
+          const price = newPriceList.find((price) => price.id === priceId);
+          const image = data.image;
+          const large = data.large;
+          const small = data.small;
+          const category = data.category;
+          if (price != null) {
+            newOriginalMenuList.push({
+              id: id,
+              title: title,
+              price: price,
+              image: image,
+              large: large,
+              small: small,
+              category: category,
+            });
+          }
+        });
+        setOriginalMenuList(() => newOriginalMenuList);
+      } else {
+        newOriginalMenuList = originalMenuList;
+      }
       const docMonthRef = doc(
         database,
         "funch_month",
@@ -121,28 +186,58 @@ const Edit = () => {
       const docMonthSnap = await getDoc(docMonthRef);
       if (docMonthSnap.exists()) {
         const data = docMonthSnap.data();
-        if (data != undefined) {
-          const menuCodes = data.menu as number[];
-          const menus = menuCodes
-            .map((m: number) => {
-              return importMenu().find((menu) => {
-                if (menu.category_code == 7) {
-                  return menu.item_code == m;
-                } else {
-                  return (
-                    menu.item_code == m &&
-                    menu.size != "大" &&
-                    menu.size != "小" &&
-                    menu.size != "ミニ"
-                  );
-                }
-              });
-            })
-            .filter((m) => m != undefined) as Menu[];
-          setMonthMenuData(() => menus);
-        }
+
+        const menuCodes = data.menu != undefined ? (data.menu as number[]) : [];
+        const menus = menuCodes
+          .map((m: number) => {
+            return importMenu().find((menu) => {
+              if (menu.category_code == 7) {
+                return menu.item_code == m;
+              } else {
+                return (
+                  menu.item_code == m &&
+                  menu.size != "大" &&
+                  menu.size != "小" &&
+                  menu.size != "ミニ"
+                );
+              }
+            });
+          })
+          .filter((m) => m != undefined) as Menu[];
+        setMonthMenuData(() => menus);
+        const originalMenuRefs =
+          data.original_menu != undefined
+            ? (data.original_menu as DocumentReference[])
+            : [];
+        const originalMenus = originalMenuRefs
+          .map((ref) => {
+            return newOriginalMenuList.find((m) => m.id == ref.id);
+          })
+          .filter((m) => m != undefined) as OriginalMenu[];
+        setMonthOriginalMenuData(() => originalMenus);
       } else {
-        setMonthMenuData(() => []);
+        const menuCodes = [
+          10002, 12057, 12075, 17364, 17366, 17390, 17392, 7051, 7053, 7052,
+          8001,
+        ];
+        const menus = menuCodes
+          .map((m: number) => {
+            return importMenu().find((menu) => {
+              if (menu.category_code == 7) {
+                return menu.item_code == m;
+              } else {
+                return (
+                  menu.item_code == m &&
+                  menu.size != "大" &&
+                  menu.size != "小" &&
+                  menu.size != "ミニ"
+                );
+              }
+            });
+          })
+          .filter((m) => m != undefined) as Menu[];
+        setMonthMenuData(() => menus);
+        setMonthOriginalMenuData(() => []);
       }
       const docRef = query(
         collection(database, "funch_day"),
@@ -153,7 +248,7 @@ const Edit = () => {
       docSnap.forEach((doc) => {
         const data = doc.data();
         const date = new Date(data.date.seconds * 1000);
-        const menuCodes = data.menu as number[];
+        const menuCodes = data.menu != undefined ? (data.menu as number[]) : [];
         const menus = menuCodes
           .map((m: number) => {
             return importMenu().find((menu) => {
@@ -179,11 +274,29 @@ const Edit = () => {
           );
           return newMenuData;
         });
+        const originalMenuRefs =
+          data.original_menu != undefined
+            ? (data.original_menu as DocumentReference[])
+            : [];
+        const originalMenus = originalMenuRefs
+          .map((ref) => {
+            return newOriginalMenuList.find((m) => m.id == ref.id);
+          })
+          .filter((m) => m != undefined) as OriginalMenu[];
+        setOriginalMenuData((prev) => {
+          const newMenuData = new Map(prev);
+          newMenuData.set(
+            new Intl.DateTimeFormat("ja-JP", dateOptions).format(date),
+            originalMenus
+          );
+          return newMenuData;
+        });
       });
       await new Promise((resolve) => setTimeout(resolve, 300));
       setLoading(false);
     };
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year, month]);
 
   const calendar: Date[] = [];
@@ -236,9 +349,27 @@ const Edit = () => {
     });
   };
 
+  const removeOriginalMenu = (date: string, id: string) => {
+    setOriginalMenuData((prev) => {
+      const newMenuData = new Map(prev);
+      const dateMenu = newMenuData.get(date);
+      if (dateMenu != undefined) {
+        const newDateMenu = dateMenu.filter((m) => m.id != id);
+        newMenuData.set(date, newDateMenu);
+      }
+      return newMenuData;
+    });
+  };
+
   const removeMonthMenu = (item_code: number) => {
     setMonthMenuData((prev) => {
       return prev.filter((m) => m.item_code != item_code);
+    });
+  };
+
+  const removeOriginalMonthMenu = (id: string) => {
+    setMonthOriginalMenuData((prev) => {
+      return prev.filter((m) => m.id != id);
     });
   };
 
@@ -263,22 +394,41 @@ const Edit = () => {
   const saveMenu = async () => {
     setSaving(true);
     setSaved(false);
-    menuData.forEach(async (value, key) => {
+    const keys: Set<UniqueIdentifier> = new Set([
+      ...menuData.keys(),
+      ...originalMenuData.keys(),
+    ]);
+    keys.forEach(async (key) => {
+      const menuOneDayData = menuData.get(key);
+      const originalMenuOneDayData = originalMenuData.get(key);
       const d = new Date(key);
-      const menuItemCodes = value.map((m) => m.item_code);
       const id = formatDateJST(d, false);
-      await setDoc(doc(database, "funch_day", id), {
+      const setData = {
         date: Timestamp.fromDate(d),
-        menu: menuItemCodes,
-      });
+        menu: new Array<number>(),
+        original_menu: new Array<DocumentReference>(),
+      };
+      if (menuOneDayData != undefined) {
+        setData.menu = menuOneDayData.map((m) => m.item_code);
+      }
+      if (originalMenuOneDayData != undefined) {
+        setData.original_menu = originalMenuOneDayData.map((m) =>
+          doc(database, "funch_original_menu", m.id)
+        );
+      }
+      await setDoc(doc(database, "funch_day", id), setData);
     });
 
     const monthMenuItemCodes = monthMenuData.map((m) => m.item_code);
+    const monthOriginalMenuIds = monthOriginalMenuData.map((m) =>
+      doc(database, "funch_original_menu", m.id)
+    );
     const id = formatDateJST(targetDay, true);
     await setDoc(doc(database, "funch_month", id), {
       year: targetYear,
       month: targetMonth,
       menu: monthMenuItemCodes,
+      original_menu: monthOriginalMenuIds,
     });
     setSaving(false);
     setSaved(true);
@@ -296,7 +446,11 @@ const Edit = () => {
             return;
           }
           if (active.data.current != null) {
-            setActiveMenu(() => active.data.current!.menu);
+            if (active.data.current!.menu instanceof Menu) {
+              setActiveMenu(() => active.data.current!.menu);
+            } else {
+              setActiveOriginalMenu(() => active.data.current!.menu);
+            }
           }
         }}
         onDragEnd={(event) => {
@@ -334,6 +488,39 @@ const Edit = () => {
                   }
                 } else {
                   newMenuData.set(date, [activeMenu]);
+                }
+                return newMenuData;
+              });
+            }
+          } else if (activeOriginalMenu != null) {
+            if (over.id == "month") {
+              setMonthOriginalMenuData((prev) => {
+                if (
+                  prev.find((m) => m.id == activeOriginalMenu.id) == undefined
+                ) {
+                  const monthMenu = [...prev, activeOriginalMenu];
+                  // monthMenu.sort(menuSort);
+                  return monthMenu;
+                } else {
+                  return prev;
+                }
+              });
+            } else {
+              setOriginalMenuData((prev) => {
+                const date = over.id;
+                const newMenuData = new Map(prev);
+                const dateMenu = newMenuData.get(date);
+                if (dateMenu != undefined) {
+                  if (
+                    dateMenu.find((m) => m.id == activeOriginalMenu.id) ==
+                    undefined
+                  ) {
+                    dateMenu.push(activeOriginalMenu);
+                    // dateMenu.sort(menuSort);
+                    newMenuData.set(date, dateMenu);
+                  }
+                } else {
+                  newMenuData.set(date, [activeOriginalMenu]);
                 }
                 return newMenuData;
               });
@@ -403,6 +590,7 @@ const Edit = () => {
                   dateOptions
                 ).format(v);
                 const oneDayMenuData = menuData.get(dateId);
+                const oneDayOriginalMenuData = originalMenuData.get(dateId);
                 return (
                   <div className="w-full bg-gray-300 border-gray-300 rounded">
                     {v >= monthStartDay && v <= monthEndDay && (
@@ -414,6 +602,13 @@ const Edit = () => {
                               InMenu({
                                 menu: m,
                                 onClick: () => removeMenu(dateId, m.item_code),
+                              })
+                            )}
+                          {oneDayOriginalMenuData &&
+                            oneDayOriginalMenuData.map((m) =>
+                              InMenu({
+                                menu: m,
+                                onClick: () => removeOriginalMenu(dateId, m.id),
                               })
                             )}
                         </div>
@@ -434,6 +629,13 @@ const Edit = () => {
                         onClick: () => removeMonthMenu(m.item_code),
                       })
                     )}
+                    {monthOriginalMenuData &&
+                      monthOriginalMenuData.map((m) =>
+                        InMenu({
+                          menu: m,
+                          onClick: () => removeOriginalMonthMenu(m.id),
+                        })
+                      )}
                   </div>
                 </Droppable>
               </div>
@@ -442,9 +644,13 @@ const Edit = () => {
         </div>
         <aside className="fixed top-0 right-0 w-96 h-screen bg-white overflow-x-hidden overflow-y-scroll z-10">
           {categoryOptions.map((c) => DraggableByCategory(c))}
+          {DraggableOriginal(originalMenuList)}
         </aside>
         <DragOverlay>
           {activeMenu && <DraggableBlockSource menu={activeMenu} />}
+          {activeOriginalMenu && (
+            <DraggableBlockSource menu={activeOriginalMenu} />
+          )}
         </DragOverlay>
       </DndContext>
       {loading && (
@@ -471,20 +677,51 @@ const InMenu = ({
   menu,
   onClick,
 }: {
-  menu: Menu;
+  menu: Menu | OriginalMenu;
   onClick: React.MouseEventHandler<SVGElement>;
 }) => {
   return (
     <div className="flex justify-between items-center my-1">
-      <div>
-        {menu.display_name}
-        <span className="text-xs">¥{menu.price_kumika}</span>
-      </div>
+      {menu instanceof Menu ? (
+        <>
+          <div>
+            {menu.display_name}
+            <span className="text-xs">¥{menu.price_kumika}</span>
+          </div>
+        </>
+      ) : (
+        <>
+          <div>
+            FUN {menu.title}
+            <span className="text-xs">¥{menu.price.medium}</span>
+          </div>
+        </>
+      )}
       <FaTrashAlt
         className="cursor-pointer inline text-gray-500"
         onClick={onClick}
       />
     </div>
+  );
+};
+
+const DraggableOriginal = (menu: OriginalMenu[]) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <div
+        className="mx-2 my-4 flex items-center cursor-pointer"
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        {open ? <FaChevronDown /> : <FaChevronRight />}
+        未来大オリジナル
+      </div>
+
+      {open &&
+        menu.map((m) => {
+          return <Draggable id={m.id} menu={m} />;
+        })}
+    </>
   );
 };
 
@@ -520,7 +757,7 @@ export default Edit;
 
 type DraggableBlockSourceType = {
   isDragging?: boolean;
-  menu: Menu;
+  menu: Menu | OriginalMenu;
 };
 
 export const DraggableBlockSource: FC<DraggableBlockSourceType> = ({
@@ -533,15 +770,24 @@ export const DraggableBlockSource: FC<DraggableBlockSourceType> = ({
         isDragging ? "cursor-grabbing" : "cursor-grab"
       }`}
     >
-      {menu.display_name}
-      <span className="text-xs">¥{menu.price_kumika}</span>
+      {menu instanceof Menu ? (
+        <>
+          {menu.display_name}
+          <span className="text-xs">¥{menu.price_kumika}</span>
+        </>
+      ) : (
+        <>
+          FUN {menu.title}
+          <span className="text-xs">¥{menu.price.medium}</span>
+        </>
+      )}
     </div>
   );
 };
 
 type DraggableProps = {
   id: string;
-  menu: Menu;
+  menu: Menu | OriginalMenu;
 };
 
 export const Draggable: FC<DraggableProps> = ({ id, menu }) => {
