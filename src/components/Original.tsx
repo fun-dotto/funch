@@ -34,14 +34,14 @@ const Original = () => {
   }
   const categoryOptions: Option[] = [
     { value: "1", label: "主菜" },
-    { value: "2", label: "副菜" },
-    { value: "9", label: "サラダ" },
+    // { value: "2", label: "副菜" },
+    // { value: "9", label: "サラダ" },
     { value: "4", label: "丼物" },
     { value: "5", label: "カレー" },
     { value: "11", label: "麺類" },
-    { value: "7", label: "ごはん" },
-    { value: "8", label: "汁物" },
-    { value: "10", label: "デザート" },
+    // { value: "7", label: "ごはん" },
+    // { value: "8", label: "汁物" },
+    // { value: "10", label: "デザート" },
   ];
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -59,19 +59,19 @@ const Original = () => {
         const small = data.small;
         const medium = data.medium;
         const large = data.large;
-        newPriceList.push({ id, small, medium, large });
+        const categories = data.categories as number[];
+        newPriceList.push({ id, small, medium, large, categories });
       });
       setPriceList(() => newPriceList);
       setPriceSelectOptions(() =>
         newPriceList.map((price) => {
-          const l =
-            "中:" +
-            price.medium +
-            "円 大:" +
-            price.large +
-            "円 小:" +
-            price.small +
-            "円";
+          let l = "中:" + price.medium + "円";
+          if (price.large != undefined) {
+            l += " 大:" + price.large + "円";
+          }
+          if (price.small != undefined) {
+            l += " 小:" + price.small + "円";
+          }
           return { value: price.id, label: l };
         })
       );
@@ -109,7 +109,7 @@ const Original = () => {
     fetchData();
   }, []);
 
-  const getCategoryOptions = (category_code: number | undefined) => {
+  const getCategoryOption = (category_code: number | undefined) => {
     if (category_code == undefined) {
       return undefined;
     }
@@ -118,7 +118,34 @@ const Original = () => {
     );
   };
 
-  const getPriceOptions = (priceId: string | undefined) => {
+  const getPriceOptions = (category_code: number | undefined) => {
+    if (category_code == undefined) {
+      return undefined;
+    }
+    const categoryPriceList = priceListOnCategory(category_code);
+    if (categoryPriceList.length == 0) {
+      return undefined;
+    }
+
+    return categoryPriceList.map((price) => {
+      let l = "中:" + price.medium + "円";
+      if (price.large != undefined) {
+        l += " 大:" + price.large + "円";
+      }
+      if (price.small != undefined) {
+        l += " 小:" + price.small + "円";
+      }
+      return { value: price.id, label: l };
+    });
+  };
+
+  const priceListOnCategory = (category: number) => {
+    return priceList.filter((price) => {
+      return price.categories.includes(category);
+    });
+  };
+
+  const getPriceOption = (priceId: string | undefined) => {
     if (priceId == undefined) {
       return undefined;
     }
@@ -261,7 +288,7 @@ const Original = () => {
                 <div>
                   <Select
                     options={categoryOptions}
-                    defaultValue={getCategoryOptions(editMenu?.category)}
+                    defaultValue={getCategoryOption(editMenu?.category)}
                     className="w-3/4"
                     styles={customSelectStyles}
                     onChange={(newValue: unknown) => {
@@ -276,8 +303,8 @@ const Original = () => {
                 </div>
                 <div className="col-span-2">
                   <Select
-                    options={priceSelectOptions}
-                    defaultValue={getPriceOptions(editMenu?.price?.id)}
+                    options={getPriceOptions(editMenu?.category)}
+                    defaultValue={getPriceOption(editMenu?.price?.id)}
                     className="w-3/4"
                     styles={customSelectStyles}
                     onChange={onPriceChange}
@@ -310,9 +337,9 @@ const Original = () => {
             ) : (
               <>
                 <div className="col-span-2">{menu.title}</div>
-                <div>{getCategoryOptions(menu.category)?.label}</div>
+                <div>{getCategoryOption(menu.category)?.label}</div>
                 <div className="col-span-2">
-                  {getPriceOptions(menu.price.id)?.label}
+                  {getPriceOption(menu.price.id)?.label}
                 </div>
                 <div>{menu.large ? `あり` : `なし`}</div>
                 <div>{menu.small ? `あり` : `なし`}</div>

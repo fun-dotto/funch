@@ -389,7 +389,10 @@ const Edit = () => {
           <div className="my-2 mx-auto">
             <div className="grid grid-cols-5 justify-items-stretch text-left gap-0.5">
               {calendarWeekStr.map((v) => (
-                <div className="w-full bg-gray-200 border-gray-300 rounded p-2 text-center">
+                <div
+                  className="w-full bg-gray-200 border-gray-300 rounded p-2 text-center"
+                  key={v}
+                >
                   {v}
                 </div>
               ))}

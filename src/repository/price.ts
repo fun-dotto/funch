@@ -1,6 +1,7 @@
 export type PriceModel = {
   id: string;
-  small: number;
+  small?: number;
   medium: number;
-  large: number;
+  large?: number;
+  categories: number[];
 };
