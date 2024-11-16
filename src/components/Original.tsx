@@ -8,11 +8,12 @@ import {
   doc,
   updateDoc,
   orderBy,
+  addDoc,
 } from "firebase/firestore";
 import { PriceModel } from "../repository/price";
 import { OriginalMenu, OriginalMenuNull } from "../repository/menu";
 import Select, { StylesConfig } from "react-select";
-import { FaEdit, FaSave } from "react-icons/fa";
+import { FaEdit, FaPlus, FaSave } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
 import React from "react";
 
@@ -44,6 +45,20 @@ const Original = () => {
     // { value: "10", label: "デザート" },
   ];
 
+  const getLabelForPrice = (price: PriceModel) => {
+    let l = price.medium + "円";
+    if (price.large != undefined || price.small != undefined) {
+      l = "中:" + l;
+    }
+    if (price.large != undefined) {
+      l += " 大:" + price.large + "円";
+    }
+    if (price.small != undefined) {
+      l += " 小:" + price.small + "円";
+    }
+    return l;
+  };
+
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     const fetchData = async () => {
@@ -65,14 +80,7 @@ const Original = () => {
       setPriceList(() => newPriceList);
       setPriceSelectOptions(() =>
         newPriceList.map((price) => {
-          let l = "中:" + price.medium + "円";
-          if (price.large != undefined) {
-            l += " 大:" + price.large + "円";
-          }
-          if (price.small != undefined) {
-            l += " 小:" + price.small + "円";
-          }
-          return { value: price.id, label: l };
+          return { value: price.id, label: getLabelForPrice(price) };
         })
       );
       const docOriginalMenuRef = query(
@@ -128,14 +136,7 @@ const Original = () => {
     }
 
     return categoryPriceList.map((price) => {
-      let l = "中:" + price.medium + "円";
-      if (price.large != undefined) {
-        l += " 大:" + price.large + "円";
-      }
-      if (price.small != undefined) {
-        l += " 小:" + price.small + "円";
-      }
-      return { value: price.id, label: l };
+      return { value: price.id, label: getLabelForPrice(price) };
     });
   };
 
@@ -147,7 +148,7 @@ const Original = () => {
 
   const getPriceOption = (priceId: string | undefined) => {
     if (priceId == undefined) {
-      return undefined;
+      return { value: "", label: "" };
     }
     return priceSelectOptions.find((price) => price.value == priceId);
   };
@@ -161,6 +162,21 @@ const Original = () => {
     setEditMenu(() => ({ ...editTargetMenu }));
   };
 
+  const newMenuEdit = () => {
+    setEditId(() => "0");
+    setEditMenu(() => {
+      return {
+        id: "0",
+        title: "",
+        price: undefined,
+        image: "",
+        large: false,
+        small: false,
+        category: undefined,
+      };
+    });
+  };
+
   const onCanceled = () => {
     setEditId(() => null);
     setEditMenu(() => null);
@@ -172,7 +188,6 @@ const Original = () => {
         return null;
       }
       const n = { ...prev, ...data };
-      console.log(n);
       return n;
     });
   };
@@ -188,6 +203,34 @@ const Original = () => {
     }
   };
 
+  const onCategoryChange = (newValue: unknown) => {
+    try {
+      const option = newValue as Option;
+      const num = Number(option.value);
+      if (num == 4 || num == 5) {
+        onChange({ category: num, large: true, small: true, price: undefined });
+      } else if (num == 11) {
+        onChange({
+          category: num,
+          large: true,
+          small: false,
+          price: undefined,
+        });
+      } else if (num == 1) {
+        onChange({
+          category: num,
+          large: false,
+          small: false,
+          price: undefined,
+        });
+      } else {
+        onChange({ category: num, price: undefined });
+      }
+    } catch {
+      onChange({ category: null, price: undefined });
+    }
+  };
+
   const onSave = async () => {
     if (editMenu != null) {
       if (
@@ -198,32 +241,54 @@ const Original = () => {
         return;
       }
       if (editMenu.id != undefined) {
-        const editRef = doc(database, "funch_original_menu", editMenu.id);
         const priceRef = doc(database, "funch_price", editMenu.price.id);
-        await updateDoc(editRef, {
-          title: editMenu.title,
-          price: priceRef,
-          large: editMenu.large,
-          small: editMenu.small,
-          category: editMenu.category,
-        });
-        const newMenu: OriginalMenu = {
-          id: editMenu.id,
-          title: editMenu.title,
-          price: editMenu.price,
-          image: editMenu.image,
-          large: editMenu.large,
-          small: editMenu.small,
-          category: editMenu.category,
-        };
-        setOriginalMenuList((prev) =>
-          prev.map((menu) => {
-            if (menu.id === editMenu.id) {
-              return newMenu;
-            }
-            return menu;
-          })
-        );
+        if (editMenu.id === "0") {
+          const newDoc = collection(database, "funch_original_menu");
+          const docRef = await addDoc(newDoc, {
+            title: editMenu.title,
+            price: priceRef,
+            large: editMenu.large,
+            small: editMenu.small,
+            category: editMenu.category,
+            image: editMenu.image,
+          });
+          const newMenu: OriginalMenu = {
+            id: docRef.id,
+            title: editMenu.title,
+            price: editMenu.price,
+            image: editMenu.image,
+            large: editMenu.large,
+            small: editMenu.small,
+            category: editMenu.category,
+          };
+          setOriginalMenuList((prev) => [...prev, newMenu]);
+        } else {
+          const editRef = doc(database, "funch_original_menu", editMenu.id);
+          await updateDoc(editRef, {
+            title: editMenu.title,
+            price: priceRef,
+            large: editMenu.large,
+            small: editMenu.small,
+            category: editMenu.category,
+          });
+          const newMenu: OriginalMenu = {
+            id: editMenu.id,
+            title: editMenu.title,
+            price: editMenu.price,
+            image: editMenu.image,
+            large: editMenu.large,
+            small: editMenu.small,
+            category: editMenu.category,
+          };
+          setOriginalMenuList((prev) =>
+            prev.map((menu) => {
+              if (menu.id === editMenu.id) {
+                return newMenu;
+              }
+              return menu;
+            })
+          );
+        }
       }
       setEditId(() => null);
       setEditMenu(() => null);
@@ -258,6 +323,68 @@ const Original = () => {
     }),
   };
 
+  const editMenuView = () => {
+    return (
+      <>
+        <div className="col-span-2">
+          <input
+            type="text"
+            className="w-11/12 py-1.5 px-0.5 rounded border border-gray-300"
+            name=""
+            id=""
+            value={editMenu?.title}
+            onChange={(e) => {
+              onChange({ title: e.target.value });
+            }}
+          />
+        </div>
+        <div>
+          <Select
+            options={categoryOptions}
+            value={getCategoryOption(editMenu?.category)}
+            className="w-3/4"
+            styles={customSelectStyles}
+            onChange={onCategoryChange}
+          />
+        </div>
+        <div className="col-span-2">
+          <Select
+            options={getPriceOptions(editMenu?.category)}
+            value={getPriceOption(editMenu?.price?.id)}
+            className="w-3/4"
+            styles={customSelectStyles}
+            onChange={onPriceChange}
+          />
+        </div>
+        <div>
+          <input
+            type="checkbox"
+            name=""
+            id=""
+            checked={editMenu?.large}
+            onChange={(e) => {
+              onChange({ large: e.target.checked });
+            }}
+            disabled={editMenu?.category == 1}
+          />
+        </div>
+        <div>
+          <input
+            type="checkbox"
+            name=""
+            id=""
+            checked={editMenu?.small}
+            onChange={(e) => {
+              onChange({ small: e.target.checked });
+            }}
+            disabled={editMenu?.category == 11 || editMenu?.category == 1}
+          />
+        </div>
+        <div>{editMenu?.image == "" ? "-" : editMenu?.image}</div>
+      </>
+    );
+  };
+
   return (
     <>
       <div className="mb-10">未来大オリジナルメニュー 編集・追加</div>
@@ -272,68 +399,7 @@ const Original = () => {
         {originalMenuList.map((menu) => (
           <React.Fragment key={menu.id}>
             {editId === menu.id ? (
-              <>
-                <div className="col-span-2">
-                  <input
-                    type="text"
-                    className="w-11/12 py-1.5 px-0.5 rounded border border-gray-300"
-                    name=""
-                    id=""
-                    value={editMenu?.title}
-                    onChange={(e) => {
-                      onChange({ title: e.target.value });
-                    }}
-                  />
-                </div>
-                <div>
-                  <Select
-                    options={categoryOptions}
-                    defaultValue={getCategoryOption(editMenu?.category)}
-                    className="w-3/4"
-                    styles={customSelectStyles}
-                    onChange={(newValue: unknown) => {
-                      try {
-                        const option = newValue as Option;
-                        onChange({ category: Number(option.value) });
-                      } catch {
-                        onChange({ category: null });
-                      }
-                    }}
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Select
-                    options={getPriceOptions(editMenu?.category)}
-                    defaultValue={getPriceOption(editMenu?.price?.id)}
-                    className="w-3/4"
-                    styles={customSelectStyles}
-                    onChange={onPriceChange}
-                  />
-                </div>
-                <div>
-                  <input
-                    type="checkbox"
-                    name=""
-                    id=""
-                    checked={editMenu?.large}
-                    onChange={(e) => {
-                      onChange({ large: e.target.checked });
-                    }}
-                  />
-                </div>
-                <div>
-                  <input
-                    type="checkbox"
-                    name=""
-                    id=""
-                    checked={editMenu?.small}
-                    onChange={(e) => {
-                      onChange({ small: e.target.checked });
-                    }}
-                  />
-                </div>
-                <div>{editMenu?.image == "" ? "-" : editMenu?.image}</div>
-              </>
+              editMenuView()
             ) : (
               <>
                 <div className="col-span-2">{menu.title}</div>
@@ -365,6 +431,29 @@ const Original = () => {
             </div>
           </React.Fragment>
         ))}
+        {editId === "0" ? (
+          editMenuView()
+        ) : (
+          <>
+            <div className="col-span-2"></div>
+            <div></div>
+            <div className="col-span-2"></div>
+            <div></div>
+            <div></div>
+            <div></div>
+          </>
+        )}
+        <div className="grid grid-cols-2 gap-4">
+          {editId === "0" && (
+            <>
+              <FaSave className="cursor-pointer" onClick={onSave} />
+              <MdClose onClick={onCanceled} className="cursor-pointer" />
+            </>
+          )}
+          {editId === null && (
+            <FaPlus onClick={newMenuEdit} className="cursor-pointer" />
+          )}
+        </div>
       </div>
       {loading && (
         <div className="absolute w-screen h-screen top-0 left-0 bg-gray-500 bg-opacity-50 z-50">

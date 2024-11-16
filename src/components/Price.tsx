@@ -6,6 +6,7 @@ import {
   deleteField,
   doc,
   getDocs,
+  orderBy,
   query,
   updateDoc,
 } from "firebase/firestore";
@@ -26,7 +27,10 @@ const Price = () => {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     const fetchData = async () => {
-      const docRef = query(collection(database, "funch_price"));
+      const docRef = query(
+        collection(database, "funch_price"),
+        orderBy("medium", "desc")
+      );
       const docSnap = await getDocs(docRef);
       const newPriceList: PriceModel[] = [];
       docSnap.forEach((doc) => {
