@@ -99,3 +99,14 @@ export type OriginalMenu ={
   small: boolean;
   category: number;
 }
+
+
+export type OriginalMenuNull ={
+  id?: string;
+  title: string;
+  price?: PriceModel;
+  image: string;
+  large: boolean;
+  small: boolean;
+  category?: number;
+}
