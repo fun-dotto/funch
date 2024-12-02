@@ -25,15 +25,10 @@ const Home = () => {
   };
   const signInwithGoogle = async () => {
     try {
-      await signInWithPopup(auth, provider).then((result) => {
-        const user = result.user;
-        if (!user.email?.endsWith("@fun.ac.jp")) {
-          handleLogout();
-          alert("fun.ac.jpのアカウントでログインしてください");
-        }
-      });
+      await signInWithPopup(auth, provider);
     } catch (error) {
       console.error(error);
+      alert("fun.ac.jpのアカウントでログインしてください");
     }
   };
 
