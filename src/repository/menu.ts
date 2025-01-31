@@ -2,8 +2,7 @@ import CoopData from "../assets/menu.json";
 import * as wanakana from "wanakana";
 import { PriceModel } from "./price";
 
-
-export class Menu{
+export class Menu {
   status: number;
   size: string | null;
   item_code: number;
@@ -19,7 +18,8 @@ export class Menu{
   is_nutritional_value_unconfirmed: boolean;
   // nutritionalvalue: Map<string, number>;
 
-  constructor(status: number,
+  constructor(
+    status: number,
     size: string | null,
     item_code: number,
     display_name: string,
@@ -31,7 +31,7 @@ export class Menu{
     allergy_codes: number[],
     category_code: number,
     group_code: string,
-    is_nutritional_value_unconfirmed: boolean,
+    is_nutritional_value_unconfirmed: boolean
     // nutritionalvalue: Map<string, number>,
   ) {
     this.status = status;
@@ -48,7 +48,7 @@ export class Menu{
     this.group_code = group_code;
     this.is_nutritional_value_unconfirmed = is_nutritional_value_unconfirmed;
     // this.nutritionalvalue = nutritionalvalue;
-  };
+  }
 }
 
 export const importMenu = () => {
@@ -66,31 +66,44 @@ export const importMenu = () => {
       data.allergy_codes.map((a) => Number(a)),
       Number(data.category_code),
       data.group_code,
-      data.is_nutritional_value_unconfirmed,
+      data.is_nutritional_value_unconfirmed
       // data.nutritionalvalue,
-    )
+    );
   });
-}
+};
 
 export const getCategoryMenu = (category_code: number) => {
   const c = importMenu().filter((m) => m.category_code == category_code && !m.display_name.startsWith("(大)"));
+  if (category_code == 1) {
+    const menu1 = c.filter((m) => m.size != "大" && m.size != "小" && m.size != "ミニ");
+    // display_nameが同じものはdisplay_name_romanが長い方を残す
+    const uniqueMenu = menu1.reduce((acc: Menu[], current) => {
+      const existing = acc.find((m) => m.display_name == current.display_name);
+      if (!existing || existing.display_name_roman.length < current.display_name_roman.length) {
+        return acc.filter((m) => m.display_name != current.display_name).concat(current);
+      }
+      return acc;
+    }, []);
+    return uniqueMenu.sort(menuSort);
+  }
   if (category_code != 7) {
     return c.filter((m) => m.size != "大" && m.size != "小" && m.size != "ミニ").sort(menuSort);
   }
   return c.sort(menuSort);
-}
+};
 
 const menuSort = (a: Menu, b: Menu) => {
   // 軽量化のため、10文字までで比較
-  const diff = wanakana.toKana(a.display_name_roman.slice(0, 10)).localeCompare(wanakana.toKana(b.display_name_roman.slice(0, 10)), 'ja');
+  const diff = wanakana
+    .toKana(a.display_name_roman.slice(0, 10))
+    .localeCompare(wanakana.toKana(b.display_name_roman.slice(0, 10)), "ja");
   if (diff != 0) {
     return diff;
   }
-  return a.display_name.localeCompare(b.display_name, 'ja');
-}
+  return a.display_name.localeCompare(b.display_name, "ja");
+};
 
-
-export type OriginalMenu ={
+export type OriginalMenu = {
   id: string;
   title: string;
   price: PriceModel;
@@ -98,10 +111,9 @@ export type OriginalMenu ={
   large: boolean;
   small: boolean;
   category: number;
-}
+};
 
-
-export type OriginalMenuNull ={
+export type OriginalMenuNull = {
   id?: string;
   title: string;
   price?: PriceModel;
@@ -109,4 +121,4 @@ export type OriginalMenuNull ={
   large: boolean;
   small: boolean;
   category?: number;
-}
+};
