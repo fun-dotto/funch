@@ -388,7 +388,7 @@ const Edit = () => {
     if (diff2 != 0) {
       return diff2;
     }
-    return a.display_name.localeCompare(b.display_name, "ja");
+    return a.title.localeCompare(b.title, "ja");
   };
 
   const saveMenu = async () => {
@@ -685,8 +685,8 @@ const InMenu = ({
       {menu instanceof Menu ? (
         <>
           <div>
-            {menu.display_name}
-            <span className="text-xs">¥{menu.price_kumika}</span>
+            {menu.title}
+            <span className="text-xs">¥{menu.price_medium}</span>
           </div>
         </>
       ) : (
@@ -772,8 +772,8 @@ export const DraggableBlockSource: FC<DraggableBlockSourceType> = ({
     >
       {menu instanceof Menu ? (
         <>
-          {menu.display_name}
-          <span className="text-xs">¥{menu.price_kumika}</span>
+          {menu.title}
+          <span className="text-xs">¥{menu.price_medium}</span>
         </>
       ) : (
         <>
