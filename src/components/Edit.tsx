@@ -21,7 +21,7 @@ import {
   useDraggable,
   useDroppable,
 } from "@dnd-kit/core";
-import * as wanakana from "wanakana";
+// import * as wanakana from "wanakana";
 import { auth, database } from "../infrastructure/firebase";
 import {
   collection,
@@ -54,6 +54,7 @@ const Edit = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [allMenu, setAllMenu] = useState<Menu[]>([]);
 
   const user = auth.currentUser;
   if (user == null) {
@@ -130,6 +131,8 @@ const Edit = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      const allMenuStorage = await importMenu();
+      setAllMenu(() => allMenuStorage);
       let newOriginalMenuList: OriginalMenu[] = [];
       if (originalMenuList.length == 0) {
         const docPriceRef = query(
@@ -190,18 +193,7 @@ const Edit = () => {
         const menuCodes = data.menu != undefined ? (data.menu as number[]) : [];
         const menus = menuCodes
           .map((m: number) => {
-            return importMenu().find((menu) => {
-              if (menu.category_code == 7) {
-                return menu.item_code == m;
-              } else {
-                return (
-                  menu.item_code == m &&
-                  menu.size != "大" &&
-                  menu.size != "小" &&
-                  menu.size != "ミニ"
-                );
-              }
-            });
+            return allMenuStorage.find((menu) => menu.item_code == m);
           })
           .filter((m) => m != undefined) as Menu[];
         setMonthMenuData(() => menus);
@@ -222,18 +214,7 @@ const Edit = () => {
         ];
         const menus = menuCodes
           .map((m: number) => {
-            return importMenu().find((menu) => {
-              if (menu.category_code == 7) {
-                return menu.item_code == m;
-              } else {
-                return (
-                  menu.item_code == m &&
-                  menu.size != "大" &&
-                  menu.size != "小" &&
-                  menu.size != "ミニ"
-                );
-              }
-            });
+            return allMenuStorage.find((menu) => menu.item_code == m);
           })
           .filter((m) => m != undefined) as Menu[];
         setMonthMenuData(() => menus);
@@ -251,18 +232,7 @@ const Edit = () => {
         const menuCodes = data.menu != undefined ? (data.menu as number[]) : [];
         const menus = menuCodes
           .map((m: number) => {
-            return importMenu().find((menu) => {
-              if (menu.category_code == 7) {
-                return menu.item_code == m;
-              } else {
-                return (
-                  menu.item_code == m &&
-                  menu.size != "大" &&
-                  menu.size != "小" &&
-                  menu.size != "ミニ"
-                );
-              }
-            });
+            return allMenuStorage.find((menu) => menu.item_code == m);
           })
           .filter((m) => m != undefined) as Menu[];
 
@@ -377,17 +347,17 @@ const Edit = () => {
 
   const menuSort = (a: Menu, b: Menu) => {
     const diff1 =
-      sortNumber.indexOf(a.category_code) - sortNumber.indexOf(b.category_code);
+      sortNumber.indexOf(a.category) - sortNumber.indexOf(b.category);
     if (diff1 != 0) {
       return diff1;
     }
     // 軽量化のため、10文字までで比較
-    const diff2 = wanakana
-      .toKana(a.display_name_roman.slice(0, 10))
-      .localeCompare(wanakana.toKana(b.display_name_roman.slice(0, 10)), "ja");
-    if (diff2 != 0) {
-      return diff2;
-    }
+    // const diff2 = wanakana
+    //   .toKana(a.display_name_roman.slice(0, 10))
+    //   .localeCompare(wanakana.toKana(b.display_name_roman.slice(0, 10)), "ja");
+    // if (diff2 != 0) {
+    //   return diff2;
+    // }
     return a.title.localeCompare(b.title, "ja");
   };
 
@@ -643,7 +613,7 @@ const Edit = () => {
           </div>
         </div>
         <aside className="fixed top-0 right-0 w-96 h-screen bg-white overflow-x-hidden overflow-y-scroll z-10">
-          {categoryOptions.map((c) => DraggableByCategory(c))}
+          {categoryOptions.map((c) => DraggableByCategory(c, allMenu))}
           {DraggableOriginal(originalMenuList)}
         </aside>
         <DragOverlay>
@@ -725,15 +695,18 @@ const DraggableOriginal = (menu: OriginalMenu[]) => {
   );
 };
 
-const DraggableByCategory = ({
-  value,
-  label,
-}: {
-  value: string;
-  label: string;
-}) => {
+const DraggableByCategory = (
+  {
+    value,
+    label,
+  }: {
+    value: string;
+    label: string;
+  },
+  allMenu: Menu[]
+) => {
   const category_code = Number(value);
-  const menus = getCategoryMenu(category_code);
+  const menus = getCategoryMenu(allMenu, category_code);
   const [open, setOpen] = useState(false);
   return (
     <>

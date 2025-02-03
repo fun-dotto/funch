@@ -8,7 +8,7 @@ export class Menu {
   title: string;
   price_medium: number;
   image: string;
-  category_code: number;
+  category: number;
   large: boolean;
   small: boolean;
   energy: number;
@@ -18,7 +18,7 @@ export class Menu {
     title: string,
     price_medium: number,
     image: string,
-    category_code: number,
+    category: number,
     large: boolean,
     small: boolean,
     energy: number
@@ -27,7 +27,7 @@ export class Menu {
     this.title = title;
     this.price_medium = price_medium;
     this.image = image;
-    this.category_code = category_code;
+    this.category = category;
     this.large = large;
     this.small = small;
     this.energy = energy;
@@ -43,7 +43,7 @@ export const importMenu = async () => {
     title: string;
     price: { large?: number; medium: number; small?: number };
     image: string;
-    category_code: number;
+    category: number;
     large: boolean;
     small: boolean;
     energy: number;
@@ -55,7 +55,7 @@ export const importMenu = async () => {
       data.title,
       data.price.medium,
       data.image,
-      data.category_code,
+      data.category,
       data.large,
       data.small,
       data.energy
@@ -63,10 +63,8 @@ export const importMenu = async () => {
   });
 };
 
-export const getCategoryMenu = async (category_code: number) => {
-  const c = (await importMenu()).filter(
-    (m) => m.category_code == category_code
-  );
+export const getCategoryMenu = (allMenu: Menu[], category_code: number) => {
+  const c = allMenu.filter((m) => m.category == category_code);
   return c.sort(menuSort);
 };
 
