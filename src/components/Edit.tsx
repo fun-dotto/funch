@@ -410,7 +410,13 @@ const Edit = () => {
   return (
     <>
       <DndContext
+        onDragCancel={() => {
+          setActiveMenu(() => null);
+          setActiveOriginalMenu(() => null);
+        }}
         onDragStart={(event) => {
+          setActiveMenu(() => null);
+          setActiveOriginalMenu(() => null);
           const { active } = event;
           if (active == null) {
             return;
@@ -498,6 +504,7 @@ const Edit = () => {
           }
 
           setActiveMenu(() => null);
+          setActiveOriginalMenu(() => null);
         }}
       >
         <div className="sm:mr-96 z-10">
