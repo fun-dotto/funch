@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
 import { onAuthStateChanged, signInWithPopup, User } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import Link from "next/link";
-import { auth, provider } from "../src/infrastructure/firebase";
+import { auth, provider } from "../infrastructure/firebase";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -36,7 +36,7 @@ export default function Home() {
   };
 
   const today = new Date();
-  
+
   return (
     <div className="view">
       <div>

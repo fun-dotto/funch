@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
 import { redirect } from "next/navigation";
-import { auth, database } from "../../src/infrastructure/firebase";
+import { auth, database } from "../../infrastructure/firebase";
 import { useEffect, useState } from "react";
 import {
   collection,
@@ -14,7 +14,7 @@ import {
 } from "firebase/firestore";
 import { FaEdit, FaSave } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
-import { PriceModel } from "../../src/repository/price";
+import { PriceModel } from "../../repository/price";
 import React from "react";
 
 export default function Price() {
@@ -26,7 +26,7 @@ export default function Price() {
   if (user == null) {
     redirect("/");
   }
-  
+
   useEffect(() => {
     const fetchData = async () => {
       const docRef = query(

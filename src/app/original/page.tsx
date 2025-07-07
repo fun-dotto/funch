@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
 import { useEffect, useState } from "react";
-import { auth, database } from "../../src/infrastructure/firebase";
+import { auth, database } from "../../infrastructure/firebase";
 import { redirect } from "next/navigation";
 import {
   query,
@@ -12,8 +12,8 @@ import {
   orderBy,
   addDoc,
 } from "firebase/firestore";
-import { PriceModel } from "../../src/repository/price";
-import { OriginalMenu, OriginalMenuNull } from "../../src/repository/menu";
+import { PriceModel } from "../../repository/price";
+import { OriginalMenu, OriginalMenuNull } from "../../repository/menu";
 import Select, { StylesConfig } from "react-select";
 import { FaEdit, FaPlus, FaSave } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
