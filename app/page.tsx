@@ -1,11 +1,12 @@
-// import React from "react";
+'use client'
+
 import { onAuthStateChanged, signInWithPopup, User } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { FaGoogle } from "react-icons/fa";
-import { Link } from "react-router-dom";
-import { auth, provider } from "../infrastructure/firebase";
+import Link from "next/link";
+import { auth, provider } from "../src/infrastructure/firebase";
 
-const Home = () => {
+export default function Home() {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -19,10 +20,12 @@ const Home = () => {
 
     return () => unsubscribe();
   }, [setUser]);
+
   const handleLogout = () => {
     auth.signOut();
     setUser(null);
   };
+
   const signInwithGoogle = async () => {
     try {
       await signInWithPopup(auth, provider);
@@ -33,8 +36,12 @@ const Home = () => {
   };
 
   const today = new Date();
+  
   return (
     <div className="view">
+      <div>
+        <Link href="/">ホーム</Link>
+      </div>
       {user ? (
         // ログインしている場合の表示
         <>
@@ -49,7 +56,7 @@ const Home = () => {
             </button>
           </div>
           <div>
-            <Link to={`/edit/${today.getFullYear()}/${today.getMonth() + 1}`}>
+            <Link href={`/edit/${today.getFullYear()}/${today.getMonth() + 1}`}>
               <button
                 type="button"
                 className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-4"
@@ -59,7 +66,7 @@ const Home = () => {
             </Link>
           </div>
           <div>
-            <Link to={`/original`}>
+            <Link href="/original">
               <button
                 type="button"
                 className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-4"
@@ -69,7 +76,7 @@ const Home = () => {
             </Link>
           </div>
           <div>
-            <Link to={`/price`}>
+            <Link href="/price">
               <button
                 type="button"
                 className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-4"
@@ -93,6 +100,4 @@ const Home = () => {
       )}
     </div>
   );
-};
-
-export default Home;
+}

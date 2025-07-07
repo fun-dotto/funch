@@ -1,5 +1,6 @@
-// import React from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+'use client'
+
+import { redirect } from "next/navigation";
 import {
   FaCheck,
   FaChevronDown,
@@ -13,7 +14,7 @@ import {
   importMenu,
   Menu,
   OriginalMenu,
-} from "../repository/menu";
+} from "../../../../src/repository/menu";
 import {
   DndContext,
   DragOverlay,
@@ -21,8 +22,7 @@ import {
   useDraggable,
   useDroppable,
 } from "@dnd-kit/core";
-// import * as wanakana from "wanakana";
-import { auth, database } from "../infrastructure/firebase";
+import { auth, database } from "../../../../src/infrastructure/firebase";
 import {
   collection,
   doc,
@@ -35,10 +35,14 @@ import {
   Timestamp,
   where,
 } from "firebase/firestore";
-import { PriceModel } from "../repository/price";
+import { PriceModel } from "../../../../src/repository/price";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
-const Edit = () => {
-  const { year, month } = useParams();
+export default function Edit() {
+  const params = useParams();
+  const year = params.year as string;
+  const month = params.month as string;
   const [menuData, setMenuData] = useState(new Map<UniqueIdentifier, Menu[]>());
   const [originalMenuData, setOriginalMenuData] = useState(
     new Map<UniqueIdentifier, OriginalMenu[]>()
@@ -55,11 +59,6 @@ const Edit = () => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [allMenu, setAllMenu] = useState<Menu[]>([]);
-
-  const user = auth.currentUser;
-  if (user == null) {
-    return <Navigate replace to="/" />;
-  }
 
   let canView = true;
   let targetYear = 0;
@@ -80,9 +79,8 @@ const Edit = () => {
       canView = false;
     }
   }
-  if (!canView) {
-    return <div>無効です</div>;
-  }
+
+  const user = auth.currentUser;
 
   const targetDay = new Date(targetYear, targetMonth - 1);
   const monthStartDay = new Date(targetDay);
@@ -127,7 +125,6 @@ const Edit = () => {
     return m ? `${year}${month}` : `${year}${month}${day}`;
   };
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -269,6 +266,14 @@ const Edit = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year, month]);
 
+  if (user == null) {
+    redirect("/");
+  }
+
+  if (!canView) {
+    return <div>無効です</div>;
+  }
+
   const calendar: Date[] = [];
   const calendarStartDate = new Date(monthStartDay);
   calendarStartDate.setDate(
@@ -351,13 +356,6 @@ const Edit = () => {
     if (diff1 != 0) {
       return diff1;
     }
-    // 軽量化のため、10文字までで比較
-    // const diff2 = wanakana
-    //   .toKana(a.display_name_roman.slice(0, 10))
-    //   .localeCompare(wanakana.toKana(b.display_name_roman.slice(0, 10)), "ja");
-    // if (diff2 != 0) {
-    //   return diff2;
-    // }
     return a.title.localeCompare(b.title, "ja");
   };
 
@@ -475,7 +473,6 @@ const Edit = () => {
                   prev.find((m) => m.id == activeOriginalMenu.id) == undefined
                 ) {
                   const monthMenu = [...prev, activeOriginalMenu];
-                  // monthMenu.sort(menuSort);
                   return monthMenu;
                 } else {
                   return prev;
@@ -492,7 +489,6 @@ const Edit = () => {
                     undefined
                   ) {
                     dateMenu.push(activeOriginalMenu);
-                    // dateMenu.sort(menuSort);
                     newMenuData.set(date, dateMenu);
                   }
                 } else {
@@ -515,7 +511,7 @@ const Edit = () => {
             </h2>
             <div className="flex">
               <Link
-                to={`/edit/${prevMonth.getFullYear()}/${
+                href={`/edit/${prevMonth.getFullYear()}/${
                   prevMonth.getMonth() + 1
                 }`}
               >
@@ -525,7 +521,7 @@ const Edit = () => {
                 </div>
               </Link>
               <Link
-                to={`/edit/${nextMonth.getFullYear()}/${
+                href={`/edit/${nextMonth.getFullYear()}/${
                   nextMonth.getMonth() + 1
                 }`}
               >
@@ -569,25 +565,27 @@ const Edit = () => {
                 const oneDayMenuData = menuData.get(dateId);
                 const oneDayOriginalMenuData = originalMenuData.get(dateId);
                 return (
-                  <div className="w-full bg-gray-300 border-gray-300 rounded">
+                  <div className="w-full bg-gray-300 border-gray-300 rounded" key={dateId}>
                     {v >= monthStartDay && v <= monthEndDay && (
                       <Droppable date={v} id={dateId}>
                         {new Intl.DateTimeFormat("ja-JP", dayOptions).format(v)}
                         <div className="flex flex-col mt-4">
                           {oneDayMenuData &&
-                            oneDayMenuData.map((m) =>
-                              InMenu({
-                                menu: m,
-                                onClick: () => removeMenu(dateId, m.item_code),
-                              })
-                            )}
+                            oneDayMenuData.map((m) => (
+                              <InMenu
+                                key={m.item_code}
+                                menu={m}
+                                onClick={() => removeMenu(dateId, m.item_code)}
+                              />
+                            ))}
                           {oneDayOriginalMenuData &&
-                            oneDayOriginalMenuData.map((m) =>
-                              InMenu({
-                                menu: m,
-                                onClick: () => removeOriginalMenu(dateId, m.id),
-                              })
-                            )}
+                            oneDayOriginalMenuData.map((m) => (
+                              <InMenu
+                                key={m.id}
+                                menu={m}
+                                onClick={() => removeOriginalMenu(dateId, m.id)}
+                              />
+                            ))}
                         </div>
                       </Droppable>
                     )}
@@ -600,19 +598,21 @@ const Edit = () => {
               <div className="w-2/5">
                 <Droppable date={targetDay} id="month">
                   <div className="flex flex-col mt-4">
-                    {monthMenuData.map((m) =>
-                      InMenu({
-                        menu: m,
-                        onClick: () => removeMonthMenu(m.item_code),
-                      })
-                    )}
+                    {monthMenuData.map((m) => (
+                      <InMenu
+                        key={m.item_code}
+                        menu={m}
+                        onClick={() => removeMonthMenu(m.item_code)}
+                      />
+                    ))}
                     {monthOriginalMenuData &&
-                      monthOriginalMenuData.map((m) =>
-                        InMenu({
-                          menu: m,
-                          onClick: () => removeOriginalMonthMenu(m.id),
-                        })
-                      )}
+                      monthOriginalMenuData.map((m) => (
+                        <InMenu
+                          key={m.id}
+                          menu={m}
+                          onClick={() => removeOriginalMonthMenu(m.id)}
+                        />
+                      ))}
                   </div>
                 </Droppable>
               </div>
@@ -620,8 +620,10 @@ const Edit = () => {
           </div>
         </div>
         <aside className="fixed top-0 right-0 w-96 h-screen bg-white overflow-x-hidden overflow-y-scroll z-10">
-          {categoryOptions.map((c) => DraggableByCategory(c, allMenu))}
-          {DraggableOriginal(originalMenuList)}
+          {categoryOptions.map((c) => (
+            <DraggableByCategory key={c.value} category={c} allMenu={allMenu} />
+          ))}
+          <DraggableOriginal menu={originalMenuList} />
         </aside>
         <DragOverlay>
           {activeMenu && <DraggableBlockSource menu={activeMenu} />}
@@ -648,7 +650,7 @@ const Edit = () => {
       </div>
     </>
   );
-};
+}
 
 const InMenu = ({
   menu,
@@ -682,7 +684,7 @@ const InMenu = ({
   );
 };
 
-const DraggableOriginal = (menu: OriginalMenu[]) => {
+const DraggableOriginal = ({ menu }: { menu: OriginalMenu[] }) => {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -696,23 +698,20 @@ const DraggableOriginal = (menu: OriginalMenu[]) => {
 
       {open &&
         menu.map((m) => {
-          return <Draggable id={m.id} menu={m} />;
+          return <Draggable key={m.id} id={m.id} menu={m} />;
         })}
     </>
   );
 };
 
-const DraggableByCategory = (
-  {
-    value,
-    label,
-  }: {
-    value: string;
-    label: string;
-  },
-  allMenu: Menu[]
-) => {
-  const category_code = Number(value);
+const DraggableByCategory = ({
+  category,
+  allMenu,
+}: {
+  category: { value: string; label: string };
+  allMenu: Menu[];
+}) => {
+  const category_code = Number(category.value);
   const menus = getCategoryMenu(allMenu, category_code);
   const [open, setOpen] = useState(false);
   return (
@@ -722,25 +721,23 @@ const DraggableByCategory = (
         onClick={() => setOpen((prev) => !prev)}
       >
         {open ? <FaChevronDown /> : <FaChevronRight />}
-        {label}
+        {category.label}
       </div>
 
       {open &&
         menus.map((m) => {
-          return <Draggable id={String(m.item_code)} menu={m} />;
+          return <Draggable key={m.item_code} id={String(m.item_code)} menu={m} />;
         })}
     </>
   );
 };
-
-export default Edit;
 
 type DraggableBlockSourceType = {
   isDragging?: boolean;
   menu: Menu | OriginalMenu;
 };
 
-export const DraggableBlockSource: FC<DraggableBlockSourceType> = ({
+const DraggableBlockSource: FC<DraggableBlockSourceType> = ({
   isDragging,
   menu,
 }) => {
@@ -770,8 +767,7 @@ type DraggableProps = {
   menu: Menu | OriginalMenu;
 };
 
-export const Draggable: FC<DraggableProps> = ({ id, menu }) => {
-  // useDraggableを使って必要な値をもらう
+const Draggable: FC<DraggableProps> = ({ id, menu }) => {
   const { setNodeRef, listeners, attributes, isDragging } = useDraggable({
     id,
     data: { menu },
@@ -790,7 +786,7 @@ type DroppableProp = {
   id: string;
 };
 
-export const Droppable: FC<DroppableProp> = ({ date, children, id }) => {
+const Droppable: FC<DroppableProp> = ({ date, children, id }) => {
   const { setNodeRef, isOver } = useDroppable({
     id,
     data: { date },
