@@ -54,19 +54,17 @@ export default function Header() {
             <span className="text-sm text-gray-600 mr-4">{user.email}</span>
             <Button
               variant="ghost"
-              className="bg-[#eee] border-none text-[#990000] hover:bg-[#eee] hover:text-[#990000] font-medium text-[20px]"
+              className="bg-[#eee] border-none text-[#990000] hover:bg-[#B86666] hover:text-[#990000] font-medium text-base transition-colors"
               onClick={handleLogout}
             >
-              <span className="flex items-center">
-                <IoIosArrowBack />
-                ログアウト
-              </span>
+              <IoIosArrowBack />
+              ログアウト
             </Button>
           </div>
         ) : (
           <Button
             variant="ghost"
-            className="bg-[#eee] border-none text-[#990000] hover:bg-[#eee] hover:text-[#990000] font-medium flex items-center"
+            className="bg-[#eee] border-none text-[#990000] hover:bg-[#B86666] hover:text-[#990000] font-medium text-base transition-colors"
             onClick={signInwithGoogle}
           >
             <FaGoogle className="mr-2" /> 未来大Googleアカウントでログイン
