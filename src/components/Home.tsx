@@ -1,12 +1,11 @@
-"use client";
-
-import { onAuthStateChanged, User } from "firebase/auth";
+// import React from "react";
+import { onAuthStateChanged, signInWithPopup, User } from "firebase/auth";
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { auth } from "../infrastructure/firebase";
-import Header from "../../components/Header";
+import { FaGoogle } from "react-icons/fa";
+import { Link } from "react-router-dom";
+import { auth, provider } from "../infrastructure/firebase";
 
-export default function Home() {
+const Home = () => {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -20,17 +19,37 @@ export default function Home() {
 
     return () => unsubscribe();
   }, [setUser]);
+  const handleLogout = () => {
+    auth.signOut();
+    setUser(null);
+  };
+  const signInwithGoogle = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error(error);
+      alert("fun.ac.jpのアカウントでログインしてください");
+    }
+  };
 
   const today = new Date();
-
   return (
     <div className="view">
-      <Header />
       {user ? (
         // ログインしている場合の表示
         <>
           <div>
-            <Link href={`/edit/${today.getFullYear()}/${today.getMonth() + 1}`}>
+            <p>{user.email} でログイン中</p>
+            <button
+              type="button"
+              className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-4"
+              onClick={handleLogout}
+            >
+              ログアウト
+            </button>
+          </div>
+          <div>
+            <Link to={`/edit/${today.getFullYear()}/${today.getMonth() + 1}`}>
               <button
                 type="button"
                 className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-4"
@@ -40,7 +59,7 @@ export default function Home() {
             </Link>
           </div>
           <div>
-            <Link href="/original">
+            <Link to={`/original`}>
               <button
                 type="button"
                 className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-4"
@@ -50,7 +69,7 @@ export default function Home() {
             </Link>
           </div>
           <div>
-            <Link href="/price">
+            <Link to={`/price`}>
               <button
                 type="button"
                 className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-4"
@@ -63,9 +82,17 @@ export default function Home() {
       ) : (
         // ログインしていない場合の表示
         <div>
-          <p>ログインしてください</p>
+          <button
+            type="button"
+            className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 flex items-center"
+            onClick={signInwithGoogle}
+          >
+            <FaGoogle /> 未来大Googleアカウントでログイン
+          </button>
         </div>
       )}
     </div>
   );
-}
+};
+
+export default Home;
