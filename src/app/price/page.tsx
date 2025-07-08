@@ -1,5 +1,7 @@
-import { Navigate } from "react-router-dom";
-import { auth, database } from "../infrastructure/firebase";
+"use client";
+
+import { redirect } from "next/navigation";
+import { auth, database } from "../../infrastructure/firebase";
 import { useEffect, useState } from "react";
 import {
   collection,
@@ -12,19 +14,19 @@ import {
 } from "firebase/firestore";
 import { FaEdit, FaSave } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
-import { PriceModel } from "../repository/price";
+import { PriceModel } from "../../repository/price";
 import React from "react";
 
-const Price = () => {
+export default function Price() {
   const [loading, setLoading] = useState(true);
   const [priceList, setPriceList] = useState<PriceModel[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
   const [editPrice, setEditPrice] = useState<PriceModel | null>(null);
   const user = auth.currentUser;
   if (user == null) {
-    return <Navigate replace to="/" />;
+    redirect("/");
   }
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+
   useEffect(() => {
     const fetchData = async () => {
       const docRef = query(
@@ -216,6 +218,4 @@ const Price = () => {
       )}
     </>
   );
-};
-
-export default Price;
+}
