@@ -4,7 +4,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { auth } from "../infrastructure/firebase";
-import Header from "../components/Header";
+import Header from "../../components/Header";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
