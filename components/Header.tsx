@@ -35,7 +35,7 @@ export default function Header() {
     }
   };
   return (
-    <header className="flex items-center justify-between p-4 bg-[#eee] border-b-[2px] border-[#990000] w-screen font-extrabold">
+    <header className="flex items-center justify-between p-4 bg-white border-b-[2px] border-[#990000] w-screen font-extrabold">
       <div className="flex items-center ml-8">
         <Image
           src="/favicon.ico"
@@ -53,7 +53,7 @@ export default function Header() {
           <div className="flex items-center">
             <Button
               variant="ghost"
-              className="h-8 bg-[#eee] border-none text-[#990000] hover:bg-[#B86666] hover:text-[#990000] text-[20px] text-base transition-colors"
+              className="h-8 bg-white border-none text-[#990000] hover:bg-[#B86666] hover:text-[#990000] text-[20px] text-base transition-colors"
               onClick={handleLogout}
             >
               <IoIosArrowBack />
@@ -72,7 +72,7 @@ export default function Header() {
         ) : (
           <Button
             variant="ghost"
-            className="h-8 bg-[#eee] border-none text-[#990000] hover:bg-[#B86666] hover:text-[#990000] font-medium text-base transition-colors"
+            className="h-8 bg-white border-none text-[#990000] hover:bg-[#B86666] hover:text-[#990000] font-medium text-base transition-colors"
             onClick={signInwithGoogle}
           >
             <FaGoogle className="mr-2" /> 未来大Googleアカウントでログイン

@@ -2,7 +2,6 @@
 
 import { onAuthStateChanged, User } from "firebase/auth";
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { auth } from "../infrastructure/firebase";
 import Header from "../../components/Header";
 import { YearMonthDisplay } from "../../components/date";
@@ -29,13 +28,13 @@ export default function Home() {
   };
 
   return (
-    <div className="view">
+    <div className="view bg-[#eee]">
       <Header />
       {user ? (
         // ログインしている場合の表示
         <div className="ml-8 mt-[60px]">
-          <YearMonthDisplay 
-            month={today.getMonth() + 1} 
+          <YearMonthDisplay
+            month={today.getMonth() + 1}
             onYearMonthChange={handleYearMonthChange}
           />
         </div>
