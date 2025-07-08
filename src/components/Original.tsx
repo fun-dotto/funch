@@ -1,8 +1,6 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import { auth, database } from "../../infrastructure/firebase";
-import { redirect } from "next/navigation";
+import { auth, database } from "../infrastructure/firebase";
+import { Navigate } from "react-router-dom";
 import {
   query,
   collection,
@@ -12,8 +10,8 @@ import {
   orderBy,
   addDoc,
 } from "firebase/firestore";
-import { PriceModel } from "../../repository/price";
-import { OriginalMenu, OriginalMenuNull } from "../../repository/menu";
+import { PriceModel } from "../repository/price";
+import { OriginalMenu, OriginalMenuNull } from "../repository/menu";
 import Select, { StylesConfig } from "react-select";
 import { FaEdit, FaPlus, FaSave } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
@@ -24,7 +22,7 @@ type Option = {
   label: string;
 };
 
-export default function Original() {
+const Original = () => {
   const [loading, setLoading] = useState(true);
   const [priceList, setPriceList] = useState<PriceModel[]>([]);
   const [originalMenuList, setOriginalMenuList] = useState<OriginalMenu[]>([]);
@@ -33,13 +31,18 @@ export default function Original() {
   const [editMenu, setEditMenu] = useState<OriginalMenuNull | null>(null);
   const user = auth.currentUser;
   if (user == null) {
-    redirect("/");
+    return <Navigate replace to="/" />;
   }
   const categoryOptions: Option[] = [
     { value: "1", label: "主菜" },
+    // { value: "2", label: "副菜" },
+    // { value: "9", label: "サラダ" },
     { value: "4", label: "丼物" },
     { value: "5", label: "カレー" },
     { value: "11", label: "麺類" },
+    // { value: "7", label: "ごはん" },
+    // { value: "8", label: "汁物" },
+    // { value: "10", label: "デザート" },
   ];
 
   const getLabelForPrice = (price: PriceModel) => {
@@ -56,6 +59,7 @@ export default function Original() {
     return l;
   };
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     const fetchData = async () => {
       const docPriceRef = query(
@@ -460,4 +464,6 @@ export default function Original() {
       )}
     </>
   );
-}
+};
+
+export default Original;
