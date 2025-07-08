@@ -48,23 +48,31 @@ export default function Header() {
           DottoFunch-メニューサイト
         </span>
       </div>
-      <div className="mr-8">
+      <div className="mr-2">
         {user ? (
           <div className="flex items-center">
-            <span className="text-sm text-gray-600 mr-4">{user.email}</span>
             <Button
               variant="ghost"
-              className="bg-[#eee] border-none text-[#990000] hover:bg-[#B86666] hover:text-[#990000] font-medium text-base transition-colors"
+              className="h-8 bg-[#eee] border-none text-[#990000] hover:bg-[#B86666] hover:text-[#990000] text-[20px] text-base transition-colors"
               onClick={handleLogout}
             >
               <IoIosArrowBack />
               ログアウト
             </Button>
+            {user.photoURL && (
+              <img
+                src={user.photoURL}
+                alt="Profile"
+                width={50}
+                height={50}
+                className="rounded-full ml-2"
+              />
+            )}
           </div>
         ) : (
           <Button
             variant="ghost"
-            className="bg-[#eee] border-none text-[#990000] hover:bg-[#B86666] hover:text-[#990000] font-medium text-base transition-colors"
+            className="h-8 bg-[#eee] border-none text-[#990000] hover:bg-[#B86666] hover:text-[#990000] font-medium text-base transition-colors"
             onClick={signInwithGoogle}
           >
             <FaGoogle className="mr-2" /> 未来大Googleアカウントでログイン
