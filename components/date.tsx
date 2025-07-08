@@ -1,6 +1,7 @@
 import React from "react";
 import { IoMdArrowDropright } from "react-icons/io";
 import { IoMdArrowDropleft } from "react-icons/io";
+import { Button } from "./ui/button";
 
 type YearMonthDisplayProps = {
   year?: number;
@@ -27,7 +28,7 @@ export const YearMonthDisplay: React.FC<YearMonthDisplayProps> = ({
 
   return (
     <div
-      className="bg-white p-6 flex flex-col items-start justify-start border"
+      className="bg-white p-6 flex flex-col items-center justify-center border"
       style={{
         width: "290px",
         height: "200px",
@@ -38,7 +39,9 @@ export const YearMonthDisplay: React.FC<YearMonthDisplayProps> = ({
       }}
     >
       <div className="flex flex-row">
-        <IoMdArrowDropleft size={90} color="#990000" />
+        <button>
+          <IoMdArrowDropleft size={60} color="#990000" />
+        </button>
         <div className="flex flex-col items-center justify-start w-full h-full">
           <div
             className="text-[#990000] font-bold leading-none"
@@ -54,7 +57,14 @@ export const YearMonthDisplay: React.FC<YearMonthDisplayProps> = ({
           </div>
         </div>
 
-        <IoMdArrowDropright size={90} color="#990000" />
+        <button>
+          <IoMdArrowDropright size={60} color="#990000" />
+        </button>
+      </div>
+      <div className="pt-6">
+        <Button variant="default" className="bg-[#0089F0] hover:bg-[#0060AB]">
+          メニューの確定
+        </Button>
       </div>
     </div>
   );

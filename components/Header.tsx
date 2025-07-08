@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { onAuthStateChanged, signInWithPopup, User } from "firebase/auth";
 import { useEffect, useState } from "react";
-import { FaGoogle, FaSignOutAlt } from "react-icons/fa";
+import { FaGoogle } from "react-icons/fa";
 import { auth, provider } from "../src/infrastructure/firebase";
 import { Button } from "./ui/button";
 import { IoIosArrowBack } from "react-icons/io";
