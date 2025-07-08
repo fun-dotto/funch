@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { auth } from "../infrastructure/firebase";
 import Header from "../../components/Header";
+import { YearMonthDisplay } from "../../components/date";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -29,6 +30,7 @@ export default function Home() {
       {user ? (
         // ログインしている場合の表示
         <>
+          <YearMonthDisplay month={today.getMonth() + 1} />
           <div>
             <Link href={`/edit/${today.getFullYear()}/${today.getMonth() + 1}`}>
               <button
