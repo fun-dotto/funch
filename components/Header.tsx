@@ -36,7 +36,7 @@ export default function Header() {
   };
   return (
     <header className="flex items-center justify-between p-4 bg-white border-b-[2px] border-[#990000] w-screen font-extrabold">
-      <div className="flex items-center ml-8">
+      <div className="flex items-center ml-4 md:ml-8">
         <Image
           src="/favicon.ico"
           alt="Funch Logo"
@@ -44,16 +44,16 @@ export default function Header() {
           height={60}
           className="mr-2"
         />
-        <span className="font-bold text-[32px] text-[#990000] ml-4">
+        <span className="font-bold text-2xl md:text-[32px] text-[#990000] ml-2 md:ml-4">
           DottoFunch-メニューサイト
         </span>
       </div>
-      <div className="mr-2">
+      <div className="mr-1 md:mr-2">
         {user ? (
           <div className="flex items-center">
             <Button
               variant="ghost"
-              className="h-8 bg-white border-none text-[#990000] hover:bg-[#B86666] hover:text-[#990000] text-[20px] text-base transition-colors"
+              className="h-8 bg-white border-none text-[#990000] hover:bg-[#B86666] hover:text-[#990000] text-base md:text-[20px] transition-colors"
               onClick={handleLogout}
             >
               <IoIosArrowBack />

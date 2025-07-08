@@ -28,11 +28,11 @@ export default function Home() {
   };
 
   return (
-    <div className="view bg-[#eee]">
+    <div className="view bg-[#eee] min-h-full min-w-full">
       <Header />
       {user ? (
         // ログインしている場合の表示
-        <div className="ml-8 mt-[60px]">
+        <div className="ml-4 md:ml-8 mt-12 md:mt-[60px]">
           <YearMonthDisplay
             month={today.getMonth() + 1}
             onYearMonthChange={handleYearMonthChange}
