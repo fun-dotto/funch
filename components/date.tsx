@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { IoMdArrowDropright } from "react-icons/io";
 import { IoMdArrowDropleft } from "react-icons/io";
 import { Button } from "./ui/button";
@@ -7,6 +7,7 @@ type YearMonthDisplayProps = {
   year?: number;
   month?: number;
   style?: React.CSSProperties;
+  onYearMonthChange?: (year: number, month: number) => void;
 };
 
 const getCurrentYearMonth = () => {
@@ -21,10 +22,39 @@ export const YearMonthDisplay: React.FC<YearMonthDisplayProps> = ({
   year,
   month,
   style,
+  onYearMonthChange,
 }) => {
   const { year: currentYear, month: currentMonth } = getCurrentYearMonth();
-  const displayYear = year ?? currentYear;
-  const displayMonth = month ?? currentMonth;
+  const [displayYear, setDisplayYear] = useState(year ?? currentYear);
+  const [displayMonth, setDisplayMonth] = useState(month ?? currentMonth);
+
+  const handlePrevious = () => {
+    let newYear = displayYear;
+    let newMonth = displayMonth - 1;
+
+    if (newMonth < 1) {
+      newMonth = 12;
+      newYear = displayYear - 1;
+    }
+
+    setDisplayYear(newYear);
+    setDisplayMonth(newMonth);
+    onYearMonthChange?.(newYear, newMonth);
+  };
+
+  const handleNext = () => {
+    let newYear = displayYear;
+    let newMonth = displayMonth + 1;
+
+    if (newMonth > 12) {
+      newMonth = 1;
+      newYear = displayYear + 1;
+    }
+
+    setDisplayYear(newYear);
+    setDisplayMonth(newMonth);
+    onYearMonthChange?.(newYear, newMonth);
+  };
 
   return (
     <div
@@ -39,10 +69,10 @@ export const YearMonthDisplay: React.FC<YearMonthDisplayProps> = ({
       }}
     >
       <div className="flex flex-row">
-        <button>
+        <button className="mr-2" onClick={handlePrevious}>
           <IoMdArrowDropleft size={60} color="#990000" />
         </button>
-        <div className="flex flex-col items-center justify-start w-full h-full">
+        <div className="flex flex-col items-center justify-start w-[120px] h-full">
           <div
             className="text-[#990000] font-bold leading-none"
             style={{ fontSize: "24px" }}
@@ -57,7 +87,7 @@ export const YearMonthDisplay: React.FC<YearMonthDisplayProps> = ({
           </div>
         </div>
 
-        <button>
+        <button className="ml-2" onClick={handleNext}>
           <IoMdArrowDropright size={60} color="#990000" />
         </button>
       </div>
