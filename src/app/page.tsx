@@ -24,13 +24,20 @@ export default function Home() {
 
   const today = new Date();
 
+  const handleYearMonthChange = (year: number, month: number) => {
+    console.log(`年月が変更されました: ${year}年${month}月`);
+  };
+
   return (
     <div className="view">
       <Header />
       {user ? (
         // ログインしている場合の表示
         <div className="ml-8 mt-[60px]">
-          <YearMonthDisplay month={today.getMonth() + 1} />
+          <YearMonthDisplay 
+            month={today.getMonth() + 1} 
+            onYearMonthChange={handleYearMonthChange}
+          />
         </div>
       ) : (
         // ログインしていない場合の表示
