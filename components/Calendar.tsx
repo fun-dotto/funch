@@ -80,10 +80,10 @@ const Calendar: React.FC<CalendarProps> = ({
         <h2 className="text-start text-[24px] mb-2 font-bold">
           日替わりメニュー
         </h2>
-        <div className="grid grid-cols-5 justify-items-stretch text-left gap-1 w-fit">
+        <div className="grid grid-cols-5 justify-items-stretch text-left gap-1 w-[1000px]">
           {calendarWeekStr.map((v) => (
             <div
-              className="min-w-16 bg-[#990000] text-white border-gray-300 rounded-[8px] p-2 text-center text-[16px]"
+              className="w-[196px] bg-[#990000] text-white h-8 border-gray-300 rounded-[8px] flex items-center justify-center text-[16px]"
               key={v}
             >
               {v}
@@ -99,21 +99,23 @@ const Calendar: React.FC<CalendarProps> = ({
               <div
                 className={
                   isCurrentMonth
-                    ? "min-w-16 bg-white border border-[#CCCCCC] rounded-[8px] hover:bg-[#D87C7C] text-[#990000] font-blacks"
-                    : "min-w-16 bg-[#3C373C]/35 rounded-[8px]"
+                    ? "w-[196px] h-[98px] bg-white border border-[#CCCCCC] rounded-[8px] hover:bg-[#D87C7C] text-[#990000] font-blacks"
+                    : "w-[196px] h-[98px] bg-[#3C373C]/35 rounded-[8px]"
                 }
                 key={dateId}
               >
                 {isCurrentMonth ? (
                   <Droppable date={v} id={dateId}>
-                    <span className="pl-2 text-[#990000]">
+                    <span className="pl-2 text-[#990000] font-bold">
                       {new Intl.DateTimeFormat("ja-JP", dayOptions)
                         .format(v)
                         .replace("日", "")}
                     </span>
                     {renderDay && (
-                      <div className="text-black pl-2">
-                        {renderDay(v, dateId)}
+                      <div className="text-black pl-2 overflow-hidden">
+                        <div className="truncate w-[70%]">
+                          {renderDay(v, dateId)}
+                        </div>
                       </div>
                     )}
                   </Droppable>
@@ -146,7 +148,7 @@ const Droppable: React.FC<DroppableProps> = ({ date, children, id }) => {
   return (
     <div
       ref={setNodeRef}
-      className={`w-full h-full min-h-24 p-2 rounded ${
+      className={`w-full h-full min-h-24 p-2 rounded flex flex-col ${
         isOver ? "bg-green-200" : ""
       }`}
     >
