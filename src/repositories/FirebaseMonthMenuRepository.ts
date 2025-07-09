@@ -1,4 +1,4 @@
-import { 
+import {
   collection,
   doc,
   getDoc,
@@ -6,7 +6,7 @@ import {
   orderBy,
   query,
   setDoc,
-  DocumentReference 
+  DocumentReference,
 } from "firebase/firestore";
 import { database } from "../infrastructure/firebase";
 import { Menu, OriginalMenu, importMenu } from "../repository/menu";
@@ -56,12 +56,12 @@ export class FirebaseMonthMenuRepository implements MonthMenuRepository {
   private async getOriginalMenuList(): Promise<OriginalMenu[]> {
     const priceList = await this.getPriceList();
     const originalMenuList: OriginalMenu[] = [];
-    
+
     const docOriginalMenuRef = query(
       collection(database, "funch_original_menu")
     );
     const docOriginalMenuSnap = await getDocs(docOriginalMenuRef);
-    
+
     docOriginalMenuSnap.forEach((doc) => {
       const data = doc.data();
       const id = doc.id;
@@ -72,7 +72,7 @@ export class FirebaseMonthMenuRepository implements MonthMenuRepository {
       const large = data.large;
       const small = data.small;
       const category = data.category;
-      
+
       if (price != null) {
         originalMenuList.push({
           id: id,
@@ -85,7 +85,7 @@ export class FirebaseMonthMenuRepository implements MonthMenuRepository {
         });
       }
     });
-    
+
     return originalMenuList;
   }
 
@@ -99,24 +99,24 @@ export class FirebaseMonthMenuRepository implements MonthMenuRepository {
     const targetDate = new Date(year, month - 1);
     const allMenus = await this.getAllMenus();
     const originalMenuList = await this.getOriginalMenuList();
-    
+
     const docMonthRef = doc(
       database,
       "funch_month",
       this.formatDateJST(targetDate, true)
     );
     const docMonthSnap = await getDoc(docMonthRef);
-    
+
     if (docMonthSnap.exists()) {
       const data = docMonthSnap.data();
-      
+
       const menuCodes = data.menu != undefined ? (data.menu as number[]) : [];
       const menus = menuCodes
         .map((m: number) => {
           return allMenus.find((menu) => menu.item_code == m);
         })
         .filter((m) => m != undefined) as Menu[];
-      
+
       const originalMenuRefs =
         data.original_menu != undefined
           ? (data.original_menu as DocumentReference[])
@@ -126,19 +126,18 @@ export class FirebaseMonthMenuRepository implements MonthMenuRepository {
           return originalMenuList.find((m) => m.id == ref.id);
         })
         .filter((m) => m != undefined) as OriginalMenu[];
-      
+
       return { menus, originalMenus };
     } else {
       const defaultMenuCodes = [
-        10002, 12057, 12075, 17364, 17366, 17390, 17392, 7051, 7053, 7052,
-        8001,
+        10002, 12057, 12075, 17364, 17366, 17390, 17392, 7051, 7053, 7052, 8001,
       ];
       const menus = defaultMenuCodes
         .map((m: number) => {
           return allMenus.find((menu) => menu.item_code == m);
         })
         .filter((m) => m != undefined) as Menu[];
-      
+
       return { menus, originalMenus: [] };
     }
   }
@@ -154,7 +153,7 @@ export class FirebaseMonthMenuRepository implements MonthMenuRepository {
     const originalMenuIds = originalMenus.map((m) =>
       doc(database, "funch_original_menu", m.id)
     );
-    
+
     const id = this.formatDateJST(targetDate, true);
     await setDoc(doc(database, "funch_month", id), {
       year: year,
