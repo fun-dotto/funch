@@ -11,7 +11,6 @@ import {
 } from "@dnd-kit/core";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "../src/infrastructure/firebase";
-import { YearMonthDisplay } from "./Date";
 import { useCalendarMenuPresenter } from "../src/presenters/CalendarPresenter";
 import { CalendarMenuService } from "../src/services/CalendarService";
 import { FirebaseCalendarMenuRepository } from "../src/repositories/CalendarRepository";
@@ -21,6 +20,8 @@ const calendarMenuRepository = new FirebaseCalendarMenuRepository();
 const calendarMenuService = new CalendarMenuService(calendarMenuRepository);
 
 type CalendarProps = {
+  year?: number;
+  month?: number;
   onDragStart?: (event: DragStartEvent) => void;
   onDragEnd?: (event: DragEndEvent) => void;
   children?: ReactNode;
@@ -28,16 +29,24 @@ type CalendarProps = {
 };
 
 const Calendar: React.FC<CalendarProps> = ({
+  year,
+  month,
   onDragStart,
   onDragEnd,
   children,
   activeItem,
 }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
+  const currentYear = year || new Date().getFullYear();
+  const currentMonth = month || new Date().getMonth() + 1;
 
-  const { menuData, originalMenuData, loading, deleteDailyMenu, deleteDailyOriginalMenu } = useCalendarMenuPresenter(
+  const {
+    menuData,
+    originalMenuData,
+    loading,
+    deleteDailyMenu,
+    deleteDailyOriginalMenu,
+  } = useCalendarMenuPresenter(
     user,
     currentYear,
     currentMonth,
@@ -56,14 +65,7 @@ const Calendar: React.FC<CalendarProps> = ({
     return () => unsubscribe();
   }, [setUser]);
 
-  const handleYearMonthChange = (year: number, month: number) => {
-    setCurrentYear(year);
-    setCurrentMonth(month);
-  };
-
-  const year = currentYear;
-  const month = currentMonth;
-  const targetDay = new Date(year, month - 1);
+  const targetDay = new Date(currentYear, currentMonth - 1);
   const monthStartDay = new Date(targetDay);
   monthStartDay.setDate(1);
   const monthEndDay = new Date(targetDay);
@@ -117,19 +119,19 @@ const Calendar: React.FC<CalendarProps> = ({
   const renderDay = (date: Date, dateId: string) => {
     const oneDayMenuData = menuData.get(dateId);
     const oneDayOriginalMenuData = originalMenuData.get(dateId);
-    
+
     const handleDeleteMenu = async (menuItemCode: number) => {
       if (window.confirm("このメニューを削除しますか？")) {
         await deleteDailyMenu(date, menuItemCode);
       }
     };
-    
+
     const handleDeleteOriginalMenu = async (originalMenuId: string) => {
       if (window.confirm("このオリジナルメニューを削除しますか？")) {
         await deleteDailyOriginalMenu(date, originalMenuId);
       }
     };
-    
+
     return (
       <div className="flex flex-col">
         {oneDayMenuData &&
@@ -139,7 +141,7 @@ const Calendar: React.FC<CalendarProps> = ({
               className="flex justify-between items-center my-1 text-xs relative"
             >
               <div className="flex-1 truncate pr-6">{m.title}</div>
-              <div 
+              <div
                 className="text-black cursor-pointer absolute right-2 hover:text-red-600"
                 onClick={() => handleDeleteMenu(m.item_code)}
               >
@@ -153,10 +155,8 @@ const Calendar: React.FC<CalendarProps> = ({
               key={m.id}
               className="flex justify-between items-center my-1 text-xs relative"
             >
-              <div className="flex-1 truncate pr-6">
-                FUN {m.title}
-              </div>
-              <div 
+              <div className="flex-1 truncate pr-6">{m.title}</div>
+              <div
                 className="text-black cursor-pointer absolute right-2 hover:text-red-600"
                 onClick={() => handleDeleteOriginalMenu(m.id)}
               >
@@ -170,17 +170,15 @@ const Calendar: React.FC<CalendarProps> = ({
 
   return (
     <div className="">
-      <YearMonthDisplay
-        year={currentYear}
-        month={currentMonth}
-        onYearMonthChange={handleYearMonthChange}
-      />
+      {/* Date component removed - now handled in page.tsx */}
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-white rounded-lg p-6 shadow-xl">
             <div className="flex items-center space-x-3">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#990000]"></div>
-              <span className="text-gray-700 font-medium">メニューを読み込み中...</span>
+              <span className="text-gray-700 font-medium">
+                メニューを読み込み中...
+              </span>
             </div>
           </div>
         </div>

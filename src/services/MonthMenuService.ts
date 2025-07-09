@@ -1,0 +1,45 @@
+import { Menu, OriginalMenu } from "../repository/menu";
+import { MonthMenuRepository } from "../repositories/interfaces/MonthMenuRepository";
+
+export class MonthMenuService {
+  constructor(private monthMenuRepository: MonthMenuRepository) {}
+
+  async getMonthMenuData(
+    year: number,
+    month: number
+  ): Promise<{
+    menus: Menu[];
+    originalMenus: OriginalMenu[];
+  }> {
+    if (month <= 0 || month > 12 || year < 2024) {
+      throw new Error("Invalid year or month");
+    }
+
+    return await this.monthMenuRepository.getMonthMenuData(year, month);
+  }
+
+  async saveMonthMenuData(
+    year: number,
+    month: number,
+    menus: Menu[],
+    originalMenus: OriginalMenu[]
+  ): Promise<void> {
+    if (month <= 0 || month > 12 || year < 2024) {
+      throw new Error("Invalid year or month");
+    }
+
+    await this.monthMenuRepository.saveMonthMenuData(year, month, menus, originalMenus);
+  }
+
+  sortMenus(menus: Menu[]): Menu[] {
+    const sortOrder = [1, 2, 9, 4, 5, 11, 7, 8, 10];
+    
+    return menus.sort((a, b) => {
+      const diff = sortOrder.indexOf(a.category) - sortOrder.indexOf(b.category);
+      if (diff !== 0) {
+        return diff;
+      }
+      return a.title.localeCompare(b.title, "ja");
+    });
+  }
+}
