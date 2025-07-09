@@ -20,4 +20,12 @@ export class CalendarMenuService {
 
     return await this.calendarMenuRepository.getDailyMenuData(monthStartDay, monthEndDay);
   }
+
+  async deleteDailyMenu(date: Date, menuItemCode: number): Promise<void> {
+    await this.calendarMenuRepository.removeDailyMenu(date, menuItemCode);
+  }
+
+  async deleteDailyOriginalMenu(date: Date, originalMenuId: string): Promise<void> {
+    await this.calendarMenuRepository.removeDailyOriginalMenu(date, originalMenuId);
+  }
 }

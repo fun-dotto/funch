@@ -13,4 +13,6 @@ export interface CalendarMenuRepository {
     menuData: Map<UniqueIdentifier, Menu[]>;
     originalMenuData: Map<UniqueIdentifier, OriginalMenu[]>;
   }>;
+  removeDailyMenu(date: Date, menuItemCode: number): Promise<void>;
+  removeDailyOriginalMenu(date: Date, originalMenuId: string): Promise<void>;
 }

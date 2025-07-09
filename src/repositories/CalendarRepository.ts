@@ -5,6 +5,9 @@ import {
   query,
   Timestamp,
   where,
+  doc,
+  updateDoc,
+  arrayRemove,
 } from "firebase/firestore";
 import { database } from "../infrastructure/firebase";
 import { importMenu, Menu, OriginalMenu } from "../repository/menu";
@@ -118,5 +121,60 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
     });
 
     return { menuData, originalMenuData };
+  }
+
+  async removeDailyMenu(date: Date, menuItemCode: number): Promise<void> {
+    const dateOptions: Intl.DateTimeFormatOptions = {
+      timeZone: "Asia/Tokyo",
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+    };
+    const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
+    
+    // 該当する日付のドキュメントを取得
+    const docRef = query(
+      collection(database, "funch_day"),
+      where("date", "==", Timestamp.fromDate(date))
+    );
+    const docSnap = await getDocs(docRef);
+    
+    if (!docSnap.empty) {
+      const docData = docSnap.docs[0];
+      const docId = docData.id;
+      
+      // メニューコードを配列から削除
+      await updateDoc(doc(database, "funch_day", docId), {
+        menu: arrayRemove(menuItemCode)
+      });
+    }
+  }
+
+  async removeDailyOriginalMenu(date: Date, originalMenuId: string): Promise<void> {
+    const dateOptions: Intl.DateTimeFormatOptions = {
+      timeZone: "Asia/Tokyo",
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+    };
+    const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
+    
+    // 該当する日付のドキュメントを取得
+    const docRef = query(
+      collection(database, "funch_day"),
+      where("date", "==", Timestamp.fromDate(date))
+    );
+    const docSnap = await getDocs(docRef);
+    
+    if (!docSnap.empty) {
+      const docData = docSnap.docs[0];
+      const docId = docData.id;
+      
+      // オリジナルメニューの参照を配列から削除
+      const originalMenuRef = doc(database, "funch_original_menu", originalMenuId);
+      await updateDoc(doc(database, "funch_day", docId), {
+        original_menu: arrayRemove(originalMenuRef)
+      });
+    }
   }
 }

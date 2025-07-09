@@ -37,7 +37,7 @@ const Calendar: React.FC<CalendarProps> = ({
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
 
-  const { menuData, originalMenuData, loading } = useCalendarMenuPresenter(
+  const { menuData, originalMenuData, loading, deleteDailyMenu, deleteDailyOriginalMenu } = useCalendarMenuPresenter(
     user,
     currentYear,
     currentMonth,
@@ -117,6 +117,19 @@ const Calendar: React.FC<CalendarProps> = ({
   const renderDay = (date: Date, dateId: string) => {
     const oneDayMenuData = menuData.get(dateId);
     const oneDayOriginalMenuData = originalMenuData.get(dateId);
+    
+    const handleDeleteMenu = async (menuItemCode: number) => {
+      if (window.confirm("このメニューを削除しますか？")) {
+        await deleteDailyMenu(date, menuItemCode);
+      }
+    };
+    
+    const handleDeleteOriginalMenu = async (originalMenuId: string) => {
+      if (window.confirm("このオリジナルメニューを削除しますか？")) {
+        await deleteDailyOriginalMenu(date, originalMenuId);
+      }
+    };
+    
     return (
       <div className="flex flex-col">
         {oneDayMenuData &&
@@ -126,7 +139,10 @@ const Calendar: React.FC<CalendarProps> = ({
               className="flex justify-between items-center my-1 text-xs relative"
             >
               <div className="flex-1 truncate pr-6">{m.title}</div>
-              <div className="text-black cursor-pointer absolute right-2">
+              <div 
+                className="text-black cursor-pointer absolute right-2 hover:text-red-600"
+                onClick={() => handleDeleteMenu(m.item_code)}
+              >
                 <HiTrash />
               </div>
             </div>
@@ -140,7 +156,10 @@ const Calendar: React.FC<CalendarProps> = ({
               <div className="flex-1 truncate pr-6">
                 FUN {m.title}
               </div>
-              <div className="text-black cursor-pointer absolute right-2">
+              <div 
+                className="text-black cursor-pointer absolute right-2 hover:text-red-600"
+                onClick={() => handleDeleteOriginalMenu(m.id)}
+              >
                 <HiTrash />
               </div>
             </div>
