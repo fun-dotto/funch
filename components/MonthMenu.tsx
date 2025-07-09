@@ -114,7 +114,7 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
         </div>
       )}
 
-      <div className="pb-10">
+      <div className="pb-10 w-[664px] h-40">
         <div className="flex justify-between items-center pb-2">
           <h2 className="text-start text-[24px] font-bold">月間共通メニュー</h2>
         </div>
@@ -131,7 +131,7 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
                   className="flex justify-between items-center"
                 >
                   <div className="flex-1">
-                    <div className="font-[10px]">{menu.title}</div>
+                    <div className="text-[12px]">{menu.title}</div>
                   </div>
                   <button
                     onClick={() => handleRemoveMenu(menu.item_code)}
