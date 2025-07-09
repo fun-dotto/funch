@@ -61,7 +61,7 @@ export default function Home() {
                 const oneDayMenuData = menuData.get(dateId);
                 const oneDayOriginalMenuData = originalMenuData.get(dateId);
                 return (
-                  <div className="flex flex-col mt-4">
+                  <div className="flex flex-col">
                     {oneDayMenuData &&
                       oneDayMenuData.map((m) => (
                         <div

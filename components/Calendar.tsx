@@ -72,6 +72,12 @@ const Calendar: React.FC<CalendarProps> = ({
     }
   }
 
+  // 行ごとにカレンダーを分割
+  const calendarRows: Date[][] = [];
+  for (let i = 0; i < calendar.length; i += 5) {
+    calendarRows.push(calendar.slice(i, i + 5));
+  }
+
   const calendarWeekStr = ["月", "火", "水", "木", "金"];
 
   return (
@@ -80,49 +86,61 @@ const Calendar: React.FC<CalendarProps> = ({
         <h2 className="text-start text-[24px] mb-2 font-bold">
           日替わりメニュー
         </h2>
-        <div className="grid grid-cols-5 justify-items-stretch text-left gap-1 w-[1000px]">
-          {calendarWeekStr.map((v) => (
+        <div className="w-[1000px]">
+          {/* 曜日ヘッダー */}
+          <div className="grid grid-cols-5 justify-items-stretch text-left gap-1 mb-1">
+            {calendarWeekStr.map((v) => (
+              <div
+                className="w-[196px] bg-[#990000] text-white h-8 border-gray-300 rounded-[8px] flex items-center justify-center text-[16px]"
+                key={v}
+              >
+                {v}
+              </div>
+            ))}
+          </div>
+
+          {/* 各行 */}
+          {calendarRows.map((row, rowIndex) => (
             <div
-              className="w-[196px] bg-[#990000] text-white h-8 border-gray-300 rounded-[8px] flex items-center justify-center text-[16px]"
-              key={v}
+              key={rowIndex}
+              className="grid grid-cols-5 justify-items-stretch text-left gap-1 mb-1 items-stretch"
             >
-              {v}
+              {row.map((v) => {
+                const dateId = new Intl.DateTimeFormat(
+                  "ja-JP",
+                  dateOptions
+                ).format(v);
+                const isCurrentMonth = v >= monthStartDay && v <= monthEndDay;
+                return (
+                  <div
+                    className={
+                      isCurrentMonth
+                        ? "w-[196px] min-h-[98px] bg-white border border-[#CCCCCC] rounded-[8px] hover:bg-[#D87C7C] text-[#990000] font-blacks"
+                        : "w-[196px] min-h-[98px] bg-[#3C373C]/35 rounded-[8px]"
+                    }
+                    key={dateId}
+                  >
+                    {isCurrentMonth ? (
+                      <Droppable date={v} id={dateId}>
+                        <span className="pl-2 text-[#990000] font-bold">
+                          {new Intl.DateTimeFormat("ja-JP", dayOptions)
+                            .format(v)
+                            .replace("日", "")}
+                        </span>
+                        {renderDay && (
+                          <div className="text-black pl-2 overflow-hidden items-start">
+                            <div className="w-[70%] break-words">
+                              {renderDay(v, dateId)}
+                            </div>
+                          </div>
+                        )}
+                      </Droppable>
+                    ) : null}
+                  </div>
+                );
+              })}
             </div>
           ))}
-
-          {calendar.map((v) => {
-            const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(
-              v
-            );
-            const isCurrentMonth = v >= monthStartDay && v <= monthEndDay;
-            return (
-              <div
-                className={
-                  isCurrentMonth
-                    ? "w-[196px] h-[98px] bg-white border border-[#CCCCCC] rounded-[8px] hover:bg-[#D87C7C] text-[#990000] font-blacks"
-                    : "w-[196px] h-[98px] bg-[#3C373C]/35 rounded-[8px]"
-                }
-                key={dateId}
-              >
-                {isCurrentMonth ? (
-                  <Droppable date={v} id={dateId}>
-                    <span className="pl-2 text-[#990000] font-bold">
-                      {new Intl.DateTimeFormat("ja-JP", dayOptions)
-                        .format(v)
-                        .replace("日", "")}
-                    </span>
-                    {renderDay && (
-                      <div className="text-black pl-2 overflow-hidden">
-                        <div className="truncate w-[70%]">
-                          {renderDay(v, dateId)}
-                        </div>
-                      </div>
-                    )}
-                  </Droppable>
-                ) : null}
-              </div>
-            );
-          })}
         </div>
       </div>
       <DragOverlay>
