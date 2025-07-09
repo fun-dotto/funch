@@ -4,7 +4,6 @@ import React, { ReactNode } from "react";
 import {
   DndContext,
   DragOverlay,
-  UniqueIdentifier,
   useDraggable,
   useDroppable,
   DragEndEvent,
@@ -76,10 +75,7 @@ const Calendar: React.FC<CalendarProps> = ({
   const calendarWeekStr = ["月", "火", "水", "木", "金"];
 
   return (
-    <DndContext
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-    >
+    <DndContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
       <div className="my-2 mx-auto">
         <div className="grid grid-cols-5 justify-items-stretch text-left gap-0.5">
           {calendarWeekStr.map((v) => (
@@ -92,10 +88,9 @@ const Calendar: React.FC<CalendarProps> = ({
           ))}
 
           {calendar.map((v) => {
-            const dateId = new Intl.DateTimeFormat(
-              "ja-JP",
-              dateOptions
-            ).format(v);
+            const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(
+              v
+            );
             return (
               <div
                 className="w-full bg-gray-300 border-gray-300 rounded"
