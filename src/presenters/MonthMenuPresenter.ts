@@ -79,12 +79,40 @@ export const useMonthMenuPresenter = (
     });
   };
 
-  const removeMenu = (menuItemCode: number) => {
+  const removeMenu = async (menuItemCode: number) => {
     setMenus(prev => prev.filter(menu => menu.item_code !== menuItemCode));
+    
+    // Firebase に保存
+    try {
+      const updatedMenus = menus.filter(menu => menu.item_code !== menuItemCode);
+      await monthMenuService.saveMonthMenuData(
+        currentYear,
+        currentMonth,
+        updatedMenus,
+        originalMenus
+      );
+    } catch (error) {
+      console.error("メニューの削除保存に失敗しました:", error);
+      setError("メニューの削除保存に失敗しました");
+    }
   };
 
-  const removeOriginalMenu = (originalMenuId: string) => {
+  const removeOriginalMenu = async (originalMenuId: string) => {
     setOriginalMenus(prev => prev.filter(menu => menu.id !== originalMenuId));
+    
+    // Firebase に保存
+    try {
+      const updatedOriginalMenus = originalMenus.filter(menu => menu.id !== originalMenuId);
+      await monthMenuService.saveMonthMenuData(
+        currentYear,
+        currentMonth,
+        menus,
+        updatedOriginalMenus
+      );
+    } catch (error) {
+      console.error("オリジナルメニューの削除保存に失敗しました:", error);
+      setError("オリジナルメニューの削除保存に失敗しました");
+    }
   };
 
   return {

@@ -8,6 +8,7 @@ import { MonthMenuService } from "../src/services/MonthMenuService";
 import { FirebaseMonthMenuRepository } from "../src/repositories/FirebaseMonthMenuRepository";
 import { HiTrash } from "react-icons/hi";
 import { Menu, OriginalMenu } from "../src/repository/menu";
+import { useDroppable } from "@dnd-kit/core";
 
 const monthMenuRepository = new FirebaseMonthMenuRepository();
 const monthMenuService = new MonthMenuService(monthMenuRepository);
@@ -17,6 +18,7 @@ type MonthMenuProps = {
   month: number;
   onAddMenu?: (menu: Menu) => void;
   onAddOriginalMenu?: (originalMenu: OriginalMenu) => void;
+  onDragEnd?: (event: any) => void;
   children?: ReactNode;
 };
 
@@ -25,6 +27,7 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
   month,
   onAddMenu,
   onAddOriginalMenu,
+  onDragEnd,
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -69,13 +72,13 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
 
   const handleRemoveMenu = async (menuItemCode: number) => {
     if (window.confirm("このメニューを削除しますか？")) {
-      removeMenu(menuItemCode);
+      await removeMenu(menuItemCode);
     }
   };
 
   const handleRemoveOriginalMenu = async (originalMenuId: string) => {
     if (window.confirm("このオリジナルメニューを削除しますか？")) {
-      removeOriginalMenu(originalMenuId);
+      await removeOriginalMenu(originalMenuId);
     }
   };
 
@@ -123,6 +126,7 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
           <MonthMenuDroppable
             onAddMenu={handleAddMenu}
             onAddOriginalMenu={handleAddOriginalMenu}
+            onDragEnd={onDragEnd}
           >
             <div className="flex gap-2">
               {[0, 1, 2].map((columnIndex) => (
@@ -172,15 +176,31 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
 type MonthMenuDroppableProps = {
   onAddMenu: (menu: Menu) => void;
   onAddOriginalMenu: (originalMenu: OriginalMenu) => void;
+  onDragEnd?: (event: any) => void;
   children: ReactNode;
 };
 
 const MonthMenuDroppable: React.FC<MonthMenuDroppableProps> = ({
   onAddMenu,
   onAddOriginalMenu,
+  onDragEnd,
   children,
 }) => {
-  return <div className="w-full h-full">{children}</div>;
+  const { setNodeRef, isOver } = useDroppable({
+    id: "monthMenu",
+    data: { type: "monthMenu" },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`w-full h-full ${
+        isOver ? "bg-[#D87C7C]/20" : ""
+      }`}
+    >
+      {children}
+    </div>
+  );
 };
 
 export default MonthMenu;
