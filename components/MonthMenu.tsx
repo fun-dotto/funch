@@ -114,62 +114,52 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
         </div>
       )}
 
-      <div className="pb-10 w-[664px] h-40">
+      <div className="w-[664px] h-40">
         <div className="flex justify-between items-center pb-2">
           <h2 className="text-start text-[24px] font-bold">月間共通メニュー</h2>
         </div>
 
-        <div className="bg-white border border-[#CCCCCC] rounded-[8px] p-6 min-h-[300px]">
+        <div className="bg-white border border-[#CCCCCC] rounded-[8px] pl-6 pt-3 h-[144px]">
           <MonthMenuDroppable
             onAddMenu={handleAddMenu}
             onAddOriginalMenu={handleAddOriginalMenu}
           >
-            <div>
-              {menus.map((menu) => (
-                <div
-                  key={menu.item_code}
-                  className="flex justify-between items-center"
-                >
-                  <div className="flex-1">
-                    <div className="text-[12px]">{menu.title}</div>
-                  </div>
-                  <button
-                    onClick={() => handleRemoveMenu(menu.item_code)}
-                    className="text-red-500 hover:text-red-700 p-1"
-                  >
-                    <HiTrash />
-                  </button>
+            <div className="flex gap-2">
+              {[0, 1, 2].map((columnIndex) => (
+                <div key={columnIndex} className="w-[196px] flex flex-col">
+                  {[...menus, ...originalMenus]
+                    .slice(columnIndex * 8, (columnIndex + 1) * 8)
+                    .map((menu, index) => (
+                      <div
+                        key={"item_code" in menu ? menu.item_code : menu.id}
+                        className="flex justify-between items-center text-[10px] relative"
+                      >
+                        <div className="flex-1 truncate pr-6">
+                          {"item_code" in menu ? menu.title : menu.title}
+                        </div>
+                        <div
+                          className="text-black cursor-pointer absolute right-2 hover:text-red-600"
+                          onClick={() =>
+                            "item_code" in menu
+                              ? handleRemoveMenu(menu.item_code)
+                              : handleRemoveOriginalMenu(menu.id)
+                          }
+                        >
+                          <HiTrash />
+                        </div>
+                      </div>
+                    ))}
                 </div>
               ))}
-
-              {originalMenus.map((originalMenu) => (
-                <div
-                  key={originalMenu.id}
-                  className="flex justify-between items-center p-2 bg-gray-50 rounded border"
-                >
-                  <div className="flex-1">
-                    <div className="font-medium">FUN {originalMenu.title}</div>
-                    <div className="text-sm text-gray-600">
-                      ¥{originalMenu.price.medium}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleRemoveOriginalMenu(originalMenu.id)}
-                    className="text-red-500 hover:text-red-700 p-1"
-                  >
-                    <HiTrash />
-                  </button>
-                </div>
-              ))}
-
-              {menus.length === 0 && originalMenus.length === 0 && (
-                <div className="text-center text-gray-500 py-8">
-                  メニューがありません
-                  <br />
-                  右側からメニューをドラッグして追加してください
-                </div>
-              )}
             </div>
+
+            {menus.length === 0 && originalMenus.length === 0 && (
+              <div className="text-center text-gray-500 py-8">
+                メニューがありません
+                <br />
+                右側からメニューをドラッグして追加してください
+              </div>
+            )}
           </MonthMenuDroppable>
         </div>
       </div>
