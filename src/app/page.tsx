@@ -43,60 +43,58 @@ export default function Home() {
   };
 
   return (
-    <div className="view bg-[#eee] min-h-full min-w-full">
+    <div className="bg-[#eee] w-full h-screen">
       <Header />
-      {user ? (
-        // ログインしている場合の表示
-        <div className="ml-4 md:ml-8 mt-12 md:mt-[60px]">
-          <YearMonthDisplay
-            year={currentYear}
-            month={currentMonth}
-            onYearMonthChange={handleYearMonthChange}
-          />
-          <Calendar
-            year={currentYear}
-            month={currentMonth}
-            renderDay={(_, dateId) => {
-              const oneDayMenuData = menuData.get(dateId);
-              const oneDayOriginalMenuData = originalMenuData.get(dateId);
-              return (
-                <div className="flex flex-col mt-2">
-                  {oneDayMenuData &&
-                    oneDayMenuData.map((m) => (
-                      <div
-                        key={m.item_code}
-                        className="flex justify-between items-center my-1 text-xs"
-                      >
-                        <div>{m.title}</div>
-                      </div>
-                    ))}
-                  {oneDayOriginalMenuData &&
-                    oneDayOriginalMenuData.map((m) => (
-                      <div
-                        key={m.id}
-                        className="flex justify-between items-center my-1 text-xs"
-                      >
-                        <div>FUN {m.title}</div>
-                      </div>
-                    ))}
-                </div>
-              );
-            }}
-          />
-          {loading && (
-            <div className="absolute w-screen h-screen top-0 left-0 bg-gray-500 bg-opacity-50 z-50">
-              <div className="absolute w-screen h-screen grid items-center text-center text-2xl">
-                loading...
-              </div>
-            </div>
-          )}
-        </div>
-      ) : (
-        // ログインしていない場合の表示
-        <div>
-          <p>ログインしてください</p>
-        </div>
-      )}
+      <main className="ml-12">
+        {user ? (
+          // ログインしている場合の表示
+          <div className="">
+            <YearMonthDisplay
+              year={currentYear}
+              month={currentMonth}
+              onYearMonthChange={handleYearMonthChange}
+            />
+            <Calendar
+              year={currentYear}
+              month={currentMonth}
+              renderDay={(_, dateId) => {
+                const oneDayMenuData = menuData.get(dateId);
+                const oneDayOriginalMenuData = originalMenuData.get(dateId);
+                return (
+                  <div className="flex flex-col mt-4">
+                    {oneDayMenuData &&
+                      oneDayMenuData.map((m) => (
+                        <div
+                          key={m.item_code}
+                          className="flex justify-between items-center my-1 text-xs"
+                        >
+                          <div>{m.title}</div>
+                        </div>
+                      ))}
+                    {oneDayOriginalMenuData &&
+                      oneDayOriginalMenuData.map((m) => (
+                        <div
+                          key={m.id}
+                          className="flex justify-between items-center my-1 text-xs"
+                        >
+                          <div>FUN {m.title}</div>
+                        </div>
+                      ))}
+                  </div>
+                );
+              }}
+            />
+            {loading && (
+              <div className="bg-gray-500 bg-opacity-50 z-50">Loading...</div>
+            )}
+          </div>
+        ) : (
+          // ログインしていない場合の表示
+          <div>
+            <p>ログインしてください</p>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
