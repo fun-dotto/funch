@@ -4,10 +4,13 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { auth } from "../infrastructure/firebase";
 import Header from "../../components/Header";
-import { YearMonthDisplay } from "../../components/date";
+import { YearMonthDisplay } from "../../components/Date";
+import Calendar from "@/components/Calendar";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -21,10 +24,9 @@ export default function Home() {
     return () => unsubscribe();
   }, [setUser]);
 
-  const today = new Date();
-
   const handleYearMonthChange = (year: number, month: number) => {
-    console.log(`年月が変更されました: ${year}年${month}月`);
+    setCurrentYear(year);
+    setCurrentMonth(month);
   };
 
   return (
@@ -34,9 +36,11 @@ export default function Home() {
         // ログインしている場合の表示
         <div className="ml-4 md:ml-8 mt-12 md:mt-[60px]">
           <YearMonthDisplay
-            month={today.getMonth() + 1}
+            year={currentYear}
+            month={currentMonth}
             onYearMonthChange={handleYearMonthChange}
           />
+          <Calendar year={currentYear} month={currentMonth} />
         </div>
       ) : (
         // ログインしていない場合の表示
