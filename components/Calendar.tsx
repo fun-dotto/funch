@@ -200,7 +200,7 @@ const Calendar: React.FC<CalendarProps> = ({
                     <div
                       className={
                         isCurrentMonth
-                          ? "w-[196px] min-h-[98px] bg-white border border-[#CCCCCC] rounded-[8px] hover:bg-[#D87C7C] text-[#990000] font-blacks"
+                          ? "w-[196px] min-h-[98px] bg-white border border-[#CCCCCC] rounded-[8px] text-[#990000] font-blacks"
                           : "w-[196px] min-h-[98px] bg-[#3C373C]/35 rounded-[8px]"
                       }
                       key={dateId}
@@ -253,7 +253,7 @@ const Droppable: React.FC<DroppableProps> = ({ date, children, id }) => {
     <div
       ref={setNodeRef}
       className={`w-full h-full min-h-24 p-2 rounded flex flex-col ${
-        isOver ? "bg-green-200" : ""
+        isOver ? "bg-[#D87C7C]" : ""
       }`}
     >
       {children}
