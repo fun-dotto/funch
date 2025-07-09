@@ -131,26 +131,29 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
       day: "numeric",
     };
     const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
-    
+
     // 該当する日付のドキュメントを取得
     const docRef = query(
       collection(database, "funch_day"),
       where("date", "==", Timestamp.fromDate(date))
     );
     const docSnap = await getDocs(docRef);
-    
+
     if (!docSnap.empty) {
       const docData = docSnap.docs[0];
       const docId = docData.id;
-      
+
       // メニューコードを配列から削除
       await updateDoc(doc(database, "funch_day", docId), {
-        menu: arrayRemove(menuItemCode)
+        menu: arrayRemove(menuItemCode),
       });
     }
   }
 
-  async removeDailyOriginalMenu(date: Date, originalMenuId: string): Promise<void> {
+  async removeDailyOriginalMenu(
+    date: Date,
+    originalMenuId: string
+  ): Promise<void> {
     const dateOptions: Intl.DateTimeFormatOptions = {
       timeZone: "Asia/Tokyo",
       year: "numeric",
@@ -158,22 +161,26 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
       day: "numeric",
     };
     const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
-    
+
     // 該当する日付のドキュメントを取得
     const docRef = query(
       collection(database, "funch_day"),
       where("date", "==", Timestamp.fromDate(date))
     );
     const docSnap = await getDocs(docRef);
-    
+
     if (!docSnap.empty) {
       const docData = docSnap.docs[0];
       const docId = docData.id;
-      
+
       // オリジナルメニューの参照を配列から削除
-      const originalMenuRef = doc(database, "funch_original_menu", originalMenuId);
+      const originalMenuRef = doc(
+        database,
+        "funch_original_menu",
+        originalMenuId
+      );
       await updateDoc(doc(database, "funch_day", docId), {
-        original_menu: arrayRemove(originalMenuRef)
+        original_menu: arrayRemove(originalMenuRef),
       });
     }
   }
