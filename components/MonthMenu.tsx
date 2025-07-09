@@ -129,11 +129,24 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
             onDragEnd={onDragEnd}
           >
             <div className="flex gap-2">
-              {[0, 1, 2].map((columnIndex) => (
-                <div key={columnIndex} className="w-[196px] flex flex-col">
-                  {[...menus, ...originalMenus]
-                    .slice(columnIndex * 8, (columnIndex + 1) * 8)
-                    .map((menu, index) => (
+              {[0, 1, 2].map((columnIndex) => {
+                const allItems = [...menus, ...originalMenus];
+                const totalItems = allItems.length;
+                const startIndex = columnIndex * 8;
+                const endIndex = (columnIndex + 1) * 8;
+                const columnItems = allItems.slice(startIndex, endIndex);
+
+                // 23件目まで表示し、24件目に「他X件」を表示
+                const shouldShowMore =
+                  totalItems > 23 && startIndex + columnItems.length > 23;
+                const displayItems = shouldShowMore
+                  ? columnItems.slice(0, 23 - startIndex)
+                  : columnItems;
+                const remainingCount = totalItems - 23;
+
+                return (
+                  <div key={columnIndex} className="w-[196px] flex flex-col">
+                    {displayItems.map((menu, index) => (
                       <div
                         key={"item_code" in menu ? menu.item_code : menu.id}
                         className="flex justify-between items-center text-[10px] relative"
@@ -153,8 +166,18 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
                         </div>
                       </div>
                     ))}
-                </div>
-              ))}
+
+                    {/* 「他X件」の表示 */}
+                    {shouldShowMore &&
+                      startIndex <= 23 &&
+                      startIndex + displayItems.length === 23 && (
+                        <div className="flex justify-center items-center text-[10px] text-gray-600 py-1">
+                          他{remainingCount}件
+                        </div>
+                      )}
+                  </div>
+                );
+              })}
             </div>
 
             {menus.length === 0 && originalMenus.length === 0 && (
@@ -194,9 +217,7 @@ const MonthMenuDroppable: React.FC<MonthMenuDroppableProps> = ({
   return (
     <div
       ref={setNodeRef}
-      className={`w-full h-full ${
-        isOver ? "bg-[#D87C7C]/20" : ""
-      }`}
+      className={`w-full h-full ${isOver ? "bg-[#D87C7C]/20" : ""}`}
     >
       {children}
     </div>
