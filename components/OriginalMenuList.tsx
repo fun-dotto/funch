@@ -32,7 +32,7 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
   if (error) {
     return (
       <div className={`${className} bg-white`}>
-        <div className="p-4 text-center text-red-500">エラー: {error}</div>
+        <div className="text-center text-red-500">エラー: {error}</div>
       </div>
     );
   }
@@ -43,7 +43,7 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
     <div
       className={`${className} bg-white overflow-x-hidden overflow-y-scroll`}
     >
-      <div className="p-4">
+      <div>
         {allMenus.length === 0 ? (
           <div className="text-center text-gray-500 py-8">
             オリジナルメニューがありません
@@ -70,7 +70,6 @@ const OriginalMenuListItem: FC<OriginalMenuListItemProps> = ({ menu }) => {
       <div className="flex-1">
         <h4 className="font-medium text-gray-800">{menu.title}</h4>
       </div>
-      <div className="text-sm text-gray-600">¥{menu.price.medium}</div>
     </div>
   );
 };

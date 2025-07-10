@@ -27,7 +27,7 @@ const SettingTab = () => {
         ))}
       </div>
 
-      <div className="p-6 flex-1 overflow-hidden">
+      <div className="pt-4 flex-1 overflow-hidden">
         {activeTab === 0 && (
           <div className="h-full">
             <MenuList className="w-full rounded h-full overflow-y-auto" />
