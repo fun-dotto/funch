@@ -5,6 +5,7 @@ import { OriginalMenu } from "../src/types/Menu";
 import Select, { StylesConfig } from "react-select";
 import { FaSave } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
+import { Checkbox } from "./ui/checkbox";
 
 type Option = {
   value: string;
@@ -41,31 +42,32 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
     setEditMenu((prev) => ({ ...prev, ...data }));
   };
 
-  const onPriceChange = (value: string, size: 'small' | 'medium' | 'large') => {
+  const onPriceChange = (value: string, size: "small" | "medium" | "large") => {
     const numValue = parseInt(value) || 0;
     const updatedPrice = {
       ...editMenu.price,
-      [size]: numValue
+      [size]: numValue,
     };
     onChange({ price: updatedPrice });
   };
 
-  const onSizeChange = (size: 'large' | 'small', checked: boolean) => {
+  const onSizeChange = (size: "large" | "small", checked: boolean) => {
     if (checked) {
       // チェックが入った場合、デフォルト価格を設定
+      const defaultPrice = editMenu.price.medium > 0 ? editMenu.price.medium : 100;
       const updatedPrice = {
         ...editMenu.price,
-        [size]: editMenu.price[size] || editMenu.price.medium
+        [size]: editMenu.price[size] || defaultPrice,
       };
-      onChange({ 
-        price: updatedPrice
+      onChange({
+        price: updatedPrice,
       });
     } else {
       // チェックが外れた場合、価格情報を削除
       const updatedPrice = { ...editMenu.price };
       delete updatedPrice[size];
-      onChange({ 
-        price: updatedPrice
+      onChange({
+        price: updatedPrice,
       });
     }
   };
@@ -75,7 +77,7 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
       const option = newValue as Option;
       const num = Number(option.value);
       const updatedPrice = { ...editMenu.price };
-      
+
       if (num == 4 || num == 5) {
         // 丼物・カレー：大・小サイズあり
         updatedPrice.large = updatedPrice.large || editMenu.price.medium;
@@ -89,7 +91,7 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
         delete updatedPrice.large;
         delete updatedPrice.small;
       }
-      
+
       onChange({ category: num, price: updatedPrice });
     } catch {
       // エラーハンドリング
@@ -97,7 +99,12 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
   };
 
   const handleSave = () => {
-    if (editMenu.title && editMenu.price.medium > 0 && editMenu.category && onSave) {
+    if (
+      editMenu.title &&
+      editMenu.price.medium > 0 &&
+      editMenu.category &&
+      onSave
+    ) {
       onSave(editMenu);
     }
   };
@@ -192,7 +199,7 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
                 type="number"
                 className="w-full py-1.5 px-2 text-sm rounded border border-gray-300 focus:border-blue-500 focus:outline-none"
                 value={editMenu.price.medium}
-                onChange={(e) => onPriceChange(e.target.value, 'medium')}
+                onChange={(e) => onPriceChange(e.target.value, "medium")}
                 placeholder="価格を入力"
                 min="0"
               />
@@ -202,21 +209,21 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
 
           <div className="col-span-2">
             <div className="space-y-3">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
+              <div className="flex items-center space-x-2">
+                <Checkbox
                   id="large"
                   checked={!!editMenu.price.large}
-                  onChange={(e) => onSizeChange('large', e.target.checked)}
+                  onCheckedChange={(checked) =>
+                    onSizeChange("large", !!checked)
+                  }
                   disabled={editMenu.category == 1}
-                  className="mr-2"
                 />
                 <label htmlFor="large" className="text-xs text-gray-700">
                   大サイズ
                 </label>
               </div>
-              
-              {editMenu.price.large && (
+
+              {!!editMenu.price.large && (
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     価格（大サイズ）
@@ -225,8 +232,8 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
                     <input
                       type="number"
                       className="w-full py-1.5 px-2 text-sm rounded border border-gray-300 focus:border-blue-500 focus:outline-none"
-                      value={editMenu.price.large || ''}
-                      onChange={(e) => onPriceChange(e.target.value, 'large')}
+                      value={editMenu.price.large || ""}
+                      onChange={(e) => onPriceChange(e.target.value, "large")}
                       placeholder="大サイズの価格を入力"
                       min="0"
                     />
@@ -235,21 +242,21 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
                 </div>
               )}
 
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
+              <div className="flex items-center space-x-2">
+                <Checkbox
                   id="small"
                   checked={!!editMenu.price.small}
-                  onChange={(e) => onSizeChange('small', e.target.checked)}
+                  onCheckedChange={(checked) =>
+                    onSizeChange("small", !!checked)
+                  }
                   disabled={editMenu.category == 11 || editMenu.category == 1}
-                  className="mr-2"
                 />
                 <label htmlFor="small" className="text-xs text-gray-700">
                   小サイズ
                 </label>
               </div>
-              
-              {editMenu.price.small && (
+
+              {!!editMenu.price.small && (
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     価格（小サイズ）
@@ -258,8 +265,8 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
                     <input
                       type="number"
                       className="w-full py-1.5 px-2 text-sm rounded border border-gray-300 focus:border-blue-500 focus:outline-none"
-                      value={editMenu.price.small || ''}
-                      onChange={(e) => onPriceChange(e.target.value, 'small')}
+                      value={editMenu.price.small || ""}
+                      onChange={(e) => onPriceChange(e.target.value, "small")}
                       placeholder="小サイズの価格を入力"
                       min="0"
                     />

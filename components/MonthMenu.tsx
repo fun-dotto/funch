@@ -155,7 +155,7 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
                           {"item_code" in menu ? menu.title : menu.title}
                         </div>
                         <div
-                          className="text-black cursor-pointer pr-20 hover:text-red-600"
+                          className="text-black cursor-pointer pr-12 hover:text-red-600"
                           onClick={() =>
                             "item_code" in menu
                               ? handleRemoveMenu(menu.item_code)
