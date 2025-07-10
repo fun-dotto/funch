@@ -16,7 +16,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body className={`${inter.className} ${notesans.className}`}>
+      <body
+        className={`${inter.className} ${notesans.className}`}
+        style={{ color: "#3C373C" }}
+      >
         {children}
       </body>
     </html>

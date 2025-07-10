@@ -117,7 +117,7 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
         </div>
       )}
 
-      <div className="w-[664px] h-40">
+      <div className="w-full h-40">
         <div className="flex justify-between items-center pb-2">
           <h2 className="text-start text-[24px] font-bold">月間共通メニュー</h2>
         </div>
@@ -145,7 +145,7 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
                 const remainingCount = totalItems - 23;
 
                 return (
-                  <div key={columnIndex} className="w-[196px] flex flex-col">
+                  <div key={columnIndex} className="w-full flex flex-col">
                     {displayItems.map((menu, index) => (
                       <div
                         key={"item_code" in menu ? menu.item_code : menu.id}

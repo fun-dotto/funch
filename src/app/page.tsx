@@ -7,6 +7,7 @@ import Header from "../../components/Header";
 import Calendar from "@/components/Calendar";
 import MonthMenu from "@/components/MonthMenu";
 import { YearMonthDisplay } from "@/components/Date";
+import SettingTab from "@/components/SettingTab";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -31,20 +32,25 @@ export default function Home() {
   }, [setUser]);
 
   return (
-    <div className="bg-[#eee] w-full h-screen flex flex-col">
+    <div className="bg-[#eee] w-screen h-screen flex flex-col">
       <Header />
-      <main className="flex-1 ml-12 overflow-y-auto min-h-0">
+      <main className="overflow-y-auto p-6">
         {user ? (
-          <div>
-            <div className="flex gap-6 mb-4 mt-6">
-              <YearMonthDisplay
-                year={currentYear}
-                month={currentMonth}
-                onYearMonthChange={handleYearMonthChange}
-              />
-              <MonthMenu year={currentYear} month={currentMonth} />
+          <div className="flex flex-row">
+            <div className="flex flex-col">
+              <div>
+                <div className="flex gap-6">
+                  <YearMonthDisplay
+                    year={currentYear}
+                    month={currentMonth}
+                    onYearMonthChange={handleYearMonthChange}
+                  />
+                  <MonthMenu year={currentYear} month={currentMonth} />
+                </div>
+                <Calendar year={currentYear} month={currentMonth} />
+              </div>
             </div>
-            <Calendar year={currentYear} month={currentMonth} />
+            <SettingTab />
           </div>
         ) : (
           <div>
