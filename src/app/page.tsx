@@ -8,15 +8,21 @@ import Calendar from "@/components/Calendar";
 import MonthMenu from "@/components/MonthMenu";
 import { YearMonthDisplay } from "@/components/Date";
 import SettingTab from "@/components/SettingTab";
-import { MenuList } from "@/components/MenuList";
-import { DndContext, DragOverlay, DragStartEvent, DragEndEvent } from "@dnd-kit/core";
+import {
+  DndContext,
+  DragOverlay,
+  DragStartEvent,
+  DragEndEvent,
+} from "@dnd-kit/core";
 import { Menu, OriginalMenu } from "../types/Menu";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
-  const [activeMenu, setActiveMenu] = useState<Menu | OriginalMenu | null>(null);
+  const [activeMenu, setActiveMenu] = useState<Menu | OriginalMenu | null>(
+    null
+  );
 
   const handleYearMonthChange = (year: number, month: number) => {
     setCurrentYear(year);
@@ -33,15 +39,15 @@ export default function Home() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveMenu(null);
-    
+
     if (!over || !active.data.current?.menu) return;
-    
+
     const menu = active.data.current.menu;
     const overId = over.id;
-    
-    console.log('Dropped menu:', menu);
-    console.log('Drop target:', overId);
-    
+
+    console.log("Dropped menu:", menu);
+    console.log("Drop target:", overId);
+
     // TODO: ドロップ処理の実装
   };
 
@@ -87,12 +93,16 @@ export default function Home() {
                   {activeMenu instanceof Menu ? (
                     <>
                       {activeMenu.title}
-                      <span className="text-xs ml-2">¥{activeMenu.price_medium}</span>
+                      <span className="text-xs ml-2">
+                        ¥{activeMenu.price_medium}
+                      </span>
                     </>
                   ) : (
                     <>
                       FUN {activeMenu.title}
-                      <span className="text-xs ml-2">¥{activeMenu.price.medium}</span>
+                      <span className="text-xs ml-2">
+                        ¥{activeMenu.price.medium}
+                      </span>
                     </>
                   )}
                 </div>

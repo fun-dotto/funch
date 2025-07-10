@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { MenuList } from "./MenuList";
+import { OriginalMenuList } from "./OriginalMenuList";
 
 const SettingTab = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -33,9 +34,8 @@ const SettingTab = () => {
           </div>
         )}
         {activeTab === 1 && (
-          <div>
-            <h3 className="text-lg font-semibold mb-4">設定2の内容</h3>
-            <p>ここに設定2の詳細内容が表示されます。</p>
+          <div className="h-full">
+            <OriginalMenuList className="w-full rounded h-full overflow-y-auto" />
           </div>
         )}
       </div>
