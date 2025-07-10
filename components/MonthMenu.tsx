@@ -155,7 +155,7 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
                           {"item_code" in menu ? menu.title : menu.title}
                         </div>
                         <div
-                          className="text-black cursor-pointer absolute right-2 hover:text-red-600"
+                          className="text-black cursor-pointer pr-20 hover:text-red-600"
                           onClick={() =>
                             "item_code" in menu
                               ? handleRemoveMenu(menu.item_code)
@@ -217,7 +217,9 @@ const MonthMenuDroppable: React.FC<MonthMenuDroppableProps> = ({
   return (
     <div
       ref={setNodeRef}
-      className={`w-full h-full rounded-[8px] ${isOver ? "bg-[#D87C7C]/20" : "bg-white"}`}
+      className={`w-full h-full rounded-[8px] ${
+        isOver ? "bg-[#D87C7C]/20" : "bg-white"
+      }`}
     >
       {children}
     </div>

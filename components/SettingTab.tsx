@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { MenuList } from "./MenuList";
 import { OriginalMenuList } from "./OriginalMenuList";
+import { Button } from "./ui/button";
 
 const SettingTab = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -13,17 +14,18 @@ const SettingTab = () => {
     <div className="flex-1 h-full bg-white rounded-lg shadow-lg p-8 flex flex-col">
       <div className="flex border-b">
         {tabs.map((tab, index) => (
-          <button
+          <Button
             key={index}
+            variant="ghost"
             onClick={() => setActiveTab(index)}
-            className={`flex-1 py-3 px-4 text-center transition-colors ${
+            className={`flex-1 py-3 px-4 text-center rounded-none border-b-2 transition-colors hover:bg-transparent hover:text-current ${
               activeTab === index
-                ? "border-b-2 border-[#990000] text-[#990000]"
-                : "border-b-1 border-[#E6E6E6]"
+                ? "border-[#990000] text-[#990000] bg-transparent hover:text-[#990000]"
+                : "border-b-1 border-[#CCCCCC] hover:text-current"
             }`}
           >
             {tab}
-          </button>
+          </Button>
         ))}
       </div>
 

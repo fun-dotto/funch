@@ -66,7 +66,7 @@ export default function Home() {
   return (
     <div className="bg-[#eee] w-screen h-screen flex flex-col">
       <Header />
-      <main className="overflow-y-auto p-6">
+      <main className="flex-1 overflow-y-auto p-6">
         {user ? (
           <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
             <div className="flex flex-row gap-8 h-full">

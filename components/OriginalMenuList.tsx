@@ -75,7 +75,7 @@ const OriginalMenuListItem: FC<OriginalMenuListItemProps> = ({ menu }) => {
       <div className="flex-1">
         <h4 className="font-medium text-gray-800">{menu.title}</h4>
       </div>
-      <div className="flex items-center gap-2 mr-4">
+      <div className="flex items-center gap-2 pr-4">
         <button
           onClick={handleEdit}
           className="hover:text-[#990000] transition-colors"
