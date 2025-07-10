@@ -7,6 +7,7 @@ import { OriginalMenuService } from "../src/services/OriginalMenuService";
 import { FirebaseMenuRepository } from "../src/repositories/firebase/FirebaseMenuRepository";
 import { VscEdit } from "react-icons/vsc";
 import { OriginalMenuEditForm } from "./OriginalMenuEditForm";
+import { OriginalMenuCRUDService } from "../src/services/OriginalMenuCRUDService";
 
 type OriginalMenuListProps = {
   className?: string;
@@ -21,8 +22,20 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
     () => new OriginalMenuService(menuRepository),
     [menuRepository]
   );
+  const crudService = useMemo(() => new OriginalMenuCRUDService(), []);
   const { getAllMenus, loading, error } =
     useOriginalMenuPresenter(originalMenuService);
+
+  const handleSave = async (updatedMenu: OriginalMenu) => {
+    try {
+      await crudService.saveOriginalMenu(updatedMenu);
+      setEditingMenuId(null);
+      // リストを再読み込みする必要があります（presenterに再読み込み機能を追加することを推奨）
+      window.location.reload(); // 一時的な解決策
+    } catch (error) {
+      console.error('保存に失敗しました:', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -60,6 +73,7 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
                 isEditing={editingMenuId === menu.id}
                 onEdit={() => setEditingMenuId(menu.id)}
                 onCancelEdit={() => setEditingMenuId(null)}
+                onSave={handleSave}
               />
             ))}
           </div>
@@ -74,6 +88,7 @@ type OriginalMenuListItemProps = {
   isEditing: boolean;
   onEdit: () => void;
   onCancelEdit: () => void;
+  onSave: (menu: OriginalMenu) => void;
 };
 
 const OriginalMenuListItem: FC<OriginalMenuListItemProps> = ({
@@ -81,6 +96,7 @@ const OriginalMenuListItem: FC<OriginalMenuListItemProps> = ({
   isEditing,
   onEdit,
   onCancelEdit,
+  onSave,
 }) => {
   return (
     <div>
@@ -98,7 +114,7 @@ const OriginalMenuListItem: FC<OriginalMenuListItemProps> = ({
         </div>
       </div>
       {isEditing && (
-        <OriginalMenuEditForm menu={menu} onCancel={onCancelEdit} />
+        <OriginalMenuEditForm menu={menu} onCancel={onCancelEdit} onSave={onSave} />
       )}
     </div>
   );

@@ -1,4 +1,3 @@
-import { PriceModel } from "./Price";
 
 export class Menu {
   item_code: number;
@@ -34,7 +33,11 @@ export class Menu {
 export type OriginalMenu = {
   id: string;
   title: string;
-  price: PriceModel;
+  price: {
+    small?: number;
+    medium: number;
+    large?: number;
+  };
   image: string;
   large: boolean;
   small: boolean;
