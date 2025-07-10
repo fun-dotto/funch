@@ -5,6 +5,7 @@ import { OriginalMenu } from "../src/types/Menu";
 import { useOriginalMenuPresenter } from "../src/presenters/OriginalMenuPresenter";
 import { OriginalMenuService } from "../src/services/OriginalMenuService";
 import { FirebaseMenuRepository } from "../src/repositories/firebase/FirebaseMenuRepository";
+import { VscEdit } from "react-icons/vsc";
 
 type OriginalMenuListProps = {
   className?: string;
@@ -65,10 +66,22 @@ type OriginalMenuListItemProps = {
 };
 
 const OriginalMenuListItem: FC<OriginalMenuListItemProps> = ({ menu }) => {
+  const handleEdit = () => {
+    console.log("Edit menu:", menu);
+  };
+
   return (
-    <div className="flex justify-between items-center py-3 border-b border-gray-200 hover:bg-gray-50">
+    <div className="flex justify-between items-center py-3 border-b border-gray-200">
       <div className="flex-1">
         <h4 className="font-medium text-gray-800">{menu.title}</h4>
+      </div>
+      <div className="flex items-center gap-2 mr-4">
+        <button
+          onClick={handleEdit}
+          className="hover:text-[#990000] transition-colors"
+        >
+          <VscEdit size={16} />
+        </button>
       </div>
     </div>
   );
