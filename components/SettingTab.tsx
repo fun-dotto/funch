@@ -8,7 +8,7 @@ const SettingTab = () => {
   const tabs = ["設定1", "設定2"];
 
   return (
-    <div className="flex-1 h-4/5 bg-white rounded-lg shadow-lg ml-8">
+    <div className="flex-1 h-full bg-white rounded-lg shadow-lg p-8">
       <div className="flex border-b">
         {tabs.map((tab, index) => (
           <button
@@ -29,7 +29,9 @@ const SettingTab = () => {
         {activeTab === 0 && (
           <div>
             <h3 className="text-lg font-semibold mb-4">設定1の内容</h3>
-            <p>ここに設定1の詳細内容が表示されます。</p>
+            <p>
+              ここに設定1の詳細内容が表示されます。あああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああ
+            </p>
           </div>
         )}
         {activeTab === 1 && (

@@ -36,7 +36,7 @@ export default function Home() {
       <Header />
       <main className="overflow-y-auto p-6">
         {user ? (
-          <div className="flex flex-row">
+          <div className="flex flex-row gap-8 h-full">
             <div className="flex flex-col">
               <div>
                 <div className="flex gap-6">
@@ -50,7 +50,9 @@ export default function Home() {
                 <Calendar year={currentYear} month={currentMonth} />
               </div>
             </div>
-            <SettingTab />
+            <div className="flex-1">
+              <SettingTab />
+            </div>
           </div>
         ) : (
           <div>
