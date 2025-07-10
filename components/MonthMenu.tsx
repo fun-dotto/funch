@@ -122,13 +122,13 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
           <h2 className="text-start text-[24px] font-bold">月間共通メニュー</h2>
         </div>
 
-        <div className="bg-white border border-[#CCCCCC] rounded-[8px] pl-6 pt-3 h-[144px]">
+        <div className="border border-[#CCCCCC] rounded-[8px] h-[144px]">
           <MonthMenuDroppable
             onAddMenu={handleAddMenu}
             onAddOriginalMenu={handleAddOriginalMenu}
             onDragEnd={onDragEnd}
           >
-            <div className="flex gap-2">
+            <div className="flex gap-2 pl-6 pt-3">
               {[0, 1, 2].map((columnIndex) => {
                 const allItems = [...menus, ...originalMenus];
                 const totalItems = allItems.length;
@@ -217,7 +217,7 @@ const MonthMenuDroppable: React.FC<MonthMenuDroppableProps> = ({
   return (
     <div
       ref={setNodeRef}
-      className={`w-full h-full ${isOver ? "bg-[#D87C7C]/20" : ""}`}
+      className={`w-full h-full rounded-[8px] ${isOver ? "bg-[#D87C7C]/20" : "bg-white"}`}
     >
       {children}
     </div>
