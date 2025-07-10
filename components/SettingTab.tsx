@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { DndContext } from "@dnd-kit/core";
+import { MenuList } from "./MenuList";
 
 const SettingTab = () => {
   const [activeTab, setActiveTab] = useState(0);
 
-  const tabs = ["設定1", "設定2"];
+  const tabs = ["メニューリスト", "オリジナルメニュー追加"];
 
   return (
     <div className="flex-1 h-full bg-white rounded-lg shadow-lg p-8">
@@ -16,8 +18,8 @@ const SettingTab = () => {
             onClick={() => setActiveTab(index)}
             className={`flex-1 py-3 px-4 text-center transition-colors ${
               activeTab === index
-                ? "border-b-2 border-[#990000]"
-                : "hover:bg-gray-200 border-b-1 border-[#E6E6E6]"
+                ? "border-b-2 border-[#990000] text-[#990000]"
+                : "border-b-1 border-[#E6E6E6]"
             }`}
           >
             {tab}
@@ -27,12 +29,11 @@ const SettingTab = () => {
 
       <div className="p-6">
         {activeTab === 0 && (
-          <div>
-            <h3 className="text-lg font-semibold mb-4">設定1の内容</h3>
-            <p>
-              ここに設定1の詳細内容が表示されます。あああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああ
-            </p>
-          </div>
+          <DndContext>
+            <div>
+              <MenuList className="w-full rounded h-full" />
+            </div>
+          </DndContext>
         )}
         {activeTab === 1 && (
           <div>
