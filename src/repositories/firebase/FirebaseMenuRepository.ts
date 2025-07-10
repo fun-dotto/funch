@@ -47,8 +47,6 @@ export class FirebaseMenuRepository implements MenuRepository {
       const id = doc.id;
       const title = data.title;
       const image = data.image;
-      const large = data.large;
-      const small = data.small;
       const category = data.category;
       
       // 新しい価格構造に対応
@@ -71,8 +69,6 @@ export class FirebaseMenuRepository implements MenuRepository {
         title: title,
         price: price,
         image: image,
-        large: large,
-        small: small,
         category: category,
       });
     });

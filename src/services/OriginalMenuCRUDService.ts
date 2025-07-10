@@ -16,8 +16,6 @@ export class OriginalMenuCRUDService {
     const menuData = {
       title: menu.title,
       category: menu.category,
-      large: menu.large,
-      small: menu.small,
       image: menu.image,
       price: priceArray
     };
@@ -55,8 +53,6 @@ export class OriginalMenuCRUDService {
       title: data.title,
       price,
       image: data.image || "",
-      large: data.large || false,
-      small: data.small || false,
       category: data.category,
     };
   }

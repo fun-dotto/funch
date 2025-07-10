@@ -39,8 +39,6 @@ export type OriginalMenu = {
     large?: number;
   };
   image: string;
-  large: boolean;
-  small: boolean;
   category: number;
 };
 

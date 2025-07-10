@@ -22,13 +22,7 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
   onCancel,
   onSave,
 }) => {
-  // 初期化時にサイズの有無を価格の存在で判断
-  const initMenu = {
-    ...menu,
-    large: menu.large || !!menu.price.large,
-    small: menu.small || !!menu.price.small,
-  };
-  const [editMenu, setEditMenu] = useState<OriginalMenu>(initMenu);
+  const [editMenu, setEditMenu] = useState<OriginalMenu>(menu);
 
   const categoryOptions: Option[] = [
     { value: "1", label: "主菜" },
@@ -64,7 +58,6 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
         [size]: editMenu.price[size] || editMenu.price.medium
       };
       onChange({ 
-        [size]: true,
         price: updatedPrice
       });
     } else {
@@ -72,7 +65,6 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
       const updatedPrice = { ...editMenu.price };
       delete updatedPrice[size];
       onChange({ 
-        [size]: false,
         price: updatedPrice
       });
     }
@@ -82,15 +74,23 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
     try {
       const option = newValue as Option;
       const num = Number(option.value);
+      const updatedPrice = { ...editMenu.price };
+      
       if (num == 4 || num == 5) {
-        onChange({ category: num, large: true, small: true });
+        // 丼物・カレー：大・小サイズあり
+        updatedPrice.large = updatedPrice.large || editMenu.price.medium;
+        updatedPrice.small = updatedPrice.small || editMenu.price.medium;
       } else if (num == 11) {
-        onChange({ category: num, large: true, small: false });
+        // 麺類：大サイズあり、小サイズなし
+        updatedPrice.large = updatedPrice.large || editMenu.price.medium;
+        delete updatedPrice.small;
       } else if (num == 1) {
-        onChange({ category: num, large: false, small: false });
-      } else {
-        onChange({ category: num });
+        // 主菜：大・小サイズなし
+        delete updatedPrice.large;
+        delete updatedPrice.small;
       }
+      
+      onChange({ category: num, price: updatedPrice });
     } catch {
       // エラーハンドリング
     }
@@ -206,7 +206,7 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
                 <input
                   type="checkbox"
                   id="large"
-                  checked={editMenu.large}
+                  checked={!!editMenu.price.large}
                   onChange={(e) => onSizeChange('large', e.target.checked)}
                   disabled={editMenu.category == 1}
                   className="mr-2"
@@ -216,7 +216,7 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
                 </label>
               </div>
               
-              {editMenu.large && (
+              {editMenu.price.large && (
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     価格（大サイズ）
@@ -239,7 +239,7 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
                 <input
                   type="checkbox"
                   id="small"
-                  checked={editMenu.small}
+                  checked={!!editMenu.price.small}
                   onChange={(e) => onSizeChange('small', e.target.checked)}
                   disabled={editMenu.category == 11 || editMenu.category == 1}
                   className="mr-2"
@@ -249,7 +249,7 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
                 </label>
               </div>
               
-              {editMenu.small && (
+              {editMenu.price.small && (
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     価格（小サイズ）
