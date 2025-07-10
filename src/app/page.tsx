@@ -8,6 +8,7 @@ import Calendar from "@/components/Calendar";
 import MonthMenu from "@/components/MonthMenu";
 import { YearMonthDisplay } from "@/components/Date";
 import SettingTab from "@/components/SettingTab";
+import { MenuList } from "@/components/MenuList";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
