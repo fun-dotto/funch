@@ -136,12 +136,12 @@ const DraggableBlockSource: FC<DraggableBlockSourceProps> = ({
       {menu instanceof Menu ? (
         <>
           {menu.title}
-          <span className="text-xs">¥{menu.price_medium}</span>
+          <span className="text-xs ml-2">¥{menu.price_medium}</span>
         </>
       ) : (
         <>
           FUN {menu.title}
-          <span className="text-xs">¥{menu.price.medium}</span>
+          <span className="text-xs ml-2">¥{menu.price.medium}</span>
         </>
       )}
     </div>

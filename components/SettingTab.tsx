@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { DndContext } from "@dnd-kit/core";
 import { MenuList } from "./MenuList";
 
 const SettingTab = () => {
@@ -10,7 +9,7 @@ const SettingTab = () => {
   const tabs = ["メニューリスト", "オリジナルメニュー追加"];
 
   return (
-    <div className="flex-1 h-full bg-white rounded-lg shadow-lg p-8">
+    <div className="flex-1 h-full bg-white rounded-lg shadow-lg p-8 flex flex-col">
       <div className="flex border-b">
         {tabs.map((tab, index) => (
           <button
@@ -27,13 +26,11 @@ const SettingTab = () => {
         ))}
       </div>
 
-      <div className="p-6">
+      <div className="p-6 flex-1 overflow-hidden">
         {activeTab === 0 && (
-          <DndContext>
-            <div>
-              <MenuList className="w-full rounded h-full" />
-            </div>
-          </DndContext>
+          <div className="h-full">
+            <MenuList className="w-full rounded h-full overflow-y-auto" />
+          </div>
         )}
         {activeTab === 1 && (
           <div>

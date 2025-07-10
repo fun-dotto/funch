@@ -2,12 +2,8 @@
 
 import React, { ReactNode, useEffect, useState } from "react";
 import {
-  DndContext,
-  DragOverlay,
   useDraggable,
   useDroppable,
-  DragEndEvent,
-  DragStartEvent,
 } from "@dnd-kit/core";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "../src/infrastructure/firebase";
@@ -22,19 +18,13 @@ const calendarMenuService = new CalendarMenuService(calendarMenuRepository);
 type CalendarProps = {
   year?: number;
   month?: number;
-  onDragStart?: (event: DragStartEvent) => void;
-  onDragEnd?: (event: DragEndEvent) => void;
   children?: ReactNode;
-  activeItem?: any;
 };
 
 const Calendar: React.FC<CalendarProps> = ({
   year,
   month,
-  onDragStart,
-  onDragEnd,
   children,
-  activeItem,
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const currentYear = year || new Date().getFullYear();
@@ -183,7 +173,7 @@ const Calendar: React.FC<CalendarProps> = ({
           </div>
         </div>
       )}
-      <DndContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
+      <div>
         <div className="my-2 mx-auto">
           <h2 className="text-start text-[24px] mb-2 font-bold">
             日替わりメニュー
@@ -245,11 +235,8 @@ const Calendar: React.FC<CalendarProps> = ({
             ))}
           </div>
         </div>
-        <DragOverlay>
-          {activeItem && <DraggableBlockSource item={activeItem} />}
-        </DragOverlay>
         {children}
-      </DndContext>
+      </div>
     </div>
   );
 };
