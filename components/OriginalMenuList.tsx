@@ -1,11 +1,12 @@
 "use client";
 
-import { FC, useMemo } from "react";
+import { FC, useMemo, useState } from "react";
 import { OriginalMenu } from "../src/types/Menu";
 import { useOriginalMenuPresenter } from "../src/presenters/OriginalMenuPresenter";
 import { OriginalMenuService } from "../src/services/OriginalMenuService";
 import { FirebaseMenuRepository } from "../src/repositories/firebase/FirebaseMenuRepository";
 import { VscEdit } from "react-icons/vsc";
+import { OriginalMenuEditForm } from "./OriginalMenuEditForm";
 
 type OriginalMenuListProps = {
   className?: string;
@@ -14,6 +15,7 @@ type OriginalMenuListProps = {
 export const OriginalMenuList: FC<OriginalMenuListProps> = ({
   className = "",
 }) => {
+  const [editingMenuId, setEditingMenuId] = useState<string | null>(null);
   const menuRepository = useMemo(() => new FirebaseMenuRepository(), []);
   const originalMenuService = useMemo(
     () => new OriginalMenuService(menuRepository),
@@ -52,7 +54,13 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
         ) : (
           <div className="space-y-0">
             {allMenus.map((menu) => (
-              <OriginalMenuListItem key={menu.id} menu={menu} />
+              <OriginalMenuListItem
+                key={menu.id}
+                menu={menu}
+                isEditing={editingMenuId === menu.id}
+                onEdit={() => setEditingMenuId(menu.id)}
+                onCancelEdit={() => setEditingMenuId(null)}
+              />
             ))}
           </div>
         )}
@@ -63,26 +71,35 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
 
 type OriginalMenuListItemProps = {
   menu: OriginalMenu;
+  isEditing: boolean;
+  onEdit: () => void;
+  onCancelEdit: () => void;
 };
 
-const OriginalMenuListItem: FC<OriginalMenuListItemProps> = ({ menu }) => {
-  const handleEdit = () => {
-    console.log("Edit menu:", menu);
-  };
-
+const OriginalMenuListItem: FC<OriginalMenuListItemProps> = ({
+  menu,
+  isEditing,
+  onEdit,
+  onCancelEdit,
+}) => {
   return (
-    <div className="flex justify-between items-center py-3 border-b border-gray-200">
-      <div className="flex-1">
-        <h4 className="font-medium text-gray-800">{menu.title}</h4>
+    <div>
+      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+        <div className="flex-1">
+          <h4 className="font-medium text-gray-800">{menu.title}</h4>
+        </div>
+        <div className="flex items-center gap-2 pr-4">
+          <button
+            onClick={onEdit}
+            className="hover:text-[#990000] transition-colors"
+          >
+            <VscEdit size={16} />
+          </button>
+        </div>
       </div>
-      <div className="flex items-center gap-2 pr-4">
-        <button
-          onClick={handleEdit}
-          className="hover:text-[#990000] transition-colors"
-        >
-          <VscEdit size={16} />
-        </button>
-      </div>
+      {isEditing && (
+        <OriginalMenuEditForm menu={menu} onCancel={onCancelEdit} />
+      )}
     </div>
   );
 };
