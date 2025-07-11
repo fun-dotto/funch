@@ -37,6 +37,17 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
     }
   };
 
+  const handleDelete = async (menuId: string) => {
+    try {
+      await crudService.deleteOriginalMenu(menuId);
+      setEditingMenuId(null);
+      // リストを再読み込みする必要があります
+      window.location.reload(); // 一時的な解決策
+    } catch (error) {
+      console.error('削除に失敗しました:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className={`${className} bg-white`}>
@@ -74,6 +85,7 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
                 onEdit={() => setEditingMenuId(menu.id)}
                 onCancelEdit={() => setEditingMenuId(null)}
                 onSave={handleSave}
+                onDelete={handleDelete}
               />
             ))}
           </div>
@@ -89,6 +101,7 @@ type OriginalMenuListItemProps = {
   onEdit: () => void;
   onCancelEdit: () => void;
   onSave: (menu: OriginalMenu) => void;
+  onDelete: (menuId: string) => void;
 };
 
 const OriginalMenuListItem: FC<OriginalMenuListItemProps> = ({
@@ -97,6 +110,7 @@ const OriginalMenuListItem: FC<OriginalMenuListItemProps> = ({
   onEdit,
   onCancelEdit,
   onSave,
+  onDelete,
 }) => {
   return (
     <div>
@@ -114,7 +128,12 @@ const OriginalMenuListItem: FC<OriginalMenuListItemProps> = ({
         </div>
       </div>
       {isEditing && (
-        <OriginalMenuEditForm menu={menu} onCancel={onCancelEdit} onSave={onSave} />
+        <OriginalMenuEditForm 
+          menu={menu} 
+          onCancel={onCancelEdit} 
+          onSave={onSave} 
+          onDelete={onDelete}
+        />
       )}
     </div>
   );

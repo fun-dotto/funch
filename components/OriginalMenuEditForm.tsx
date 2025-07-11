@@ -6,6 +6,8 @@ import Select, { StylesConfig } from "react-select";
 import { FaSave } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
 import { Checkbox } from "./ui/checkbox";
+import { PriceInput } from "./PriceInput";
+import { Button } from "./ui/button";
 
 type Option = {
   value: string;
@@ -16,12 +18,14 @@ type OriginalMenuEditFormProps = {
   menu: OriginalMenu;
   onCancel: () => void;
   onSave?: (updatedMenu: OriginalMenu) => void;
+  onDelete?: (menuId: string) => void;
 };
 
 export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
   menu,
   onCancel,
   onSave,
+  onDelete,
 }) => {
   const [editMenu, setEditMenu] = useState<OriginalMenu>(menu);
 
@@ -109,6 +113,12 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
     }
   };
 
+  const handleDelete = () => {
+    if (onDelete && window.confirm("このメニューを削除しますか？")) {
+      onDelete(editMenu.id);
+    }
+  };
+
   const customSelectStyles: StylesConfig = {
     valueContainer: (provided) => ({
       ...provided,
@@ -138,48 +148,28 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
   };
 
   return (
-    <div className="bg-gray-50 p-4 border-b border-gray-200">
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <span className="text-sm font-medium text-gray-700">
-            メニュー編集
-          </span>
-          <div className="flex gap-2">
-            <button
-              onClick={handleSave}
-              className="p-1 text-green-600 hover:text-green-800"
-              title="保存"
-            >
-              <FaSave size={16} />
-            </button>
-            <button
-              onClick={onCancel}
-              className="p-1 text-gray-500 hover:text-gray-700"
-              title="キャンセル"
-            >
-              <MdClose size={16} />
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="bg-gray-50 p-4 border-b border-gray-200 relative">
+      {/* 右上のバツボタン */}
+      <button
+        onClick={onCancel}
+        className="absolute top-2 right-2 p-1 text-gray-500 hover:text-gray-700"
+        title="キャンセル"
+      >
+        <MdClose size={16} />
+      </button>
+      <div>
+        <label className="block text-[14px] text-[#990000] font-medium">
+          メニュー表示名
+        </label>
+        <div className="flex flex-row">
+          <input
+            type="text"
+            className="w-[70%] py-1.5 px-2 text-sm rounded border border-gray-300 focus:border-blue-500 focus:outline-none"
+            value={editMenu.title}
+            onChange={(e) => onChange({ title: e.target.value })}
+            placeholder="メニュー名を入力"
+          />
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              メニュー名
-            </label>
-            <input
-              type="text"
-              className="w-full py-1.5 px-2 text-sm rounded border border-gray-300 focus:border-blue-500 focus:outline-none"
-              value={editMenu.title}
-              onChange={(e) => onChange({ title: e.target.value })}
-              placeholder="メニュー名を入力"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              カテゴリ
-            </label>
             <Select
               options={categoryOptions}
               value={getCategoryOption(editMenu.category)}
@@ -189,94 +179,81 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
               placeholder="カテゴリを選択"
             />
           </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              価格（中サイズ）
-            </label>
-            <div className="flex items-center">
-              <input
-                type="number"
-                className="w-full py-1.5 px-2 text-sm rounded border border-gray-300 focus:border-blue-500 focus:outline-none"
-                value={editMenu.price.medium}
-                onChange={(e) => onPriceChange(e.target.value, "medium")}
-                placeholder="価格を入力"
-                min="0"
-              />
-              <span className="ml-2 text-sm text-gray-500">円</span>
-            </div>
-          </div>
-
-          <div className="col-span-2">
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="large"
-                  checked={!!editMenu.price.large}
-                  onCheckedChange={(checked) =>
-                    onSizeChange("large", !!checked)
-                  }
-                  disabled={editMenu.category == 1}
-                />
-                <label htmlFor="large" className="text-xs text-gray-700">
-                  大サイズ
-                </label>
-              </div>
-
-              {!!editMenu.price.large && (
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    価格（大サイズ）
-                  </label>
-                  <div className="flex items-center">
-                    <input
-                      type="number"
-                      className="w-full py-1.5 px-2 text-sm rounded border border-gray-300 focus:border-blue-500 focus:outline-none"
-                      value={editMenu.price.large || ""}
-                      onChange={(e) => onPriceChange(e.target.value, "large")}
-                      placeholder="大サイズの価格を入力"
-                      min="0"
-                    />
-                    <span className="ml-2 text-sm text-gray-500">円</span>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="small"
-                  checked={!!editMenu.price.small}
-                  onCheckedChange={(checked) =>
-                    onSizeChange("small", !!checked)
-                  }
-                  disabled={editMenu.category == 11 || editMenu.category == 1}
-                />
-                <label htmlFor="small" className="text-xs text-gray-700">
-                  小サイズ
-                </label>
-              </div>
-
-              {!!editMenu.price.small && (
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    価格（小サイズ）
-                  </label>
-                  <div className="flex items-center">
-                    <input
-                      type="number"
-                      className="w-full py-1.5 px-2 text-sm rounded border border-gray-300 focus:border-blue-500 focus:outline-none"
-                      value={editMenu.price.small || ""}
-                      onChange={(e) => onPriceChange(e.target.value, "small")}
-                      placeholder="小サイズの価格を入力"
-                      min="0"
-                    />
-                    <span className="ml-2 text-sm text-gray-500">円</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
+      </div>
+
+      <PriceInput
+        label="価格（中サイズ）"
+        value={editMenu.price.medium}
+        onChange={(value) => onPriceChange(value, "medium")}
+        placeholder="価格を入力"
+        required={true}
+      />
+
+      <div className="col-span-2">
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="large"
+              checked={!!editMenu.price.large}
+              onCheckedChange={(checked) => onSizeChange("large", !!checked)}
+              disabled={editMenu.category == 1}
+            />
+            <label htmlFor="large" className="text-xs text-gray-700">
+              大サイズ
+            </label>
+          </div>
+
+          {!!editMenu.price.large && (
+            <PriceInput
+              label="価格（大サイズ）"
+              value={editMenu.price.large || 0}
+              onChange={(value) => onPriceChange(value, "large")}
+              placeholder="大サイズの価格を入力"
+            />
+          )}
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="small"
+              checked={!!editMenu.price.small}
+              onCheckedChange={(checked) => onSizeChange("small", !!checked)}
+              disabled={editMenu.category == 11 || editMenu.category == 1}
+            />
+            <label htmlFor="small" className="text-xs text-gray-700">
+              小サイズ
+            </label>
+          </div>
+
+          {!!editMenu.price.small && (
+            <PriceInput
+              label="価格（小サイズ）"
+              value={editMenu.price.small || 0}
+              onChange={(value) => onPriceChange(value, "small")}
+              placeholder="小サイズの価格を入力"
+            />
+          )}
+        </div>
+      </div>
+
+      {/* 下部のボタン */}
+      <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200">
+        <Button
+          onClick={handleDelete}
+          variant="destructive"
+          size="sm"
+          disabled={!onDelete}
+        >
+          削除
+        </Button>
+        <Button
+          onClick={handleSave}
+          variant="default"
+          size="sm"
+          disabled={!editMenu.title || editMenu.price.medium <= 0 || !editMenu.category}
+        >
+          保存
+        </Button>
       </div>
     </div>
   );
