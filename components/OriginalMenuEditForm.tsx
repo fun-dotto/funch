@@ -48,7 +48,7 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
         setExistingImageUrl(null);
         return;
       }
-      
+
       try {
         const url = await imageService.getMenuImageUrlById(menu.id);
         setExistingImageUrl(url);
