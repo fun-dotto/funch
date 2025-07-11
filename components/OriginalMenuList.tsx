@@ -23,15 +23,14 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
     [menuRepository]
   );
   const crudService = useMemo(() => new OriginalMenuCRUDService(), []);
-  const { getAllMenus, loading, error } =
+  const { getAllMenus, loading, error, refresh } =
     useOriginalMenuPresenter(originalMenuService);
 
   const handleSave = async (updatedMenu: OriginalMenu) => {
     try {
       await crudService.saveOriginalMenu(updatedMenu);
       setEditingMenuId(null);
-      // リストを再読み込みする必要があります（presenterに再読み込み機能を追加することを推奨）
-      window.location.reload(); // 一時的な解決策
+      refresh();
     } catch (error) {
       console.error('保存に失敗しました:', error);
     }
@@ -41,8 +40,7 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
     try {
       await crudService.deleteOriginalMenu(menuId);
       setEditingMenuId(null);
-      // リストを再読み込みする必要があります
-      window.location.reload(); // 一時的な解決策
+      refresh();
     } catch (error) {
       console.error('削除に失敗しました:', error);
     }

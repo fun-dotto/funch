@@ -7,22 +7,22 @@ export const useOriginalMenuPresenter = (originalMenuService: OriginalMenuServic
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchOriginalMenus = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const originalMenusData = await originalMenuService.getOriginalMenus();
+      const sortedMenus = originalMenuService.sortByCategory(originalMenusData);
+      setOriginalMenus(sortedMenus);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "オリジナルメニューデータの取得に失敗しました");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchOriginalMenus = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const originalMenusData = await originalMenuService.getOriginalMenus();
-        const sortedMenus = originalMenuService.sortByCategory(originalMenusData);
-        setOriginalMenus(sortedMenus);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "オリジナルメニューデータの取得に失敗しました");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchOriginalMenus();
   }, [originalMenuService]);
 
@@ -34,11 +34,16 @@ export const useOriginalMenuPresenter = (originalMenuService: OriginalMenuServic
     return originalMenus;
   };
 
+  const refresh = () => {
+    fetchOriginalMenus();
+  };
+
   return {
     originalMenus,
     loading,
     error,
     getMenusByCategory,
     getAllMenus,
+    refresh,
   };
 };
