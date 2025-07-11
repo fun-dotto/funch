@@ -18,7 +18,7 @@ type Option = {
 type OriginalMenuEditFormProps = {
   menu: OriginalMenu;
   onCancel: () => void;
-  onSave?: (updatedMenu: OriginalMenu) => void;
+  onSave?: (updatedMenu: OriginalMenu, imageFile?: File) => void;
   onDelete?: (menuId: string) => void;
 };
 
@@ -40,9 +40,15 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
   const [showExistingImage, setShowExistingImage] = useState(true);
   const [imageService] = useState(() => new ImageService());
 
-  // 既存画像を取得
+  // 既存画像を取得（新規作成時は除く）
   useEffect(() => {
     const loadExistingImage = async () => {
+      if (!menu.id) {
+        // 新規作成時は画像を取得しない
+        setExistingImageUrl(null);
+        return;
+      }
+      
       try {
         const url = await imageService.getMenuImageUrlById(menu.id);
         setExistingImageUrl(url);
@@ -154,17 +160,30 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
       onSave
     ) {
       try {
-        // 既存画像を削除する場合（UIで非表示にされている場合）
-        if (existingImageUrl && !showExistingImage && !imageFile) {
-          await imageService.deleteMenuImage(editMenu.id);
-        }
+        // 新規作成の場合（IDが空文字）
+        if (!editMenu.id) {
+          // 画像ファイルがある場合は、メニュー保存後に画像を保存
+          if (imageFile) {
+            // メニューを保存してIDを取得するためのコールバック付きでonSaveを呼び出し
+            await onSave(editMenu, imageFile);
+          } else {
+            // 画像がない場合は通常の保存
+            onSave(editMenu);
+          }
+        } else {
+          // 既存メニューの編集の場合
+          // 既存画像を削除する場合（UIで非表示にされている場合）
+          if (existingImageUrl && !showExistingImage && !imageFile) {
+            await imageService.deleteMenuImage(editMenu.id);
+          }
 
-        // 新しい画像がある場合はアップロード
-        if (imageFile) {
-          await imageService.uploadMenuImage(editMenu.id, imageFile);
-        }
+          // 新しい画像がある場合はアップロード
+          if (imageFile) {
+            await imageService.uploadMenuImage(editMenu.id, imageFile);
+          }
 
-        onSave(editMenu);
+          onSave(editMenu);
+        }
       } catch (error) {
         console.error("画像の処理に失敗しました:", error);
         // エラーが発生してもメニューの保存は続行

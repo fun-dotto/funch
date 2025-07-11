@@ -8,6 +8,7 @@ import { FirebaseMenuRepository } from "../src/repositories/firebase/FirebaseMen
 import { VscEdit } from "react-icons/vsc";
 import { OriginalMenuEditForm } from "./OriginalMenuEditForm";
 import { OriginalMenuCRUDService } from "../src/services/OriginalMenuCRUDService";
+import { ImageService } from "../src/services/ImageService";
 
 type OriginalMenuListProps = {
   className?: string;
@@ -38,9 +39,16 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
     category: 1, // デフォルトは主菜
   });
 
-  const handleSave = async (updatedMenu: OriginalMenu) => {
+  const handleSave = async (updatedMenu: OriginalMenu, imageFile?: File) => {
     try {
-      await crudService.saveOriginalMenu(updatedMenu);
+      const savedMenu = await crudService.saveOriginalMenu(updatedMenu);
+      
+      // 新規作成で画像がある場合は、生成されたIDを使って画像を保存
+      if (imageFile && savedMenu && savedMenu.id) {
+        const imageService = new ImageService();
+        await imageService.uploadMenuImage(savedMenu.id, imageFile);
+      }
+      
       setEditingMenuId(null);
       setIsCreating(false);
       refresh();

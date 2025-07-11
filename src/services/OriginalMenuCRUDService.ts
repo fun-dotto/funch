@@ -10,7 +10,7 @@ import { OriginalMenu } from "../types/Menu";
 import { createPriceModel } from "../types/Price";
 
 export class OriginalMenuCRUDService {
-  async saveOriginalMenu(menu: OriginalMenu): Promise<string> {
+  async saveOriginalMenu(menu: OriginalMenu): Promise<OriginalMenu> {
     // 価格mapを作成（存在するサイズのみ）
     const priceMap: { [key: string]: number } = {};
 
@@ -35,14 +35,17 @@ export class OriginalMenuCRUDService {
       // 既存メニューの更新
       const menuRef = doc(database, "funch_original_menu", menu.id);
       await updateDoc(menuRef, menuData);
-      return menu.id;
+      return menu;
     } else {
       // 新規メニューの作成
       const newMenuRef = await addDoc(
         collection(database, "funch_original_menu"),
         menuData
       );
-      return newMenuRef.id;
+      return {
+        ...menu,
+        id: newMenuRef.id,
+      };
     }
   }
 
