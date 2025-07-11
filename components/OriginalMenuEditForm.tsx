@@ -7,6 +7,7 @@ import { MdClose } from "react-icons/md";
 import { Checkbox } from "./ui/checkbox";
 import { PriceInput } from "./ui/PriceInput";
 import { Button } from "./ui/button";
+import { ImageUpload } from "./ui/ImageUpload";
 
 type Option = {
   value: string;
@@ -32,6 +33,8 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
     large: !!menu.price.large,
     small: !!menu.price.small,
   });
+  // 画像ファイルの状態管理
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const categoryOptions: Option[] = [
     { value: "1", label: "主菜" },
@@ -256,6 +259,14 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
             onChange={(value) => onPriceChange(value, "small")}
           />
         )}
+      </div>
+
+      {/* 画像アップロード */}
+      <div className="pt-4">
+        <ImageUpload
+          value={imageFile}
+          onChange={setImageFile}
+        />
       </div>
 
       {/* 下部のボタン */}
