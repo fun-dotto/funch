@@ -3,10 +3,9 @@
 import { FC, useState } from "react";
 import { OriginalMenu } from "../src/types/Menu";
 import Select, { StylesConfig } from "react-select";
-import { FaSave } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
 import { Checkbox } from "./ui/checkbox";
-import { PriceInput } from "./PriceInput";
+import { PriceInput } from "./ui/PriceInput";
 import { Button } from "./ui/button";
 
 type Option = {
