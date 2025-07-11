@@ -3,7 +3,13 @@ import { Menu, OriginalMenu } from "../../types/Menu";
 import { PriceModel } from "../../types/Price";
 import { getBytes, ref } from "firebase/storage";
 import { storage, database } from "../../infrastructure/firebase";
-import { collection, getDocs, query, doc, DocumentReference } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  doc,
+  DocumentReference,
+} from "firebase/firestore";
 
 export class FirebaseMenuRepository implements MenuRepository {
   async getAllMenus(): Promise<Menu[]> {
@@ -40,7 +46,7 @@ export class FirebaseMenuRepository implements MenuRepository {
       collection(database, "funch_original_menu")
     );
     const docOriginalMenuSnap = await getDocs(docOriginalMenuRef);
-    
+
     const originalMenus: OriginalMenu[] = [];
     docOriginalMenuSnap.forEach((doc) => {
       const data = doc.data();
@@ -48,14 +54,14 @@ export class FirebaseMenuRepository implements MenuRepository {
       const title = data.title;
       const image = data.image;
       const category = data.category;
-      
+
       // 新しい価格構造に対応
       let price = {
         medium: 0,
         small: undefined as number | undefined,
         large: undefined as number | undefined,
       };
-      
+
       if (data.price && Array.isArray(data.price) && data.price.length === 3) {
         price = {
           small: data.price[0] > 0 ? data.price[0] : undefined,
@@ -63,7 +69,7 @@ export class FirebaseMenuRepository implements MenuRepository {
           large: data.price[2] > 0 ? data.price[2] : undefined,
         };
       }
-      
+
       originalMenus.push({
         id: id,
         title: title,
@@ -72,16 +78,14 @@ export class FirebaseMenuRepository implements MenuRepository {
         category: category,
       });
     });
-    
+
     return originalMenus;
   }
 
   async getPrices(): Promise<PriceModel[]> {
-    const docPriceRef = query(
-      collection(database, "funch_original_price")
-    );
+    const docPriceRef = query(collection(database, "funch_original_price"));
     const docPriceSnap = await getDocs(docPriceRef);
-    
+
     const priceList: PriceModel[] = [];
     docPriceSnap.forEach((doc) => {
       const data = doc.data();
@@ -89,15 +93,15 @@ export class FirebaseMenuRepository implements MenuRepository {
       const category = data.category;
       const name = data.name;
       const price = data.price as [number, number, number];
-      
-      priceList.push({ 
-        id, 
-        category, 
-        name, 
-        price 
+
+      priceList.push({
+        id,
+        category,
+        name,
+        price,
       });
     });
-    
+
     return priceList;
   }
 }

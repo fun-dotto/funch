@@ -54,7 +54,7 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
   const onSizeChange = (size: "large" | "small", checked: boolean) => {
     if (checked) {
       // チェックが入った場合、デフォルト価格を設定
-      const defaultPrice = editMenu.price.medium > 0 ? editMenu.price.medium : 100;
+      const defaultPrice = 100;
       const updatedPrice = {
         ...editMenu.price,
         [size]: editMenu.price[size] || defaultPrice,
