@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import { OriginalMenu } from "../src/types/Menu";
 import Select, { StylesConfig } from "react-select";
 import { MdClose } from "react-icons/md";
@@ -8,6 +8,7 @@ import { Checkbox } from "./ui/checkbox";
 import { PriceInput } from "./ui/PriceInput";
 import { Button } from "./ui/button";
 import { ImageUpload } from "./ui/ImageUpload";
+import { ImageService } from "../src/services/ImageService";
 
 type Option = {
   value: string;
@@ -35,6 +36,23 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
   });
   // 画像ファイルの状態管理
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+  const [showExistingImage, setShowExistingImage] = useState(true);
+  const [imageService] = useState(() => new ImageService());
+
+  // 既存画像を取得
+  useEffect(() => {
+    const loadExistingImage = async () => {
+      try {
+        const url = await imageService.getMenuImageUrlById(menu.id);
+        setExistingImageUrl(url);
+      } catch (error) {
+        console.error('既存画像の取得に失敗しました:', error);
+      }
+    };
+    
+    loadExistingImage();
+  }, [menu.id, imageService]);
 
   const categoryOptions: Option[] = [
     { value: "1", label: "主菜" },
@@ -128,20 +146,44 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (
       editMenu.title &&
       editMenu.price.medium > 0 &&
       editMenu.category &&
       onSave
     ) {
-      onSave(editMenu);
+      try {
+        // 既存画像を削除する場合（UIで非表示にされている場合）
+        if (existingImageUrl && !showExistingImage && !imageFile) {
+          await imageService.deleteMenuImage(editMenu.id);
+        }
+        
+        // 新しい画像がある場合はアップロード
+        if (imageFile) {
+          await imageService.uploadMenuImage(editMenu.id, imageFile);
+        }
+        
+        onSave(editMenu);
+      } catch (error) {
+        console.error('画像の処理に失敗しました:', error);
+        // エラーが発生してもメニューの保存は続行
+        onSave(editMenu);
+      }
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (onDelete && window.confirm("このメニューを削除しますか？")) {
-      onDelete(editMenu.id);
+      try {
+        // 画像も削除
+        await imageService.deleteMenuImage(editMenu.id);
+        onDelete(editMenu.id);
+      } catch (error) {
+        console.error('画像の削除に失敗しました:', error);
+        // エラーが発生してもメニューの削除は続行
+        onDelete(editMenu.id);
+      }
     }
   };
 
@@ -266,6 +308,10 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
         <ImageUpload
           value={imageFile}
           onChange={setImageFile}
+          existingImageUrl={showExistingImage ? existingImageUrl : null}
+          onRemoveExistingImage={() => {
+            setShowExistingImage(false);
+          }}
         />
       </div>
 

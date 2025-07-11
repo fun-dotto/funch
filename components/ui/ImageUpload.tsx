@@ -7,12 +7,16 @@ import { CgImage } from "react-icons/cg";
 type ImageUploadProps = {
   value?: File | null;
   onChange: (file: File | null) => void;
+  existingImageUrl?: string | null;
+  onRemoveExistingImage?: () => void;
   className?: string;
 };
 
 export const ImageUpload: FC<ImageUploadProps> = ({
   value,
   onChange,
+  existingImageUrl,
+  onRemoveExistingImage,
   className = "",
 }) => {
   const [dragOver, setDragOver] = useState(false);
@@ -99,19 +103,23 @@ export const ImageUpload: FC<ImageUploadProps> = ({
           className="hidden"
         />
 
-        {previewUrl || (value && previewUrl) ? (
+        {previewUrl || (value && previewUrl) || existingImageUrl ? (
           // 画像プレビュー表示
           <div className="flex items-center justify-center h-full">
             <div className="relative w-[40%] h-[90%] flex items-center justify-center">
               <img
-                src={previewUrl || ""}
+                src={previewUrl || existingImageUrl || ""}
                 alt="プレビュー"
                 className="object-cover rounded-lg w-full h-full"
               />
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleFileRemove();
+                  if (previewUrl) {
+                    handleFileRemove();
+                  } else if (existingImageUrl && onRemoveExistingImage) {
+                    onRemoveExistingImage();
+                  }
                 }}
                 className="absolute top-1 right-1 bg-[#990000] text-white rounded-full p-1 hover:bg-[#650000] transition-colors"
               >
