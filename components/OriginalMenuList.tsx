@@ -17,6 +17,7 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
   className = "",
 }) => {
   const [editingMenuId, setEditingMenuId] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
   const menuRepository = useMemo(() => new FirebaseMenuRepository(), []);
   const originalMenuService = useMemo(
     () => new OriginalMenuService(menuRepository),
@@ -26,14 +27,35 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
   const { getAllMenus, loading, error, refresh } =
     useOriginalMenuPresenter(originalMenuService);
 
+  // 新規作成時の初期メニューオブジェクト
+  const createNewMenu = (): OriginalMenu => ({
+    id: "", // 新規作成時は空文字、保存時にFirestoreで自動生成
+    title: "",
+    price: {
+      medium: 0,
+    },
+    image: "",
+    category: 1, // デフォルトは主菜
+  });
+
   const handleSave = async (updatedMenu: OriginalMenu) => {
     try {
       await crudService.saveOriginalMenu(updatedMenu);
       setEditingMenuId(null);
+      setIsCreating(false);
       refresh();
     } catch (error) {
-      console.error('保存に失敗しました:', error);
+      console.error("保存に失敗しました:", error);
     }
+  };
+
+  const handleCreateNew = () => {
+    setEditingMenuId(null);
+    setIsCreating(true);
+  };
+
+  const handleCancelCreate = () => {
+    setIsCreating(false);
   };
 
   const handleDelete = async (menuId: string) => {
@@ -42,7 +64,7 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
       setEditingMenuId(null);
       refresh();
     } catch (error) {
-      console.error('削除に失敗しました:', error);
+      console.error("削除に失敗しました:", error);
     }
   };
 
@@ -62,7 +84,9 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
     );
   }
 
-  const allMenus = getAllMenus().sort((a, b) => a.title.localeCompare(b.title, 'ja', { sensitivity: 'base' }));
+  const allMenus = getAllMenus().sort((a, b) =>
+    a.title.localeCompare(b.title, "ja", { sensitivity: "base" })
+  );
 
   return (
     <div
@@ -86,6 +110,30 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
                 onDelete={handleDelete}
               />
             ))}
+
+            {/* 新規作成フォーム */}
+            {isCreating && (
+              <div className="border-t border-gray-200 pt-2">
+                <OriginalMenuEditForm
+                  menu={createNewMenu()}
+                  onCancel={handleCancelCreate}
+                  onSave={handleSave}
+                  onDelete={undefined}
+                />
+              </div>
+            )}
+
+            {/* 追加ボタン */}
+            {!isCreating && (
+              <div className="flex justify-center py-4">
+                <button
+                  onClick={handleCreateNew}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#0089F0] text-white rounded-lg hover:bg-[#0060A8] transition-colors"
+                >
+                  <span>メニューの追加</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -126,10 +174,10 @@ const OriginalMenuListItem: FC<OriginalMenuListItemProps> = ({
         </div>
       </div>
       {isEditing && (
-        <OriginalMenuEditForm 
-          menu={menu} 
-          onCancel={onCancelEdit} 
-          onSave={onSave} 
+        <OriginalMenuEditForm
+          menu={menu}
+          onCancel={onCancelEdit}
+          onSave={onSave}
           onDelete={onDelete}
         />
       )}

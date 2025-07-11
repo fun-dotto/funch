@@ -47,10 +47,10 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
         const url = await imageService.getMenuImageUrlById(menu.id);
         setExistingImageUrl(url);
       } catch (error) {
-        console.error('既存画像の取得に失敗しました:', error);
+        console.error("既存画像の取得に失敗しました:", error);
       }
     };
-    
+
     loadExistingImage();
   }, [menu.id, imageService]);
 
@@ -158,15 +158,15 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
         if (existingImageUrl && !showExistingImage && !imageFile) {
           await imageService.deleteMenuImage(editMenu.id);
         }
-        
+
         // 新しい画像がある場合はアップロード
         if (imageFile) {
           await imageService.uploadMenuImage(editMenu.id, imageFile);
         }
-        
+
         onSave(editMenu);
       } catch (error) {
-        console.error('画像の処理に失敗しました:', error);
+        console.error("画像の処理に失敗しました:", error);
         // エラーが発生してもメニューの保存は続行
         onSave(editMenu);
       }
@@ -180,7 +180,7 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
         await imageService.deleteMenuImage(editMenu.id);
         onDelete(editMenu.id);
       } catch (error) {
-        console.error('画像の削除に失敗しました:', error);
+        console.error("画像の削除に失敗しました:", error);
         // エラーが発生してもメニューの削除は続行
         onDelete(editMenu.id);
       }
@@ -317,14 +317,15 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
 
       {/* 下部のボタン */}
       <div className="flex gap-2 pt-4 justify-center">
-        <Button
-          onClick={handleDelete}
-          variant="destructive"
-          disabled={!onDelete}
-          className="bg-white text-[#990000] border border-[#D87C7C] hover:bg-[#D87C7C]"
-        >
-          削除
-        </Button>
+        {onDelete && (
+          <Button
+            onClick={handleDelete}
+            variant="destructive"
+            className="bg-white text-[#990000] border border-[#D87C7C] hover:bg-[#D87C7C]"
+          >
+            削除
+          </Button>
+        )}
         <Button
           onClick={handleSave}
           variant="default"
