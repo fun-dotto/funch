@@ -64,7 +64,7 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
     );
   }
 
-  const allMenus = getAllMenus();
+  const allMenus = getAllMenus().sort((a, b) => a.title.localeCompare(b.title, 'ja', { sensitivity: 'base' }));
 
   return (
     <div
