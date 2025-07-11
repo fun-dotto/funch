@@ -11,18 +11,24 @@ import { createPriceModel } from "../types/Price";
 
 export class OriginalMenuCRUDService {
   async saveOriginalMenu(menu: OriginalMenu): Promise<string> {
-    // 価格配列を作成 [小, 中, 大]
-    const priceArray: [number, number, number] = [
-      menu.price.small || 0,
-      menu.price.medium,
-      menu.price.large || 0,
-    ];
+    // 価格mapを作成（存在するサイズのみ）
+    const priceMap: { [key: string]: number } = {};
+
+    // 中サイズは必須
+    priceMap.medium = menu.price.medium;
+
+    // 大・小サイズは存在する場合のみ追加
+    if (menu.price.large && menu.price.large > 0) {
+      priceMap.large = menu.price.large;
+    }
+    if (menu.price.small && menu.price.small > 0) {
+      priceMap.small = menu.price.small;
+    }
 
     const menuData = {
       title: menu.title,
       category: menu.category,
-      image: menu.image,
-      price: priceArray,
+      price: priceMap,
     };
 
     if (menu.id && menu.id !== "0") {
@@ -48,7 +54,23 @@ export class OriginalMenuCRUDService {
       large: undefined as number | undefined,
     };
 
-    if (data.price && Array.isArray(data.price) && data.price.length === 3) {
+    if (
+      data.price &&
+      typeof data.price === "object" &&
+      !Array.isArray(data.price)
+    ) {
+      // 新しいmap形式の場合
+      price = {
+        medium: data.price.medium || 0,
+        small: data.price.small || undefined,
+        large: data.price.large || undefined,
+      };
+    } else if (
+      data.price &&
+      Array.isArray(data.price) &&
+      data.price.length === 3
+    ) {
+      // 古い配列形式の場合（後方互換性）
       price = {
         small: data.price[0] > 0 ? data.price[0] : undefined,
         medium: data.price[1],
@@ -60,7 +82,7 @@ export class OriginalMenuCRUDService {
       id,
       title: data.title,
       price,
-      image: data.image || "",
+      image: "",
       category: data.category,
     };
   }

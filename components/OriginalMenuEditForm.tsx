@@ -28,6 +28,11 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
   onDelete,
 }) => {
   const [editMenu, setEditMenu] = useState<OriginalMenu>(menu);
+  // チェックボックスの状態を独立して管理
+  const [sizeEnabled, setSizeEnabled] = useState({
+    large: !!menu.price.large,
+    small: !!menu.price.small,
+  });
 
   const categoryOptions: Option[] = [
     { value: "1", label: "主菜" },
@@ -56,9 +61,16 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
   };
 
   const onSizeChange = (size: "large" | "small", checked: boolean) => {
+    // チェックボックスの状態を更新
+    setSizeEnabled((prev) => ({
+      ...prev,
+      [size]: checked,
+    }));
+
     if (checked) {
       // チェックが入った場合、デフォルト価格を設定
-      const defaultPrice = 100;
+      const defaultPrice =
+        editMenu.price.medium > 0 ? editMenu.price.medium : 100;
       const updatedPrice = {
         ...editMenu.price,
         [size]: editMenu.price[size] || defaultPrice,
@@ -86,14 +98,26 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
         // 丼物・カレー：大・小サイズあり
         updatedPrice.large = updatedPrice.large || editMenu.price.medium;
         updatedPrice.small = updatedPrice.small || editMenu.price.medium;
+        setSizeEnabled({
+          large: true,
+          small: true,
+        });
       } else if (num == 11) {
         // 麺類：大サイズあり、小サイズなし
         updatedPrice.large = updatedPrice.large || editMenu.price.medium;
         delete updatedPrice.small;
+        setSizeEnabled({
+          large: true,
+          small: false,
+        });
       } else if (num == 1) {
         // 主菜：大・小サイズなし
         delete updatedPrice.large;
         delete updatedPrice.small;
+        setSizeEnabled({
+          large: false,
+          small: false,
+        });
       }
 
       onChange({ category: num, price: updatedPrice });
@@ -128,6 +152,7 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
     input: (provided) => ({
       ...provided,
       margin: "0px",
+      caretColor: "transparent",
     }),
     indicatorSeparator: () => ({
       display: "none",
@@ -148,32 +173,34 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
   };
 
   return (
-    <div className="bg-gray-50 p-4 border-b border-gray-200 relative">
+    <div className="pt-5 pb-5 pr-4">
       {/* 右上のバツボタン */}
-      <button
-        onClick={onCancel}
-        className="absolute top-2 right-2 p-1 text-gray-500 hover:text-gray-700"
-        title="キャンセル"
-      >
-        <MdClose size={16} />
-      </button>
-      <div>
-        <label className="block text-[14px] text-[#990000] font-medium">
+      <div className="flex justify-end">
+        <button
+          onClick={onCancel}
+          className="hover:text-[#990000]"
+          title="キャンセル"
+        >
+          <MdClose size={16} />
+        </button>
+      </div>
+      <div className="pb-2">
+        <label className="text-[14px] text-[#990000] font-medium pb-1">
           メニュー表示名
         </label>
-        <div className="flex flex-row">
+        <div className="flex flex-row gap-4">
           <input
             type="text"
-            className="w-[70%] py-1.5 px-2 text-sm rounded border border-gray-300 focus:border-blue-500 focus:outline-none"
+            className="w-[70%] py-1.5 px-2 text-sm rounded border border-[#CCCCCC] focus:border-blue-500 focus:outline-none"
             value={editMenu.title}
             onChange={(e) => onChange({ title: e.target.value })}
             placeholder="メニュー名を入力"
           />
-          <div>
+          <div className="flex-1">
             <Select
               options={categoryOptions}
               value={getCategoryOption(editMenu.category)}
-              className="text-sm"
+              className="text-sm w-full border-[#CCCCCC]"
               styles={customSelectStyles}
               onChange={onCategoryChange}
               placeholder="カテゴリを選択"
@@ -182,77 +209,75 @@ export const OriginalMenuEditForm: FC<OriginalMenuEditFormProps> = ({
         </div>
       </div>
 
-      <PriceInput
-        label="価格（中サイズ）"
-        value={editMenu.price.medium}
-        onChange={(value) => onPriceChange(value, "medium")}
-        placeholder="価格を入力"
-        required={true}
-      />
+      <div className="flex flex-row gap-5 pb-2">
+        <PriceInput
+          label="価格"
+          value={editMenu.price.medium}
+          onChange={(value) => onPriceChange(value, "medium")}
+          required={true}
+        />
+        <div className="flex items-center gap-1 pt-8">
+          <Checkbox
+            id="large"
+            checked={sizeEnabled.large}
+            onCheckedChange={(checked) => onSizeChange("large", !!checked)}
+            disabled={editMenu.category == 1}
+          />
+          <label htmlFor="large" className="text-xs text-gray-700">
+            大サイズ
+          </label>
+        </div>
 
-      <div className="col-span-2">
-        <div className="space-y-3">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="large"
-              checked={!!editMenu.price.large}
-              onCheckedChange={(checked) => onSizeChange("large", !!checked)}
-              disabled={editMenu.category == 1}
-            />
-            <label htmlFor="large" className="text-xs text-gray-700">
-              大サイズ
-            </label>
-          </div>
-
-          {!!editMenu.price.large && (
-            <PriceInput
-              label="価格（大サイズ）"
-              value={editMenu.price.large || 0}
-              onChange={(value) => onPriceChange(value, "large")}
-              placeholder="大サイズの価格を入力"
-            />
-          )}
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="small"
-              checked={!!editMenu.price.small}
-              onCheckedChange={(checked) => onSizeChange("small", !!checked)}
-              disabled={editMenu.category == 11 || editMenu.category == 1}
-            />
-            <label htmlFor="small" className="text-xs text-gray-700">
-              小サイズ
-            </label>
-          </div>
-
-          {!!editMenu.price.small && (
-            <PriceInput
-              label="価格（小サイズ）"
-              value={editMenu.price.small || 0}
-              onChange={(value) => onPriceChange(value, "small")}
-              placeholder="小サイズの価格を入力"
-            />
-          )}
+        <div className="flex items-center gap-1 pt-8">
+          <Checkbox
+            id="small"
+            checked={sizeEnabled.small}
+            onCheckedChange={(checked) => onSizeChange("small", !!checked)}
+            disabled={editMenu.category == 11 || editMenu.category == 1}
+          />
+          <label htmlFor="small" className="text-xs text-gray-700">
+            小サイズ
+          </label>
         </div>
       </div>
 
+      <div className="flex flex-row gap-5">
+        {sizeEnabled.large && (
+          <PriceInput
+            label="価格（大）"
+            value={editMenu.price.large || 0}
+            onChange={(value) => onPriceChange(value, "large")}
+          />
+        )}
+
+        {sizeEnabled.small && (
+          <PriceInput
+            label="価格（小）"
+            value={editMenu.price.small || 0}
+            onChange={(value) => onPriceChange(value, "small")}
+          />
+        )}
+      </div>
+
       {/* 下部のボタン */}
-      <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200">
+      <div className="flex gap-2 pt-4 justify-center">
         <Button
           onClick={handleDelete}
           variant="destructive"
-          size="sm"
           disabled={!onDelete}
+          className="bg-white text-[#990000] border border-[#D87C7C] hover:bg-[#D87C7C]"
         >
           削除
         </Button>
         <Button
           onClick={handleSave}
           variant="default"
-          size="sm"
-          disabled={!editMenu.title || editMenu.price.medium <= 0 || !editMenu.category}
+          disabled={
+            !editMenu.title || editMenu.price.medium <= 0 || !editMenu.category
+          }
+          className="bg-[#0089F0] hover:bg-[#0060A8]"
         >
-          保存
+          メニュー登録
         </Button>
       </div>
     </div>

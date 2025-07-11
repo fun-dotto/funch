@@ -15,19 +15,19 @@ export const PriceInput: FC<PriceInputProps> = ({
   label,
   value,
   onChange,
-  placeholder = "価格を入力",
+  placeholder = "数値のみ半角入力",
   required = false,
   min = "0",
 }) => {
   return (
-    <div>
-      <label className="block text-xs font-medium text-gray-700 mb-1">
+    <div className="w-[24%]">
+      <label className="text-[14px] text-[#990000] font-medium pb-1">
         {label}
       </label>
-      <div className="flex items-center">
+      <div className="">
         <input
           type="number"
-          className="w-full py-1.5 px-2 text-sm rounded border border-gray-300 focus:border-blue-500 focus:outline-none"
+          className="w-full h-[38px] px-2 text-[14px] rounded border border-[#CCCCCC] focus:border-blue-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           value={value || ""}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
