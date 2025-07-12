@@ -1,6 +1,5 @@
 import {
   collection,
-  DocumentReference,
   getDocs,
   query,
   Timestamp,
@@ -106,7 +105,7 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
     };
 
     const docRef = query(
-      collection(database, "funch_day"),
+      collection(database, "funch_daily_menu"),
       where("date", ">=", Timestamp.fromDate(startDate)),
       where("date", "<=", Timestamp.fromDate(endDate))
     );
@@ -121,7 +120,7 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
       const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
 
       // 通常メニュー
-      const menuCodes = data.menu != undefined ? (data.menu as number[]) : [];
+      const menuCodes = data.common_menu_ids != undefined ? (data.common_menu_ids as number[]) : [];
       const menus = menuCodes
         .map((m: number) => {
           return allMenus.find((menu) => menu.item_code == m);
@@ -130,13 +129,13 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
       menuData.set(dateId, menus);
 
       // オリジナルメニュー
-      const originalMenuRefs =
-        data.original_menu != undefined
-          ? (data.original_menu as DocumentReference[])
+      const originalMenuIds =
+        data.original_menu_ids != undefined
+          ? (data.original_menu_ids as string[])
           : [];
-      const originalMenus = originalMenuRefs
-        .map((ref) => {
-          return originalMenuList.find((m) => m.id == ref.id);
+      const originalMenus = originalMenuIds
+        .map((id) => {
+          return originalMenuList.find((m) => m.id == id);
         })
         .filter((m) => m != undefined) as OriginalMenu[];
       originalMenuData.set(dateId, originalMenus);
@@ -146,17 +145,10 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
   }
 
   async removeDailyMenu(date: Date, menuItemCode: number): Promise<void> {
-    const dateOptions: Intl.DateTimeFormatOptions = {
-      timeZone: "Asia/Tokyo",
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-    };
-    const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
 
     // 該当する日付のドキュメントを取得
     const docRef = query(
-      collection(database, "funch_day"),
+      collection(database, "funch_daily_menu"),
       where("date", "==", Timestamp.fromDate(date))
     );
     const docSnap = await getDocs(docRef);
@@ -166,8 +158,8 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
       const docId = docData.id;
 
       // メニューコードを配列から削除
-      await updateDoc(doc(database, "funch_day", docId), {
-        menu: arrayRemove(menuItemCode),
+      await updateDoc(doc(database, "funch_daily_menu", docId), {
+        common_menu_ids: arrayRemove(menuItemCode),
       });
     }
   }
@@ -176,17 +168,10 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
     date: Date,
     originalMenuId: string
   ): Promise<void> {
-    const dateOptions: Intl.DateTimeFormatOptions = {
-      timeZone: "Asia/Tokyo",
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-    };
-    const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
 
     // 該当する日付のドキュメントを取得
     const docRef = query(
-      collection(database, "funch_day"),
+      collection(database, "funch_daily_menu"),
       where("date", "==", Timestamp.fromDate(date))
     );
     const docSnap = await getDocs(docRef);
@@ -195,14 +180,9 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
       const docData = docSnap.docs[0];
       const docId = docData.id;
 
-      // オリジナルメニューの参照を配列から削除
-      const originalMenuRef = doc(
-        database,
-        "funch_original_menu",
-        originalMenuId
-      );
-      await updateDoc(doc(database, "funch_day", docId), {
-        original_menu: arrayRemove(originalMenuRef),
+      // オリジナルメニューIDを配列から削除
+      await updateDoc(doc(database, "funch_daily_menu", docId), {
+        original_menu_ids: arrayRemove(originalMenuId),
       });
     }
   }
