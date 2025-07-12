@@ -1,14 +1,24 @@
 import { MenuRepository } from "../repositories/interfaces/MenuRepository";
-import { Menu, OriginalMenu, UnifiedMenuItem, getCategoryMenu } from "../types/Menu";
+import {
+  Menu,
+  OriginalMenu,
+  UnifiedMenuItem,
+  getCategoryMenu,
+} from "../types/Menu";
 import { getBytes, ref } from "firebase/storage";
 import { storage } from "../infrastructure/firebase";
+import { OriginalMenuCRUDService } from "./OriginalMenuCRUDService";
 
 type MenuResponse = {
   menus: UnifiedMenuItem[];
 };
 
 export class MenuService {
-  constructor(private menuRepository: MenuRepository) {}
+  private originalMenuCRUDService: OriginalMenuCRUDService;
+
+  constructor(private menuRepository: MenuRepository) {
+    this.originalMenuCRUDService = new OriginalMenuCRUDService();
+  }
 
   async getAllMenus(): Promise<Menu[]> {
     return await this.menuRepository.getAllMenus();
@@ -21,7 +31,6 @@ export class MenuService {
   getCategoryMenus(allMenus: Menu[], categoryCode: number): Menu[] {
     return getCategoryMenu(allMenus, categoryCode);
   }
-
 
   async getRawMenuWithPrices(): Promise<UnifiedMenuItem[]> {
     const pathReference = ref(storage, "funch/menu.json");
@@ -40,9 +49,9 @@ export class MenuService {
 
     return jsonData.map((data) => {
       const prices: { small?: number; medium: number; large?: number } = {
-        medium: data.price.medium
+        medium: data.price.medium,
       };
-      
+
       if (data.price.small) {
         prices.small = data.price.small;
       }
@@ -54,34 +63,62 @@ export class MenuService {
         name: data.title,
         category_id: data.category,
         prices,
-        id: data.item_code
+        id: data.item_code,
       };
     });
   }
 
-  private convertOriginalMenuToUnified(originalMenu: OriginalMenu): UnifiedMenuItem {
+  private convertOriginalMenuToUnified(
+    originalMenu: OriginalMenu
+  ): UnifiedMenuItem {
     return {
       name: originalMenu.title,
       category_id: originalMenu.category,
       prices: originalMenu.price,
-      id: originalMenu.id
+      id: originalMenu.id,
     };
   }
 
   async getFormattedMenus(): Promise<MenuResponse> {
     const rawMenus = await this.getRawMenuWithPrices();
-    
+
     return {
-      menus: rawMenus.sort((a, b) => a.name.localeCompare(b.name, "ja"))
+      menus: rawMenus.sort((a, b) => a.name.localeCompare(b.name, "ja")),
     };
   }
 
   async getFormattedOriginalMenus(): Promise<MenuResponse> {
     const originalMenus = await this.getOriginalMenus();
-    
+
     return {
-      menus: originalMenus.map(originalMenu => this.convertOriginalMenuToUnified(originalMenu))
-        .sort((a, b) => a.name.localeCompare(b.name, "ja"))
+      menus: originalMenus
+        .map((originalMenu) => this.convertOriginalMenuToUnified(originalMenu))
+        .sort((a, b) => a.name.localeCompare(b.name, "ja")),
     };
+  }
+
+  async createOriginalMenu(
+    menuData: Omit<OriginalMenu, "id">
+  ): Promise<OriginalMenu> {
+    const newMenu: OriginalMenu = {
+      ...menuData,
+      id: "0", // OriginalMenuCRUDServiceが新規作成として認識
+    };
+    return await this.originalMenuCRUDService.saveOriginalMenu(newMenu);
+  }
+
+  async updateOriginalMenu(
+    id: string,
+    menuData: Omit<OriginalMenu, "id">
+  ): Promise<OriginalMenu> {
+    const updatedMenu: OriginalMenu = {
+      ...menuData,
+      id,
+    };
+    return await this.originalMenuCRUDService.saveOriginalMenu(updatedMenu);
+  }
+
+  async deleteOriginalMenu(id: string): Promise<void> {
+    return await this.originalMenuCRUDService.deleteOriginalMenu(id);
   }
 }
