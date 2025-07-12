@@ -5,7 +5,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "../src/infrastructure/firebase";
 import { useMonthMenuPresenter } from "../src/presenters/MonthMenuPresenter";
 import { MonthMenuService } from "../src/services/MonthMenuService";
-import { FirebaseMonthMenuRepository } from "../src/repositories/FirebaseMonthMenuRepository";
+import { FirebaseMonthMenuRepository } from "../src/repositories/firebase/MonthMenuRepository";
 import { HiTrash } from "react-icons/hi";
 import { Menu, OriginalMenu } from "../src/types/Menu";
 import { useDroppable } from "@dnd-kit/core";

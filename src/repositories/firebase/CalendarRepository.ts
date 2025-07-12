@@ -9,16 +9,16 @@ import {
   updateDoc,
   arrayRemove,
 } from "firebase/firestore";
-import { database } from "../infrastructure/firebase";
-import { Menu, OriginalMenu } from "../types/Menu";
+import { database } from "../../infrastructure/firebase";
+import { Menu, OriginalMenu } from "../../types/Menu";
 import { UniqueIdentifier } from "@dnd-kit/core";
-import { CalendarMenuRepository } from "./interfaces/CalendarMenuRepository";
+import { CalendarMenuRepository } from "../interfaces/CalendarMenuRepository";
 
 export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
   async getAllMenus(): Promise<Menu[]> {
     // 直接Firebase Storageからmenu.jsonを取得
     const { getBytes, ref } = await import("firebase/storage");
-    const { storage } = await import("../infrastructure/firebase");
+    const { storage } = await import("../../infrastructure/firebase");
 
     const pathReference = ref(storage, "funch/menu.json");
     const bytes = await getBytes(pathReference);

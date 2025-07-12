@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { MenuService } from "../../../services/MenuService";
-import { FirebaseMenuRepository } from "../../../repositories/firebase/FirebaseMenuRepository";
+import { FirebaseMenuRepository } from "../../../repositories/firebase/MenuRepository";
 
 export async function GET() {
   try {

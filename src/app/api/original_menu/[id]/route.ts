@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MenuService } from "../../../../services/MenuService";
-import { FirebaseMenuRepository } from "../../../../repositories/firebase/FirebaseMenuRepository";
+import { FirebaseMenuRepository } from "../../../../repositories/firebase/MenuRepository";
 
 export async function PUT(
   request: NextRequest,
@@ -26,9 +26,9 @@ export async function PUT(
     const menuService = new MenuService(menuRepository);
 
     const updatedMenu = await menuService.updateOriginalMenu(id, {
-      title: name,        // name → title (内部型に変換)
+      title: name, // name → title (内部型に変換)
       category: category_id, // category_id → category (内部型に変換)
-      price: prices,      // prices → price (内部型に変換)
+      price: prices, // prices → price (内部型に変換)
     });
 
     return NextResponse.json({

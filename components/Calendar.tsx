@@ -6,7 +6,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "../src/infrastructure/firebase";
 import { useCalendarMenuPresenter } from "../src/presenters/CalendarPresenter";
 import { CalendarMenuService } from "../src/services/CalendarService";
-import { FirebaseCalendarMenuRepository } from "../src/repositories/CalendarRepository";
+import { FirebaseCalendarMenuRepository } from "../src/repositories/firebase/CalendarRepository";
 import { HiTrash } from "react-icons/hi";
 
 const calendarMenuRepository = new FirebaseCalendarMenuRepository();

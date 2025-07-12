@@ -7,9 +7,9 @@ import {
   setDoc,
   DocumentReference,
 } from "firebase/firestore";
-import { database } from "../infrastructure/firebase";
-import { Menu, OriginalMenu } from "../types/Menu";
-import { MonthMenuRepository } from "./interfaces/MonthMenuRepository";
+import { database } from "../../infrastructure/firebase";
+import { Menu, OriginalMenu } from "../../types/Menu";
+import { MonthMenuRepository } from "../interfaces/MonthMenuRepository";
 
 export class FirebaseMonthMenuRepository implements MonthMenuRepository {
   private formatDateJST(date: Date, monthOnly: boolean): string {
@@ -31,7 +31,7 @@ export class FirebaseMonthMenuRepository implements MonthMenuRepository {
   private async getAllMenus(): Promise<Menu[]> {
     // 直接Firebase Storageからmenu.jsonを取得
     const { getBytes, ref } = await import("firebase/storage");
-    const { storage } = await import("../infrastructure/firebase");
+    const { storage } = await import("../../infrastructure/firebase");
 
     const pathReference = ref(storage, "funch/menu.json");
     const bytes = await getBytes(pathReference);

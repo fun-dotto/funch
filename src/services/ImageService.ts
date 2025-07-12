@@ -1,4 +1,4 @@
-import { FirebaseImageRepository } from "../repositories/firebase/FirebaseImageRepository";
+import { FirebaseImageRepository } from "../repositories/firebase/ImageRepository";
 
 export class ImageService {
   private imageRepository: FirebaseImageRepository;
