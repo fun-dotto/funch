@@ -42,6 +42,17 @@ export type OriginalMenu = {
   category: number;
 };
 
+export type UnifiedMenuItem = {
+  name: string;
+  category_id: number;
+  prices: {
+    small?: number;
+    medium: number;
+    large?: number;
+  };
+  id?: number | string;
+};
+
 export const getCategoryMenu = (allMenu: Menu[], category_code: number) => {
   const c = allMenu.filter((m) => m.category == category_code);
   return c.sort(menuSort);
