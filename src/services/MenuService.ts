@@ -122,4 +122,43 @@ export class MenuService {
     const originalMenu = originalMenus.find(menu => menu.id === id);
     return originalMenu ? convertOriginalMenuToMenuItem(originalMenu) : null;
   }
+
+  async getAllDailyMenuDates(): Promise<string[]> {
+    const { collection, getDocs, query, orderBy } = await import("firebase/firestore");
+    const { database } = await import("../infrastructure/firebase");
+
+    const docRef = query(
+      collection(database, "funch_daily_menu"),
+      orderBy("date", "asc")
+    );
+    const docSnap = await getDocs(docRef);
+
+    const dates: string[] = [];
+    docSnap.forEach((doc) => {
+      dates.push(doc.id); // ドキュメントIDが日付（例: 20250709）
+    });
+
+    return dates;
+  }
+
+  async getDailyMenuByDate(date: string): Promise<{
+    common_menu_ids: number[];
+    original_menu_ids: string[];
+  } | null> {
+    const { doc, getDoc } = await import("firebase/firestore");
+    const { database } = await import("../infrastructure/firebase");
+
+    const docRef = doc(database, "funch_daily_menu", date);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      return null;
+    }
+
+    const data = docSnap.data();
+    return {
+      common_menu_ids: data.common_menu_ids || [],
+      original_menu_ids: data.original_menu_ids || [],
+    };
+  }
 }
