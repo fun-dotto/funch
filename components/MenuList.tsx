@@ -23,7 +23,7 @@ type MenuListProps = {
 };
 
 export const MenuList: FC<MenuListProps> = ({ className = "" }) => {
-  const { menuItems, originalMenuItems, loading, error, getCategoryMenus } =
+  const { originalMenuItems, loading, error, getCategoryMenus } =
     useMenuListPresenter();
 
   if (loading) {
@@ -80,11 +80,7 @@ const DraggableByCategory: FC<DraggableByCategoryProps> = ({
       </div>
       {open &&
         menus.map((menu) => (
-          <Draggable
-            key={String(menu.id)}
-            id={String(menu.id)}
-            menu={menu}
-          />
+          <Draggable key={String(menu.id)} id={String(menu.id)} menu={menu} />
         ))}
     </>
   );
@@ -108,7 +104,7 @@ const DraggableOriginal: FC<DraggableOriginalProps> = ({ menus }) => {
       </div>
       {open &&
         menus.map((menu) => (
-          <Draggable key={String(menu.id)} id={String(menu.id)} menu={menu} isOriginal={true} />
+          <Draggable key={String(menu.id)} id={String(menu.id)} menu={menu} />
         ))}
     </>
   );
@@ -117,13 +113,11 @@ const DraggableOriginal: FC<DraggableOriginalProps> = ({ menus }) => {
 type DraggableBlockSourceProps = {
   isDragging?: boolean;
   menu: MenuItem;
-  isOriginal?: boolean;
 };
 
 const DraggableBlockSource: FC<DraggableBlockSourceProps> = ({
   isDragging,
   menu,
-  isOriginal = false,
 }) => {
   return (
     <div
@@ -131,7 +125,7 @@ const DraggableBlockSource: FC<DraggableBlockSourceProps> = ({
         isDragging ? "cursor-grabbing" : "cursor-grab"
       }`}
     >
-      {isOriginal ? (
+      {typeof menu.id === "string" ? (
         <>
           FUN {menu.name}
           <span className="text-xs ml-2">¥{menu.prices.medium}</span>
@@ -149,10 +143,9 @@ const DraggableBlockSource: FC<DraggableBlockSourceProps> = ({
 type DraggableProps = {
   id: string;
   menu: MenuItem;
-  isOriginal?: boolean;
 };
 
-const Draggable: FC<DraggableProps> = ({ id, menu, isOriginal = false }) => {
+const Draggable: FC<DraggableProps> = ({ id, menu }) => {
   const { setNodeRef, listeners, attributes, isDragging } = useDraggable({
     id,
     data: { menu },
@@ -160,7 +153,7 @@ const Draggable: FC<DraggableProps> = ({ id, menu, isOriginal = false }) => {
 
   return (
     <div ref={setNodeRef} {...attributes} {...listeners} className="z-20 h-fit">
-      <DraggableBlockSource isDragging={isDragging} menu={menu} isOriginal={isOriginal} />
+      <DraggableBlockSource isDragging={isDragging} menu={menu} />
     </div>
   );
 };
