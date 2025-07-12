@@ -7,7 +7,7 @@ import { useMonthMenuPresenter } from "../src/presenters/MonthMenuPresenter";
 import { MonthMenuService } from "../src/services/MonthMenuService";
 import { FirebaseMonthMenuRepository } from "../src/repositories/FirebaseMonthMenuRepository";
 import { HiTrash } from "react-icons/hi";
-import { Menu, OriginalMenu } from "../src/repository/menu";
+import { Menu, OriginalMenu } from "../src/types/Menu";
 import { useDroppable } from "@dnd-kit/core";
 
 const monthMenuRepository = new FirebaseMonthMenuRepository();

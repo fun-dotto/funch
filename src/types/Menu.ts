@@ -56,7 +56,6 @@ export type OriginalMenu = {
   id: string;
   title: string;
   price: PriceStructure;
-  image: string;
   category: number;
 };
 

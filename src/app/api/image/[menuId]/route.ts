@@ -3,10 +3,10 @@ import { ImageService } from "../../../../services/ImageService";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { menuId: string } }
+  { params }: { params: Promise<{ menuId: string }> }
 ) {
   try {
-    const { menuId } = params;
+    const { menuId } = await params;
     const imageService = new ImageService();
 
     const imageUrl = await imageService.getMenuImageUrlById(menuId);
@@ -39,10 +39,10 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { menuId: string } }
+  { params }: { params: Promise<{ menuId: string }> }
 ) {
   try {
-    const { menuId } = params;
+    const { menuId } = await params;
     const imageService = new ImageService();
 
     await imageService.deleteMenuImage(menuId);

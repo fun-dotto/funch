@@ -1,4 +1,4 @@
-import { Menu, OriginalMenu } from "../repository/menu";
+import { Menu, OriginalMenu } from "../types/Menu";
 import { MonthMenuRepository } from "../repositories/interfaces/MonthMenuRepository";
 
 export class MonthMenuService {

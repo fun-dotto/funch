@@ -8,7 +8,7 @@ import {
   DocumentReference,
 } from "firebase/firestore";
 import { database } from "../infrastructure/firebase";
-import { Menu, OriginalMenu, importMenu } from "../repository/menu";
+import { Menu, OriginalMenu } from "../types/Menu";
 import { MonthMenuRepository } from "./interfaces/MonthMenuRepository";
 
 export class FirebaseMonthMenuRepository implements MonthMenuRepository {
@@ -29,7 +29,36 @@ export class FirebaseMonthMenuRepository implements MonthMenuRepository {
   }
 
   private async getAllMenus(): Promise<Menu[]> {
-    return await importMenu();
+    // 直接Firebase Storageからmenu.jsonを取得
+    const { getBytes, ref } = await import("firebase/storage");
+    const { storage } = await import("../infrastructure/firebase");
+    
+    const pathReference = ref(storage, "funch/menu.json");
+    const bytes = await getBytes(pathReference);
+    const jsonString = new TextDecoder().decode(bytes);
+    const jsonData: {
+      item_code: number;
+      title: string;
+      price: { large?: number; medium: number; small?: number };
+      image: string;
+      category: number;
+      large: boolean;
+      small: boolean;
+      energy: number;
+    }[] = JSON.parse(jsonString);
+
+    return jsonData.map((data) => {
+      return new Menu(
+        data.item_code,
+        data.title,
+        data.price.medium,
+        data.image,
+        data.category,
+        data.large,
+        data.small,
+        data.energy
+      );
+    });
   }
 
   private async getOriginalMenuList(): Promise<OriginalMenu[]> {
@@ -43,11 +72,8 @@ export class FirebaseMonthMenuRepository implements MonthMenuRepository {
     docOriginalMenuSnap.forEach((doc) => {
       const data = doc.data();
       const id = doc.id;
-      const title = data.title;
-      const image = data.image || "";
-      const large = data.large || false;
-      const small = data.small || false;
-      const category = data.category;
+      const title = data.name;        // name フィールドから取得
+      const category = data.category_id; // category_id フィールドから取得
 
       // 価格構造を新しい形式で取得
       let price = {
@@ -56,12 +82,12 @@ export class FirebaseMonthMenuRepository implements MonthMenuRepository {
         large: undefined as number | undefined,
       };
 
-      if (data.price && typeof data.price === 'object' && !Array.isArray(data.price)) {
-        // 新しいmap形式の場合
+      if (data.prices && typeof data.prices === 'object' && !Array.isArray(data.prices)) {
+        // prices フィールドから取得
         price = {
-          medium: data.price.medium || 0,
-          small: data.price.small || undefined,
-          large: data.price.large || undefined,
+          medium: data.prices.medium || 0,
+          small: data.prices.small || undefined,
+          large: data.prices.large || undefined,
         };
       }
 
@@ -69,9 +95,6 @@ export class FirebaseMonthMenuRepository implements MonthMenuRepository {
         id: id,
         title: title,
         price: price,
-        image: image,
-        large: large,
-        small: small,
         category: category,
       });
     });

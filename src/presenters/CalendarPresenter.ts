@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { User } from "firebase/auth";
-import { Menu, OriginalMenu } from "../repository/menu";
+import { Menu, OriginalMenu } from "../types/Menu";
 import { UniqueIdentifier } from "@dnd-kit/core";
 import { CalendarMenuService } from "../services/CalendarService";
 

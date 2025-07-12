@@ -32,14 +32,14 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, category, price } = body;
+    const { name, category_id, prices } = body;
 
-    if (!title || !category || !price?.medium) {
+    if (!name || !category_id || !prices?.medium) {
       return NextResponse.json(
         {
           success: false,
           error: "Missing required fields",
-          message: "title, category, and price.medium are required",
+          message: "name, category_id, and prices.medium are required",
         },
         { status: 400 }
       );
@@ -49,10 +49,9 @@ export async function POST(request: NextRequest) {
     const menuService = new MenuService(menuRepository);
 
     const newMenu = await menuService.createOriginalMenu({
-      title,
-      category,
-      price,
-      image: "",
+      title: name,        // name → title (内部型に変換)
+      category: category_id, // category_id → category (内部型に変換)
+      price: prices,      // prices → price (内部型に変換)
     });
 
     return NextResponse.json({

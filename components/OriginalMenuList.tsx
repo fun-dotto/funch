@@ -35,20 +35,19 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
     price: {
       medium: 0,
     },
-    image: "",
     category: 1, // デフォルトは主菜
   });
 
   const handleSave = async (updatedMenu: OriginalMenu, imageFile?: File) => {
     try {
       const savedMenu = await crudService.saveOriginalMenu(updatedMenu);
-      
+
       // 新規作成で画像がある場合は、生成されたIDを使って画像を保存
       if (imageFile && savedMenu && savedMenu.id) {
         const imageService = new ImageService();
         await imageService.uploadMenuImage(savedMenu.id, imageFile);
       }
-      
+
       setEditingMenuId(null);
       setIsCreating(false);
       refresh();
