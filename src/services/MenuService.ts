@@ -2,15 +2,16 @@ import { MenuRepository } from "../repositories/interfaces/MenuRepository";
 import {
   Menu,
   OriginalMenu,
-  UnifiedMenuItem,
+  MenuItem,
   getCategoryMenu,
+  convertOriginalMenuToMenuItem,
 } from "../types/Menu";
 import { getBytes, ref } from "firebase/storage";
 import { storage } from "../infrastructure/firebase";
 import { OriginalMenuCRUDService } from "./OriginalMenuCRUDService";
 
 type MenuResponse = {
-  menus: UnifiedMenuItem[];
+  menus: MenuItem[];
 };
 
 export class MenuService {
@@ -32,7 +33,7 @@ export class MenuService {
     return getCategoryMenu(allMenus, categoryCode);
   }
 
-  async getRawMenuWithPrices(): Promise<UnifiedMenuItem[]> {
+  async getRawMenuWithPrices(): Promise<MenuItem[]> {
     const pathReference = ref(storage, "funch/menu.json");
     const bytes = await getBytes(pathReference);
     const jsonString = new TextDecoder().decode(bytes);
@@ -68,16 +69,6 @@ export class MenuService {
     });
   }
 
-  private convertOriginalMenuToUnified(
-    originalMenu: OriginalMenu
-  ): UnifiedMenuItem {
-    return {
-      name: originalMenu.title,
-      category_id: originalMenu.category,
-      prices: originalMenu.price,
-      id: originalMenu.id,
-    };
-  }
 
   async getFormattedMenus(): Promise<MenuResponse> {
     const rawMenus = await this.getRawMenuWithPrices();
@@ -92,7 +83,7 @@ export class MenuService {
 
     return {
       menus: originalMenus
-        .map((originalMenu) => this.convertOriginalMenuToUnified(originalMenu))
+        .map((originalMenu) => convertOriginalMenuToMenuItem(originalMenu))
         .sort((a, b) => a.name.localeCompare(b.name, "ja")),
     };
   }

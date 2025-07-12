@@ -1,5 +1,4 @@
 // import * as wanakana from "wanakana";
-import { PriceModel } from "./price";
 import { getBytes, ref } from "firebase/storage";
 import { storage } from "../infrastructure/firebase";
 
@@ -79,10 +78,16 @@ const menuSort = (a: Menu, b: Menu) => {
   return a.title.localeCompare(b.title, "ja");
 };
 
+type PriceStructure = {
+  small?: number;
+  medium: number;
+  large?: number;
+};
+
 export type OriginalMenu = {
   id: string;
   title: string;
-  price: PriceModel;
+  price: PriceStructure;
   image: string;
   large: boolean;
   small: boolean;
@@ -92,7 +97,7 @@ export type OriginalMenu = {
 export type OriginalMenuNull = {
   id?: string;
   title: string;
-  price?: PriceModel;
+  price?: PriceStructure;
   image: string;
   large: boolean;
   small: boolean;

@@ -7,7 +7,6 @@ import {
 } from "firebase/firestore";
 import { database } from "../infrastructure/firebase";
 import { OriginalMenu } from "../types/Menu";
-import { createPriceModel } from "../types/Price";
 
 export class OriginalMenuCRUDService {
   async saveOriginalMenu(menu: OriginalMenu): Promise<OriginalMenu> {

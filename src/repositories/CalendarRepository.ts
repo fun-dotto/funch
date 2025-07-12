@@ -11,7 +11,6 @@ import {
 } from "firebase/firestore";
 import { database } from "../infrastructure/firebase";
 import { importMenu, Menu, OriginalMenu } from "../repository/menu";
-import { PriceModel } from "../repository/price";
 import { UniqueIdentifier } from "@dnd-kit/core";
 import { CalendarMenuRepository } from "./interfaces/CalendarMenuRepository";
 
@@ -20,24 +19,7 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
     return await importMenu();
   }
 
-  async getPriceList(): Promise<PriceModel[]> {
-    const docPriceRef = collection(database, "funch_price");
-    const docPriceSnap = await getDocs(docPriceRef);
-    const newPriceList: PriceModel[] = [];
-    docPriceSnap.forEach((doc) => {
-      const data = doc.data();
-      const id = doc.id;
-      const small = data.small;
-      const medium = data.medium;
-      const large = data.large;
-      const categories = data.categories as number[];
-      newPriceList.push({ id, small, medium, large, categories });
-    });
-    return newPriceList;
-  }
-
   async getOriginalMenuList(): Promise<OriginalMenu[]> {
-    const priceList = await this.getPriceList();
     const docOriginalMenuRef = collection(database, "funch_original_menu");
     const docOriginalMenuSnap = await getDocs(docOriginalMenuRef);
     const originalMenuList: OriginalMenu[] = [];
@@ -45,23 +27,34 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
       const data = doc.data();
       const id = doc.id;
       const title = data.title;
-      const priceId = data.price.id;
-      const price = priceList.find((price) => price.id === priceId);
-      const image = data.image;
-      const large = data.large;
-      const small = data.small;
+      const image = data.image || "";
       const category = data.category;
-      if (price != null) {
-        originalMenuList.push({
-          id: id,
-          title: title,
-          price: price,
-          image: image,
-          large: large,
-          small: small,
-          category: category,
-        });
+      
+      // 価格構造を新しい形式で取得
+      let price = {
+        medium: 0,
+        small: undefined as number | undefined,
+        large: undefined as number | undefined,
+      };
+
+      if (data.price && typeof data.price === 'object' && !Array.isArray(data.price)) {
+        // 新しいmap形式の場合
+        price = {
+          medium: data.price.medium || 0,
+          small: data.price.small || undefined,
+          large: data.price.large || undefined,
+        };
       }
+
+      originalMenuList.push({
+        id: id,
+        title: title,
+        price: price,
+        image: image,
+        large: data.large || false,
+        small: data.small || false,
+        category: category,
+      });
     });
     return originalMenuList;
   }

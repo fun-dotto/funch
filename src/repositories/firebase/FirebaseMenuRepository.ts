@@ -1,14 +1,11 @@
 import { MenuRepository } from "../interfaces/MenuRepository";
 import { Menu, OriginalMenu } from "../../types/Menu";
-import { PriceModel } from "../../types/Price";
 import { getBytes, ref } from "firebase/storage";
 import { storage, database } from "../../infrastructure/firebase";
 import {
   collection,
   getDocs,
   query,
-  doc,
-  DocumentReference,
 } from "firebase/firestore";
 
 export class FirebaseMenuRepository implements MenuRepository {
@@ -89,26 +86,4 @@ export class FirebaseMenuRepository implements MenuRepository {
     return originalMenus;
   }
 
-  async getPrices(): Promise<PriceModel[]> {
-    const docPriceRef = query(collection(database, "funch_original_price"));
-    const docPriceSnap = await getDocs(docPriceRef);
-
-    const priceList: PriceModel[] = [];
-    docPriceSnap.forEach((doc) => {
-      const data = doc.data();
-      const id = doc.id;
-      const category = data.category;
-      const name = data.name;
-      const price = data.price as [number, number, number];
-
-      priceList.push({
-        id,
-        category,
-        name,
-        price,
-      });
-    });
-
-    return priceList;
-  }
 }
