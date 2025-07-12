@@ -161,4 +161,31 @@ export class MenuService {
       original_menu_ids: data.original_menu_ids || [],
     };
   }
+
+  async getDailyMenuItemsByDate(date: string): Promise<MenuItem[] | null> {
+    const dailyMenu = await this.getDailyMenuByDate(date);
+    if (!dailyMenu) {
+      return null;
+    }
+
+    const menuItems: MenuItem[] = [];
+
+    // 通常メニューを取得
+    for (const menuId of dailyMenu.common_menu_ids) {
+      const menuItem = await this.getMenuById(menuId);
+      if (menuItem) {
+        menuItems.push(menuItem);
+      }
+    }
+
+    // オリジナルメニューを取得
+    for (const originalMenuId of dailyMenu.original_menu_ids) {
+      const originalMenuItem = await this.getOriginalMenuById(originalMenuId);
+      if (originalMenuItem) {
+        menuItems.push(originalMenuItem);
+      }
+    }
+
+    return menuItems;
+  }
 }
