@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { OriginalMenuService } from "../services/OriginalMenuService";
 import { OriginalMenu } from "../types/Menu";
 
-export const useOriginalMenuPresenter = (originalMenuService: OriginalMenuService) => {
+export const useOriginalMenuPresenter = (
+  originalMenuService: OriginalMenuService
+) => {
   const [originalMenus, setOriginalMenus] = useState<OriginalMenu[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +18,11 @@ export const useOriginalMenuPresenter = (originalMenuService: OriginalMenuServic
       const sortedMenus = originalMenuService.sortByCategory(originalMenusData);
       setOriginalMenus(sortedMenus);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "オリジナルメニューデータの取得に失敗しました");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "オリジナルメニューデータの取得に失敗しました"
+      );
     } finally {
       setLoading(false);
     }

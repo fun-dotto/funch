@@ -19,7 +19,7 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
     // 直接Firebase Storageからmenu.jsonを取得
     const { getBytes, ref } = await import("firebase/storage");
     const { storage } = await import("../infrastructure/firebase");
-    
+
     const pathReference = ref(storage, "funch/menu.json");
     const bytes = await getBytes(pathReference);
     const jsonString = new TextDecoder().decode(bytes);
@@ -55,9 +55,9 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
     docOriginalMenuSnap.forEach((doc) => {
       const data = doc.data();
       const id = doc.id;
-      const title = data.name;        // name フィールドから取得
+      const title = data.name; // name フィールドから取得
       const category = data.category_id; // category_id フィールドから取得
-      
+
       // 価格構造を新しい形式で取得
       let price = {
         medium: 0,
@@ -65,7 +65,11 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
         large: undefined as number | undefined,
       };
 
-      if (data.prices && typeof data.prices === 'object' && !Array.isArray(data.prices)) {
+      if (
+        data.prices &&
+        typeof data.prices === "object" &&
+        !Array.isArray(data.prices)
+      ) {
         // prices フィールドから取得
         price = {
           medium: data.prices.medium || 0,

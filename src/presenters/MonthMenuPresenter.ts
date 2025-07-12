@@ -20,7 +20,7 @@ export const useMonthMenuPresenter = (
 
       setLoading(true);
       setError(null);
-      
+
       try {
         const { menus: newMenus, originalMenus: newOriginalMenus } =
           await monthMenuService.getMonthMenuData(currentYear, currentMonth);
@@ -44,7 +44,7 @@ export const useMonthMenuPresenter = (
 
     setLoading(true);
     setError(null);
-    
+
     try {
       await monthMenuService.saveMonthMenuData(
         currentYear,
@@ -61,30 +61,32 @@ export const useMonthMenuPresenter = (
   };
 
   const addMenu = (menu: Menu) => {
-    setMenus(prev => {
-      const exists = prev.find(m => m.item_code === menu.item_code);
+    setMenus((prev) => {
+      const exists = prev.find((m) => m.item_code === menu.item_code);
       if (exists) return prev;
-      
+
       const newMenus = [...prev, menu];
       return monthMenuService.sortMenus(newMenus);
     });
   };
 
   const addOriginalMenu = (originalMenu: OriginalMenu) => {
-    setOriginalMenus(prev => {
-      const exists = prev.find(m => m.id === originalMenu.id);
+    setOriginalMenus((prev) => {
+      const exists = prev.find((m) => m.id === originalMenu.id);
       if (exists) return prev;
-      
+
       return [...prev, originalMenu];
     });
   };
 
   const removeMenu = async (menuItemCode: number) => {
-    setMenus(prev => prev.filter(menu => menu.item_code !== menuItemCode));
-    
+    setMenus((prev) => prev.filter((menu) => menu.item_code !== menuItemCode));
+
     // Firebase に保存
     try {
-      const updatedMenus = menus.filter(menu => menu.item_code !== menuItemCode);
+      const updatedMenus = menus.filter(
+        (menu) => menu.item_code !== menuItemCode
+      );
       await monthMenuService.saveMonthMenuData(
         currentYear,
         currentMonth,
@@ -98,11 +100,15 @@ export const useMonthMenuPresenter = (
   };
 
   const removeOriginalMenu = async (originalMenuId: string) => {
-    setOriginalMenus(prev => prev.filter(menu => menu.id !== originalMenuId));
-    
+    setOriginalMenus((prev) =>
+      prev.filter((menu) => menu.id !== originalMenuId)
+    );
+
     // Firebase に保存
     try {
-      const updatedOriginalMenus = originalMenus.filter(menu => menu.id !== originalMenuId);
+      const updatedOriginalMenus = originalMenus.filter(
+        (menu) => menu.id !== originalMenuId
+      );
       await monthMenuService.saveMonthMenuData(
         currentYear,
         currentMonth,

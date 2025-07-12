@@ -1,10 +1,7 @@
 "use client";
 
 import React, { ReactNode, useEffect, useState } from "react";
-import {
-  useDraggable,
-  useDroppable,
-} from "@dnd-kit/core";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "../src/infrastructure/firebase";
 import { useCalendarMenuPresenter } from "../src/presenters/CalendarPresenter";
@@ -21,11 +18,7 @@ type CalendarProps = {
   children?: ReactNode;
 };
 
-const Calendar: React.FC<CalendarProps> = ({
-  year,
-  month,
-  children,
-}) => {
+const Calendar: React.FC<CalendarProps> = ({ year, month, children }) => {
   const [user, setUser] = useState<User | null>(null);
   const currentYear = year || new Date().getFullYear();
   const currentMonth = month || new Date().getMonth() + 1;

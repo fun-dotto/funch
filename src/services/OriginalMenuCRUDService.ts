@@ -25,9 +25,9 @@ export class OriginalMenuCRUDService {
     }
 
     const menuData = {
-      name: menu.title,           // title → name
+      name: menu.title, // title → name
       category_id: menu.category, // category → category_id
-      prices: priceMap,          // price → prices
+      prices: priceMap, // price → prices
     };
 
     if (menu.id && menu.id !== "0") {
@@ -71,7 +71,7 @@ export class OriginalMenuCRUDService {
 
     return {
       id,
-      title: data.name,           // name → title
+      title: data.name, // name → title
       price,
       category: data.category_id, // category_id → category
     };

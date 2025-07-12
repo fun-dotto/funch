@@ -39,11 +39,11 @@ export const useCalendarMenuPresenter = (
 
   const deleteDailyMenu = async (date: Date, menuItemCode: number) => {
     if (!user) return;
-    
+
     setLoading(true);
     try {
       await calendarMenuService.deleteDailyMenu(date, menuItemCode);
-      
+
       // ローカルのstateを更新
       const dateOptions: Intl.DateTimeFormatOptions = {
         timeZone: "Asia/Tokyo",
@@ -52,11 +52,13 @@ export const useCalendarMenuPresenter = (
         day: "numeric",
       };
       const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
-      
-      setMenuData(prev => {
+
+      setMenuData((prev) => {
         const newMenuData = new Map(prev);
         const currentMenus = newMenuData.get(dateId) || [];
-        const updatedMenus = currentMenus.filter(menu => menu.item_code !== menuItemCode);
+        const updatedMenus = currentMenus.filter(
+          (menu) => menu.item_code !== menuItemCode
+        );
         newMenuData.set(dateId, updatedMenus);
         return newMenuData;
       });
@@ -67,13 +69,16 @@ export const useCalendarMenuPresenter = (
     }
   };
 
-  const deleteDailyOriginalMenu = async (date: Date, originalMenuId: string) => {
+  const deleteDailyOriginalMenu = async (
+    date: Date,
+    originalMenuId: string
+  ) => {
     if (!user) return;
-    
+
     setLoading(true);
     try {
       await calendarMenuService.deleteDailyOriginalMenu(date, originalMenuId);
-      
+
       // ローカルのstateを更新
       const dateOptions: Intl.DateTimeFormatOptions = {
         timeZone: "Asia/Tokyo",
@@ -82,11 +87,13 @@ export const useCalendarMenuPresenter = (
         day: "numeric",
       };
       const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
-      
-      setOriginalMenuData(prev => {
+
+      setOriginalMenuData((prev) => {
         const newOriginalMenuData = new Map(prev);
         const currentMenus = newOriginalMenuData.get(dateId) || [];
-        const updatedMenus = currentMenus.filter(menu => menu.id !== originalMenuId);
+        const updatedMenus = currentMenus.filter(
+          (menu) => menu.id !== originalMenuId
+        );
         newOriginalMenuData.set(dateId, updatedMenus);
         return newOriginalMenuData;
       });

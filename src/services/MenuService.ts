@@ -69,7 +69,6 @@ export class MenuService {
     });
   }
 
-
   async getFormattedMenus(): Promise<MenuResponse> {
     const rawMenus = await this.getRawMenuWithPrices();
 

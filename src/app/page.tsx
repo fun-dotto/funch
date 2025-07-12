@@ -90,7 +90,7 @@ export default function Home() {
             <DragOverlay>
               {activeMenu && (
                 <div className="z-30 p-2 my-1 mx-4 border rounded bg-white select-none w-fit cursor-grabbing">
-                  {activeMenu instanceof Menu ? (
+                  {"price_medium" in activeMenu ? (
                     <>
                       {activeMenu.title}
                       <span className="text-xs ml-2">
@@ -101,7 +101,7 @@ export default function Home() {
                     <>
                       FUN {activeMenu.title}
                       <span className="text-xs ml-2">
-                        ¥{activeMenu.price.medium}
+                        ¥{activeMenu.price?.medium || 0}
                       </span>
                     </>
                   )}

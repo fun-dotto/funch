@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import { MenuService } from "../services/MenuService";
-import { Menu, OriginalMenu } from "../types/Menu";
+import { MenuItem } from "../types/Menu";
 
-export const useMenuListPresenter = (menuService: MenuService) => {
-  const [allMenus, setAllMenus] = useState<Menu[]>([]);
-  const [originalMenus, setOriginalMenus] = useState<OriginalMenu[]>([]);
+export const useMenuListPresenter = () => {
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [originalMenuItems, setOriginalMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,13 +13,21 @@ export const useMenuListPresenter = (menuService: MenuService) => {
         setLoading(true);
         setError(null);
 
-        const [allMenusData, originalMenusData] = await Promise.all([
-          menuService.getAllMenus(),
-          menuService.getOriginalMenus(),
+        const [menuResponse, originalMenuResponse] = await Promise.all([
+          fetch("/api/menu"),
+          fetch("/api/original_menu"),
         ]);
 
-        setAllMenus(allMenusData);
-        setOriginalMenus(originalMenusData);
+        if (!menuResponse.ok || !originalMenuResponse.ok) {
+          throw new Error("API呼び出しに失敗しました");
+        }
+
+        const menuData = await menuResponse.json();
+        const originalMenuData = await originalMenuResponse.json();
+
+        // APIからのMenuItem形式をそのまま使用
+        setMenuItems(menuData.data.menus);
+        setOriginalMenuItems(originalMenuData.data.menus);
       } catch (err) {
         setError(err instanceof Error ? err.message : "メニューデータの取得に失敗しました");
       } finally {
@@ -29,15 +36,15 @@ export const useMenuListPresenter = (menuService: MenuService) => {
     };
 
     fetchMenus();
-  }, [menuService]);
+  }, []);
 
-  const getCategoryMenus = (categoryCode: number): Menu[] => {
-    return menuService.getCategoryMenus(allMenus, categoryCode);
+  const getCategoryMenus = (categoryCode: number): MenuItem[] => {
+    return menuItems.filter(menu => menu.category_id === categoryCode);
   };
 
   return {
-    allMenus,
-    originalMenus,
+    menuItems,
+    originalMenuItems,
     loading,
     error,
     getCategoryMenus,

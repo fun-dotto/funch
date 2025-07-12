@@ -21,6 +21,7 @@ export type PriceStructure = {
 // ====== 互換性維持のための既存型 ======
 // Firebase Storage の menu.json 用（既存システムとの互換性維持）
 export class Menu {
+  id?: string;
   item_code: number;
   title: string;
   price_medium: number;
@@ -38,8 +39,10 @@ export class Menu {
     category: number,
     large: boolean,
     small: boolean,
-    energy: number
+    energy: number,
+    id?: string
   ) {
+    this.id = id;
     this.item_code = item_code;
     this.title = title;
     this.price_medium = price_medium;
