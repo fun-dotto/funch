@@ -111,4 +111,15 @@ export class MenuService {
   async deleteOriginalMenu(id: string): Promise<void> {
     return await this.originalMenuCRUDService.deleteOriginalMenu(id);
   }
+
+  async getMenuById(id: number): Promise<MenuItem | null> {
+    const rawMenus = await this.getRawMenuWithPrices();
+    return rawMenus.find(menu => menu.id === id) || null;
+  }
+
+  async getOriginalMenuById(id: string): Promise<MenuItem | null> {
+    const originalMenus = await this.getOriginalMenus();
+    const originalMenu = originalMenus.find(menu => menu.id === id);
+    return originalMenu ? convertOriginalMenuToMenuItem(originalMenu) : null;
+  }
 }
