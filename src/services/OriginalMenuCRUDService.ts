@@ -7,7 +7,6 @@ import {
 } from "firebase/firestore";
 import { database } from "../infrastructure/firebase";
 import { OriginalMenu } from "../types/Menu";
-import { createPriceModel } from "../types/Price";
 
 export class OriginalMenuCRUDService {
   async saveOriginalMenu(menu: OriginalMenu): Promise<OriginalMenu> {
@@ -26,9 +25,9 @@ export class OriginalMenuCRUDService {
     }
 
     const menuData = {
-      title: menu.title,
-      category: menu.category,
-      price: priceMap,
+      name: menu.title, // title → name
+      category_id: menu.category, // category → category_id
+      prices: priceMap, // price → prices
     };
 
     if (menu.id && menu.id !== "0") {
@@ -58,35 +57,23 @@ export class OriginalMenuCRUDService {
     };
 
     if (
-      data.price &&
-      typeof data.price === "object" &&
-      !Array.isArray(data.price)
+      data.prices &&
+      typeof data.prices === "object" &&
+      !Array.isArray(data.prices)
     ) {
-      // 新しいmap形式の場合
+      // 新しいprices形式の場合
       price = {
-        medium: data.price.medium || 0,
-        small: data.price.small || undefined,
-        large: data.price.large || undefined,
-      };
-    } else if (
-      data.price &&
-      Array.isArray(data.price) &&
-      data.price.length === 3
-    ) {
-      // 古い配列形式の場合（後方互換性）
-      price = {
-        small: data.price[0] > 0 ? data.price[0] : undefined,
-        medium: data.price[1],
-        large: data.price[2] > 0 ? data.price[2] : undefined,
+        medium: data.prices.medium || 0,
+        small: data.prices.small || undefined,
+        large: data.prices.large || undefined,
       };
     }
 
     return {
       id,
-      title: data.title,
+      title: data.name, // name → title
       price,
-      image: "",
-      category: data.category,
+      category: data.category_id, // category_id → category
     };
   }
 

@@ -1,4 +1,4 @@
-import { Menu, OriginalMenu } from "../repository/menu";
+import { Menu, OriginalMenu } from "../types/Menu";
 import { UniqueIdentifier } from "@dnd-kit/core";
 import { CalendarMenuRepository } from "../repositories/interfaces/CalendarMenuRepository";
 
@@ -18,14 +18,23 @@ export class CalendarMenuService {
     const monthEndDay = new Date(targetDay);
     monthEndDay.setMonth(targetDay.getMonth() + 1, 0);
 
-    return await this.calendarMenuRepository.getDailyMenuData(monthStartDay, monthEndDay);
+    return await this.calendarMenuRepository.getDailyMenuData(
+      monthStartDay,
+      monthEndDay
+    );
   }
 
   async deleteDailyMenu(date: Date, menuItemCode: number): Promise<void> {
     await this.calendarMenuRepository.removeDailyMenu(date, menuItemCode);
   }
 
-  async deleteDailyOriginalMenu(date: Date, originalMenuId: string): Promise<void> {
-    await this.calendarMenuRepository.removeDailyOriginalMenu(date, originalMenuId);
+  async deleteDailyOriginalMenu(
+    date: Date,
+    originalMenuId: string
+  ): Promise<void> {
+    await this.calendarMenuRepository.removeDailyOriginalMenu(
+      date,
+      originalMenuId
+    );
   }
 }

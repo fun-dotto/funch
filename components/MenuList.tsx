@@ -1,12 +1,10 @@
 "use client";
 
-import { FC, useState, useMemo } from "react";
+import { FC, useState } from "react";
 import { FaChevronDown, FaChevronRight } from "react-icons/fa";
 import { useDraggable } from "@dnd-kit/core";
-import { Menu, OriginalMenu } from "../src/types/Menu";
+import { MenuItem } from "../src/types/Menu";
 import { useMenuListPresenter } from "../src/presenters/MenuListPresenter";
-import { MenuService } from "../src/services/MenuService";
-import { FirebaseMenuRepository } from "../src/repositories/firebase/FirebaseMenuRepository";
 
 const categoryOptions = [
   { value: "1", label: "主菜" },
@@ -25,10 +23,8 @@ type MenuListProps = {
 };
 
 export const MenuList: FC<MenuListProps> = ({ className = "" }) => {
-  const menuRepository = useMemo(() => new FirebaseMenuRepository(), []);
-  const menuService = useMemo(() => new MenuService(menuRepository), [menuRepository]);
-  const { allMenus, originalMenus, loading, error, getCategoryMenus } =
-    useMenuListPresenter(menuService);
+  const { originalMenuItems, loading, error, getCategoryMenus } =
+    useMenuListPresenter();
 
   if (loading) {
     return (
@@ -57,14 +53,14 @@ export const MenuList: FC<MenuListProps> = ({ className = "" }) => {
           menus={getCategoryMenus(Number(category.value))}
         />
       ))}
-      <DraggableOriginal menus={originalMenus} />
+      <DraggableOriginal menus={originalMenuItems} />
     </div>
   );
 };
 
 type DraggableByCategoryProps = {
   category: { value: string; label: string };
-  menus: Menu[];
+  menus: MenuItem[];
 };
 
 const DraggableByCategory: FC<DraggableByCategoryProps> = ({
@@ -84,18 +80,14 @@ const DraggableByCategory: FC<DraggableByCategoryProps> = ({
       </div>
       {open &&
         menus.map((menu) => (
-          <Draggable
-            key={menu.item_code}
-            id={String(menu.item_code)}
-            menu={menu}
-          />
+          <Draggable key={String(menu.id)} id={String(menu.id)} menu={menu} />
         ))}
     </>
   );
 };
 
 type DraggableOriginalProps = {
-  menus: OriginalMenu[];
+  menus: MenuItem[];
 };
 
 const DraggableOriginal: FC<DraggableOriginalProps> = ({ menus }) => {
@@ -112,7 +104,7 @@ const DraggableOriginal: FC<DraggableOriginalProps> = ({ menus }) => {
       </div>
       {open &&
         menus.map((menu) => (
-          <Draggable key={menu.id} id={menu.id} menu={menu} />
+          <Draggable key={String(menu.id)} id={String(menu.id)} menu={menu} />
         ))}
     </>
   );
@@ -120,7 +112,7 @@ const DraggableOriginal: FC<DraggableOriginalProps> = ({ menus }) => {
 
 type DraggableBlockSourceProps = {
   isDragging?: boolean;
-  menu: Menu | OriginalMenu;
+  menu: MenuItem;
 };
 
 const DraggableBlockSource: FC<DraggableBlockSourceProps> = ({
@@ -133,15 +125,15 @@ const DraggableBlockSource: FC<DraggableBlockSourceProps> = ({
         isDragging ? "cursor-grabbing" : "cursor-grab"
       }`}
     >
-      {menu instanceof Menu ? (
+      {typeof menu.id === "string" ? (
         <>
-          {menu.title}
-          <span className="text-xs ml-2">¥{menu.price_medium}</span>
+          FUN {menu.name}
+          <span className="text-xs ml-2">¥{menu.prices.medium}</span>
         </>
       ) : (
         <>
-          FUN {menu.title}
-          <span className="text-xs ml-2">¥{menu.price.medium}</span>
+          {menu.name}
+          <span className="text-xs ml-2">¥{menu.prices.medium}</span>
         </>
       )}
     </div>
@@ -150,7 +142,7 @@ const DraggableBlockSource: FC<DraggableBlockSourceProps> = ({
 
 type DraggableProps = {
   id: string;
-  menu: Menu | OriginalMenu;
+  menu: MenuItem;
 };
 
 const Draggable: FC<DraggableProps> = ({ id, menu }) => {

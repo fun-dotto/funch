@@ -14,15 +14,13 @@ import {
   DragStartEvent,
   DragEndEvent,
 } from "@dnd-kit/core";
-import { Menu, OriginalMenu } from "../types/Menu";
+import { MenuItem } from "../types/Menu";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
-  const [activeMenu, setActiveMenu] = useState<Menu | OriginalMenu | null>(
-    null
-  );
+  const [activeMenu, setActiveMenu] = useState<MenuItem | null>(null);
 
   const handleYearMonthChange = (year: number, month: number) => {
     setCurrentYear(year);
@@ -90,18 +88,18 @@ export default function Home() {
             <DragOverlay>
               {activeMenu && (
                 <div className="z-30 p-2 my-1 mx-4 border rounded bg-white select-none w-fit cursor-grabbing">
-                  {activeMenu instanceof Menu ? (
+                  {typeof activeMenu.id === "number" ? (
                     <>
-                      {activeMenu.title}
+                      {activeMenu.name}
                       <span className="text-xs ml-2">
-                        ¥{activeMenu.price_medium}
+                        ¥{activeMenu.prices.medium}
                       </span>
                     </>
                   ) : (
                     <>
-                      FUN {activeMenu.title}
+                      FUN {activeMenu.name}
                       <span className="text-xs ml-2">
-                        ¥{activeMenu.price.medium}
+                        ¥{activeMenu.prices.medium}
                       </span>
                     </>
                   )}

@@ -17,7 +17,10 @@ export class OriginalMenuService {
     });
   }
 
-  filterByCategory(originalMenus: OriginalMenu[], category: number): OriginalMenu[] {
-    return originalMenus.filter(menu => menu.category === category);
+  filterByCategory(
+    originalMenus: OriginalMenu[],
+    category: number
+  ): OriginalMenu[] {
+    return originalMenus.filter((menu) => menu.category === category);
   }
 }

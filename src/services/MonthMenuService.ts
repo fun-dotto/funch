@@ -1,4 +1,4 @@
-import { Menu, OriginalMenu } from "../repository/menu";
+import { Menu, OriginalMenu } from "../types/Menu";
 import { MonthMenuRepository } from "../repositories/interfaces/MonthMenuRepository";
 
 export class MonthMenuService {
@@ -28,14 +28,20 @@ export class MonthMenuService {
       throw new Error("Invalid year or month");
     }
 
-    await this.monthMenuRepository.saveMonthMenuData(year, month, menus, originalMenus);
+    await this.monthMenuRepository.saveMonthMenuData(
+      year,
+      month,
+      menus,
+      originalMenus
+    );
   }
 
   sortMenus(menus: Menu[]): Menu[] {
     const sortOrder = [1, 2, 9, 4, 5, 11, 7, 8, 10];
-    
+
     return menus.sort((a, b) => {
-      const diff = sortOrder.indexOf(a.category) - sortOrder.indexOf(b.category);
+      const diff =
+        sortOrder.indexOf(a.category) - sortOrder.indexOf(b.category);
       if (diff !== 0) {
         return diff;
       }

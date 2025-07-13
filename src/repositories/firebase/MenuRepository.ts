@@ -1,15 +1,8 @@
 import { MenuRepository } from "../interfaces/MenuRepository";
 import { Menu, OriginalMenu } from "../../types/Menu";
-import { PriceModel } from "../../types/Price";
 import { getBytes, ref } from "firebase/storage";
 import { storage, database } from "../../infrastructure/firebase";
-import {
-  collection,
-  getDocs,
-  query,
-  doc,
-  DocumentReference,
-} from "firebase/firestore";
+import { collection, getDocs, query } from "firebase/firestore";
 
 export class FirebaseMenuRepository implements MenuRepository {
   async getAllMenus(): Promise<Menu[]> {
@@ -51,8 +44,8 @@ export class FirebaseMenuRepository implements MenuRepository {
     docOriginalMenuSnap.forEach((doc) => {
       const data = doc.data();
       const id = doc.id;
-      const title = data.title;
-      const category = data.category;
+      const title = data.name; // name フィールドから取得
+      const category = data.category_id; // category_id フィールドから取得
 
       // 新しい価格構造に対応
       let price = {
@@ -61,19 +54,16 @@ export class FirebaseMenuRepository implements MenuRepository {
         large: undefined as number | undefined,
       };
 
-      if (data.price && typeof data.price === 'object' && !Array.isArray(data.price)) {
-        // 新しいmap形式の場合
+      if (
+        data.prices &&
+        typeof data.prices === "object" &&
+        !Array.isArray(data.prices)
+      ) {
+        // prices フィールドから取得
         price = {
-          medium: data.price.medium || 0,
-          small: data.price.small || undefined,
-          large: data.price.large || undefined,
-        };
-      } else if (data.price && Array.isArray(data.price) && data.price.length === 3) {
-        // 古い配列形式の場合（後方互換性）
-        price = {
-          small: data.price[0] > 0 ? data.price[0] : undefined,
-          medium: data.price[1],
-          large: data.price[2] > 0 ? data.price[2] : undefined,
+          medium: data.prices.medium || 0,
+          small: data.prices.small || undefined,
+          large: data.prices.large || undefined,
         };
       }
 
@@ -81,34 +71,10 @@ export class FirebaseMenuRepository implements MenuRepository {
         id: id,
         title: title,
         price: price,
-        image: "",
         category: category,
       });
     });
 
     return originalMenus;
-  }
-
-  async getPrices(): Promise<PriceModel[]> {
-    const docPriceRef = query(collection(database, "funch_original_price"));
-    const docPriceSnap = await getDocs(docPriceRef);
-
-    const priceList: PriceModel[] = [];
-    docPriceSnap.forEach((doc) => {
-      const data = doc.data();
-      const id = doc.id;
-      const category = data.category;
-      const name = data.name;
-      const price = data.price as [number, number, number];
-
-      priceList.push({
-        id,
-        category,
-        name,
-        price,
-      });
-    });
-
-    return priceList;
   }
 }

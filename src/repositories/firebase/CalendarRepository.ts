@@ -1,6 +1,5 @@
 import {
   collection,
-  DocumentReference,
   getDocs,
   query,
   Timestamp,
@@ -9,59 +8,81 @@ import {
   updateDoc,
   arrayRemove,
 } from "firebase/firestore";
-import { database } from "../infrastructure/firebase";
-import { importMenu, Menu, OriginalMenu } from "../repository/menu";
-import { PriceModel } from "../repository/price";
+import { database } from "../../infrastructure/firebase";
+import { Menu, OriginalMenu } from "../../types/Menu";
 import { UniqueIdentifier } from "@dnd-kit/core";
-import { CalendarMenuRepository } from "./interfaces/CalendarMenuRepository";
+import { CalendarMenuRepository } from "../interfaces/CalendarMenuRepository";
 
 export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
   async getAllMenus(): Promise<Menu[]> {
-    return await importMenu();
-  }
+    // 直接Firebase Storageからmenu.jsonを取得
+    const { getBytes, ref } = await import("firebase/storage");
+    const { storage } = await import("../../infrastructure/firebase");
 
-  async getPriceList(): Promise<PriceModel[]> {
-    const docPriceRef = collection(database, "funch_price");
-    const docPriceSnap = await getDocs(docPriceRef);
-    const newPriceList: PriceModel[] = [];
-    docPriceSnap.forEach((doc) => {
-      const data = doc.data();
-      const id = doc.id;
-      const small = data.small;
-      const medium = data.medium;
-      const large = data.large;
-      const categories = data.categories as number[];
-      newPriceList.push({ id, small, medium, large, categories });
+    const pathReference = ref(storage, "funch/menu.json");
+    const bytes = await getBytes(pathReference);
+    const jsonString = new TextDecoder().decode(bytes);
+    const jsonData: {
+      item_code: number;
+      title: string;
+      price: { large?: number; medium: number; small?: number };
+      image: string;
+      category: number;
+      large: boolean;
+      small: boolean;
+      energy: number;
+    }[] = JSON.parse(jsonString);
+
+    return jsonData.map((data) => {
+      return new Menu(
+        data.item_code,
+        data.title,
+        data.price.medium,
+        data.image,
+        data.category,
+        data.large,
+        data.small,
+        data.energy
+      );
     });
-    return newPriceList;
   }
 
   async getOriginalMenuList(): Promise<OriginalMenu[]> {
-    const priceList = await this.getPriceList();
     const docOriginalMenuRef = collection(database, "funch_original_menu");
     const docOriginalMenuSnap = await getDocs(docOriginalMenuRef);
     const originalMenuList: OriginalMenu[] = [];
     docOriginalMenuSnap.forEach((doc) => {
       const data = doc.data();
       const id = doc.id;
-      const title = data.title;
-      const priceId = data.price.id;
-      const price = priceList.find((price) => price.id === priceId);
-      const image = data.image;
-      const large = data.large;
-      const small = data.small;
-      const category = data.category;
-      if (price != null) {
-        originalMenuList.push({
-          id: id,
-          title: title,
-          price: price,
-          image: image,
-          large: large,
-          small: small,
-          category: category,
-        });
+      const title = data.name; // name フィールドから取得
+      const category = data.category_id; // category_id フィールドから取得
+
+      // 価格構造を新しい形式で取得
+      let price = {
+        medium: 0,
+        small: undefined as number | undefined,
+        large: undefined as number | undefined,
+      };
+
+      if (
+        data.prices &&
+        typeof data.prices === "object" &&
+        !Array.isArray(data.prices)
+      ) {
+        // prices フィールドから取得
+        price = {
+          medium: data.prices.medium || 0,
+          small: data.prices.small || undefined,
+          large: data.prices.large || undefined,
+        };
       }
+
+      originalMenuList.push({
+        id: id,
+        title: title,
+        price: price,
+        category: category,
+      });
     });
     return originalMenuList;
   }
@@ -84,7 +105,7 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
     };
 
     const docRef = query(
-      collection(database, "funch_day"),
+      collection(database, "funch_daily_menu"),
       where("date", ">=", Timestamp.fromDate(startDate)),
       where("date", "<=", Timestamp.fromDate(endDate))
     );
@@ -99,7 +120,7 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
       const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
 
       // 通常メニュー
-      const menuCodes = data.menu != undefined ? (data.menu as number[]) : [];
+      const menuCodes = data.common_menu_ids != undefined ? (data.common_menu_ids as number[]) : [];
       const menus = menuCodes
         .map((m: number) => {
           return allMenus.find((menu) => menu.item_code == m);
@@ -108,13 +129,13 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
       menuData.set(dateId, menus);
 
       // オリジナルメニュー
-      const originalMenuRefs =
-        data.original_menu != undefined
-          ? (data.original_menu as DocumentReference[])
+      const originalMenuIds =
+        data.original_menu_ids != undefined
+          ? (data.original_menu_ids as string[])
           : [];
-      const originalMenus = originalMenuRefs
-        .map((ref) => {
-          return originalMenuList.find((m) => m.id == ref.id);
+      const originalMenus = originalMenuIds
+        .map((id) => {
+          return originalMenuList.find((m) => m.id == id);
         })
         .filter((m) => m != undefined) as OriginalMenu[];
       originalMenuData.set(dateId, originalMenus);
@@ -124,17 +145,10 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
   }
 
   async removeDailyMenu(date: Date, menuItemCode: number): Promise<void> {
-    const dateOptions: Intl.DateTimeFormatOptions = {
-      timeZone: "Asia/Tokyo",
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-    };
-    const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
 
     // 該当する日付のドキュメントを取得
     const docRef = query(
-      collection(database, "funch_day"),
+      collection(database, "funch_daily_menu"),
       where("date", "==", Timestamp.fromDate(date))
     );
     const docSnap = await getDocs(docRef);
@@ -144,8 +158,8 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
       const docId = docData.id;
 
       // メニューコードを配列から削除
-      await updateDoc(doc(database, "funch_day", docId), {
-        menu: arrayRemove(menuItemCode),
+      await updateDoc(doc(database, "funch_daily_menu", docId), {
+        common_menu_ids: arrayRemove(menuItemCode),
       });
     }
   }
@@ -154,17 +168,10 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
     date: Date,
     originalMenuId: string
   ): Promise<void> {
-    const dateOptions: Intl.DateTimeFormatOptions = {
-      timeZone: "Asia/Tokyo",
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-    };
-    const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
 
     // 該当する日付のドキュメントを取得
     const docRef = query(
-      collection(database, "funch_day"),
+      collection(database, "funch_daily_menu"),
       where("date", "==", Timestamp.fromDate(date))
     );
     const docSnap = await getDocs(docRef);
@@ -173,14 +180,9 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
       const docData = docSnap.docs[0];
       const docId = docData.id;
 
-      // オリジナルメニューの参照を配列から削除
-      const originalMenuRef = doc(
-        database,
-        "funch_original_menu",
-        originalMenuId
-      );
-      await updateDoc(doc(database, "funch_day", docId), {
-        original_menu: arrayRemove(originalMenuRef),
+      // オリジナルメニューIDを配列から削除
+      await updateDoc(doc(database, "funch_daily_menu", docId), {
+        original_menu_ids: arrayRemove(originalMenuId),
       });
     }
   }
