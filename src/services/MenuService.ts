@@ -188,4 +188,77 @@ export class MenuService {
 
     return menuItems;
   }
+
+  async getAllMonthlyMenuMonths(): Promise<string[]> {
+    const { collection, getDocs, query, orderBy } = await import("firebase/firestore");
+    const { database } = await import("../infrastructure/firebase");
+
+    const docRef = query(
+      collection(database, "funch_monthly_menu"),
+      orderBy("date", "asc")
+    );
+    const docSnap = await getDocs(docRef);
+
+    const months: string[] = [];
+    docSnap.forEach((doc) => {
+      const docId = doc.id; // YYYYMM形式（例: 202507）
+      // YYYY-MM形式に変換
+      const year = docId.substring(0, 4);
+      const month = docId.substring(4, 6);
+      months.push(`${year}-${month}`);
+    });
+
+    return months;
+  }
+
+  async getMonthlyMenuByMonth(month: string): Promise<{
+    common_menu_ids: number[];
+    original_menu_ids: string[];
+  } | null> {
+    const { doc, getDoc } = await import("firebase/firestore");
+    const { database } = await import("../infrastructure/firebase");
+
+    // YYYY-MM から YYYYMM に変換
+    const formattedMonth = month.replace(/-/g, "");
+
+    const docRef = doc(database, "funch_monthly_menu", formattedMonth);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      return null;
+    }
+
+    const data = docSnap.data();
+    return {
+      common_menu_ids: data.common_menu_ids || [],
+      original_menu_ids: data.original_menu_ids || [],
+    };
+  }
+
+  async getMonthlyMenuItemsByMonth(month: string): Promise<MenuItem[] | null> {
+    const monthlyMenu = await this.getMonthlyMenuByMonth(month);
+    if (!monthlyMenu) {
+      return null;
+    }
+
+    const menuItems: MenuItem[] = [];
+
+    // 通常メニューを取得
+    for (const menuId of monthlyMenu.common_menu_ids) {
+      const menuItem = await this.getMenuById(menuId);
+      if (menuItem) {
+        menuItems.push(menuItem);
+      }
+    }
+
+    // オリジナルメニューを取得
+    for (const originalMenuId of monthlyMenu.original_menu_ids) {
+      const originalMenuItem = await this.getOriginalMenuById(originalMenuId);
+      if (originalMenuItem) {
+        menuItems.push(originalMenuItem);
+      }
+    }
+
+    return menuItems;
+  }
 }
