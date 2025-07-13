@@ -5,7 +5,7 @@ import {
   getDocs,
   query,
   setDoc,
-  DocumentReference,
+  Timestamp,
 } from "firebase/firestore";
 import { database } from "../../infrastructure/firebase";
 import { Menu, OriginalMenu } from "../../types/Menu";
@@ -113,34 +113,37 @@ export class FirebaseMonthMenuRepository implements MonthMenuRepository {
     menus: Menu[];
     originalMenus: OriginalMenu[];
   }> {
-    const targetDate = new Date(year, month - 1);
     const allMenus = await this.getAllMenus();
     const originalMenuList = await this.getOriginalMenuList();
 
+    // 月の1日0時0分のTimestampを作成
+    const firstDayOfMonth = new Date(year, month - 1, 1, 0, 0, 0, 0);
+    const docId = this.formatDateJST(firstDayOfMonth, false).substring(0, 6); // YYYYMM
+    
     const docMonthRef = doc(
       database,
-      "funch_month",
-      this.formatDateJST(targetDate, true)
+      "funch_monthly_menu",
+      docId
     );
     const docMonthSnap = await getDoc(docMonthRef);
 
     if (docMonthSnap.exists()) {
       const data = docMonthSnap.data();
 
-      const menuCodes = data.menu != undefined ? (data.menu as number[]) : [];
+      const menuCodes = data.common_menu_ids != undefined ? (data.common_menu_ids as number[]) : [];
       const menus = menuCodes
         .map((m: number) => {
           return allMenus.find((menu) => menu.item_code == m);
         })
         .filter((m) => m != undefined) as Menu[];
 
-      const originalMenuRefs =
-        data.original_menu != undefined
-          ? (data.original_menu as DocumentReference[])
+      const originalMenuIds =
+        data.original_menu_ids != undefined
+          ? (data.original_menu_ids as string[])
           : [];
-      const originalMenus = originalMenuRefs
-        .map((ref) => {
-          return originalMenuList.find((m) => m.id == ref.id);
+      const originalMenus = originalMenuIds
+        .map((id) => {
+          return originalMenuList.find((m) => m.id == id);
         })
         .filter((m) => m != undefined) as OriginalMenu[];
 
@@ -165,18 +168,15 @@ export class FirebaseMonthMenuRepository implements MonthMenuRepository {
     menus: Menu[],
     originalMenus: OriginalMenu[]
   ): Promise<void> {
-    const targetDate = new Date(year, month - 1);
+    const firstDayOfMonth = new Date(year, month - 1, 1, 0, 0, 0, 0);
     const menuItemCodes = menus.map((m) => m.item_code);
-    const originalMenuIds = originalMenus.map((m) =>
-      doc(database, "funch_original_menu", m.id)
-    );
+    const originalMenuIds = originalMenus.map((m) => m.id);
 
-    const id = this.formatDateJST(targetDate, true);
-    await setDoc(doc(database, "funch_month", id), {
-      year: year,
-      month: month,
-      menu: menuItemCodes,
-      original_menu: originalMenuIds,
+    const docId = this.formatDateJST(firstDayOfMonth, false).substring(0, 6); // YYYYMM
+    await setDoc(doc(database, "funch_monthly_menu", docId), {
+      date: Timestamp.fromDate(firstDayOfMonth),
+      common_menu_ids: menuItemCodes,
+      original_menu_ids: originalMenuIds,
     });
   }
 }
