@@ -48,6 +48,7 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
       removeOriginalMenu,
       saveMonthMenuData,
       refreshData,
+      getMenuNameById,
     } = useMonthMenuPresenter(user, year, month, monthMenuService);
 
     useEffect(() => {
@@ -148,7 +149,7 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
                         prioritizedItems.push({
                           type: "change" as const,
                           id: `c-${menuId}`,
-                          title: `c-${menuId} (削除)`,
+                          title: `${getMenuNameById(menuId)} (削除)`,
                           isChange: true,
                           menuId: menuId,
                           isAdded: isAdded,
@@ -165,7 +166,7 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
                         prioritizedItems.push({
                           type: "change" as const,
                           id: `c-${menuId}`,
-                          title: `c-${menuId} (削除)`,
+                          title: `${getMenuNameById(menuId)} (削除)`,
                           isChange: true,
                           menuId: menuId,
                           isAdded: isAdded,
@@ -206,7 +207,7 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
                         prioritizedItems.push({
                           type: "change" as const,
                           id: `c-${menuId}`,
-                          title: `c-${menuId} (追加)`,
+                          title: `${getMenuNameById(menuId)} (追加)`,
                           isChange: true,
                           menuId: menuId,
                           isAdded: isAdded,
@@ -223,7 +224,7 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
                         prioritizedItems.push({
                           type: "change" as const,
                           id: `c-${menuId}`,
-                          title: `c-${menuId} (追加)`,
+                          title: `${getMenuNameById(menuId)} (追加)`,
                           isChange: true,
                           menuId: menuId,
                           isAdded: isAdded,

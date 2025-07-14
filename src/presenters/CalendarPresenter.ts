@@ -3,6 +3,11 @@ import { User } from "firebase/auth";
 import { Menu, OriginalMenu } from "../types/Menu";
 import { UniqueIdentifier } from "@dnd-kit/core";
 import { CalendarMenuService } from "../services/CalendarService";
+import { MenuService } from "../services/MenuService";
+import { FirebaseMenuRepository } from "../repositories/firebase/MenuRepository";
+
+const menuRepository = new FirebaseMenuRepository();
+const menuService = new MenuService(menuRepository);
 
 export const useCalendarMenuPresenter = (
   user: User | null,
@@ -23,6 +28,8 @@ export const useCalendarMenuPresenter = (
       }
     >()
   );
+  const [allMenus, setAllMenus] = useState<Menu[]>([]);
+  const [allOriginalMenus, setAllOriginalMenus] = useState<OriginalMenu[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -31,18 +38,18 @@ export const useCalendarMenuPresenter = (
 
       setLoading(true);
       try {
-        const {
-          menuData: newMenuData,
-          originalMenuData: newOriginalMenuData,
-          changeData: newChangeData,
-        } = await calendarMenuService.getMonthMenuData(
-          currentYear,
-          currentMonth
-        );
+        // メニューデータを並行して取得
+        const [menuResult, allMenusResult, allOriginalMenusResult] = await Promise.all([
+          calendarMenuService.getMonthMenuData(currentYear, currentMonth),
+          menuService.getAllMenus(),
+          menuService.getOriginalMenus()
+        ]);
 
-        setMenuData(newMenuData);
-        setOriginalMenuData(newOriginalMenuData);
-        setChangeData(newChangeData);
+        setMenuData(menuResult.menuData);
+        setOriginalMenuData(menuResult.originalMenuData);
+        setChangeData(menuResult.changeData);
+        setAllMenus(allMenusResult);
+        setAllOriginalMenus(allOriginalMenusResult);
       } catch (error) {
         console.error("メニューデータの取得に失敗しました:", error);
       } finally {
@@ -93,20 +100,37 @@ export const useCalendarMenuPresenter = (
 
     setLoading(true);
     try {
-      const {
-        menuData: newMenuData,
-        originalMenuData: newOriginalMenuData,
-        changeData: newChangeData,
-      } = await calendarMenuService.getMonthMenuData(currentYear, currentMonth);
+      // メニューデータを並行して取得
+      const [menuResult, allMenusResult, allOriginalMenusResult] = await Promise.all([
+        calendarMenuService.getMonthMenuData(currentYear, currentMonth),
+        menuService.getAllMenus(),
+        menuService.getOriginalMenus()
+      ]);
 
-      setMenuData(newMenuData);
-      setOriginalMenuData(newOriginalMenuData);
-      setChangeData(newChangeData);
+      setMenuData(menuResult.menuData);
+      setOriginalMenuData(menuResult.originalMenuData);
+      setChangeData(menuResult.changeData);
+      setAllMenus(allMenusResult);
+      setAllOriginalMenus(allOriginalMenusResult);
     } catch (error) {
       console.error("メニューデータの取得に失敗しました:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // メニューIDからメニュー名を取得する関数
+  const getMenuNameById = (menuId: string): string => {
+    // 数値IDの場合は共通メニューから検索
+    const numericId = parseInt(menuId, 10);
+    if (!isNaN(numericId)) {
+      const menu = allMenus.find(m => m.item_code === numericId);
+      return menu ? menu.title : `メニュー(ID: ${menuId})`;
+    }
+    
+    // 文字列IDの場合はオリジナルメニューから検索
+    const originalMenu = allOriginalMenus.find(m => m.id === menuId);
+    return originalMenu ? originalMenu.title : `メニュー(ID: ${menuId})`;
   };
 
   return {
@@ -117,5 +141,6 @@ export const useCalendarMenuPresenter = (
     deleteDailyMenu,
     deleteDailyOriginalMenu,
     refreshData,
+    getMenuNameById,
   };
 };

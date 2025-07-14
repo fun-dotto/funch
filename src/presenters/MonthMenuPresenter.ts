@@ -3,6 +3,11 @@ import { User } from "firebase/auth";
 import { Menu, OriginalMenu, MenuItem } from "../types/Menu";
 import { MonthMenuService } from "../services/MonthMenuService";
 import { ChangeMenuService } from "../services/ChangeMenuService";
+import { MenuService } from "../services/MenuService";
+import { FirebaseMenuRepository } from "../repositories/firebase/MenuRepository";
+
+const menuRepository = new FirebaseMenuRepository();
+const menuService = new MenuService(menuRepository);
 
 export const useMonthMenuPresenter = (
   user: User | null,
@@ -16,6 +21,8 @@ export const useMonthMenuPresenter = (
     commonMenuIds: Record<string, boolean>;
     originalMenuIds: Record<string, boolean>;
   }>({ commonMenuIds: {}, originalMenuIds: {} });
+  const [allMenus, setAllMenus] = useState<Menu[]>([]);
+  const [allOriginalMenus, setAllOriginalMenus] = useState<OriginalMenu[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const changeMenuService = new ChangeMenuService();
@@ -28,18 +35,19 @@ export const useMonthMenuPresenter = (
       setError(null);
 
       try {
-        const { menus: newMenus, originalMenus: newOriginalMenus } =
-          await monthMenuService.getMonthMenuData(currentYear, currentMonth);
+        // メニューデータを並行して取得
+        const [monthResult, allMenusResult, allOriginalMenusResult, monthlyChange] = await Promise.all([
+          monthMenuService.getMonthMenuData(currentYear, currentMonth),
+          menuService.getAllMenus(),
+          menuService.getOriginalMenus(),
+          changeMenuService.getMonthlyChangeData(currentYear, currentMonth)
+        ]);
 
-        const sortedMenus = monthMenuService.sortMenus(newMenus);
+        const sortedMenus = monthMenuService.sortMenus(monthResult.menus);
         setMenus(sortedMenus);
-        setOriginalMenus(newOriginalMenus);
-
-        // 月次変更データを取得
-        const monthlyChange = await changeMenuService.getMonthlyChangeData(
-          currentYear,
-          currentMonth
-        );
+        setOriginalMenus(monthResult.originalMenus);
+        setAllMenus(allMenusResult);
+        setAllOriginalMenus(allOriginalMenusResult);
         setMonthlyChangeData(monthlyChange);
       } catch (error) {
         console.error("月間メニューデータの取得に失敗しました:", error);
@@ -145,18 +153,19 @@ export const useMonthMenuPresenter = (
     setError(null);
 
     try {
-      const { menus: newMenus, originalMenus: newOriginalMenus } =
-        await monthMenuService.getMonthMenuData(currentYear, currentMonth);
+      // メニューデータを並行して取得
+      const [monthResult, allMenusResult, allOriginalMenusResult, monthlyChange] = await Promise.all([
+        monthMenuService.getMonthMenuData(currentYear, currentMonth),
+        menuService.getAllMenus(),
+        menuService.getOriginalMenus(),
+        changeMenuService.getMonthlyChangeData(currentYear, currentMonth)
+      ]);
 
-      const sortedMenus = monthMenuService.sortMenus(newMenus);
+      const sortedMenus = monthMenuService.sortMenus(monthResult.menus);
       setMenus(sortedMenus);
-      setOriginalMenus(newOriginalMenus);
-
-      // 月次変更データを取得
-      const monthlyChange = await changeMenuService.getMonthlyChangeData(
-        currentYear,
-        currentMonth
-      );
+      setOriginalMenus(monthResult.originalMenus);
+      setAllMenus(allMenusResult);
+      setAllOriginalMenus(allOriginalMenusResult);
       setMonthlyChangeData(monthlyChange);
     } catch (error) {
       console.error("月間メニューデータの取得に失敗しました:", error);
@@ -164,6 +173,20 @@ export const useMonthMenuPresenter = (
     } finally {
       setLoading(false);
     }
+  };
+
+  // メニューIDからメニュー名を取得する関数
+  const getMenuNameById = (menuId: string): string => {
+    // 数値IDの場合は共通メニューから検索
+    const numericId = parseInt(menuId, 10);
+    if (!isNaN(numericId)) {
+      const menu = allMenus.find(m => m.item_code === numericId);
+      return menu ? menu.title : `メニュー(ID: ${menuId})`;
+    }
+    
+    // 文字列IDの場合はオリジナルメニューから検索
+    const originalMenu = allOriginalMenus.find(m => m.id === menuId);
+    return originalMenu ? originalMenu.title : `メニュー(ID: ${menuId})`;
   };
 
   return {
@@ -178,5 +201,6 @@ export const useMonthMenuPresenter = (
     removeOriginalMenu,
     saveMonthMenuData,
     refreshData,
+    getMenuNameById,
   };
 };
