@@ -12,6 +12,10 @@ export const useMonthMenuPresenter = (
 ) => {
   const [menus, setMenus] = useState<Menu[]>([]);
   const [originalMenus, setOriginalMenus] = useState<OriginalMenu[]>([]);
+  const [monthlyChangeData, setMonthlyChangeData] = useState<{
+    commonMenuIds: Record<string, boolean>;
+    originalMenuIds: Record<string, boolean>;
+  }>({ commonMenuIds: {}, originalMenuIds: {} });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const changeMenuService = new ChangeMenuService();
@@ -30,6 +34,10 @@ export const useMonthMenuPresenter = (
         const sortedMenus = monthMenuService.sortMenus(newMenus);
         setMenus(sortedMenus);
         setOriginalMenus(newOriginalMenus);
+
+        // 月次変更データを取得
+        const monthlyChange = await changeMenuService.getMonthlyChangeData(currentYear, currentMonth);
+        setMonthlyChangeData(monthlyChange);
       } catch (error) {
         console.error("月間メニューデータの取得に失敗しました:", error);
         setError("月間メニューデータの取得に失敗しました");
@@ -130,6 +138,7 @@ export const useMonthMenuPresenter = (
   return {
     menus,
     originalMenus,
+    monthlyChangeData,
     loading,
     error,
     addMenu,

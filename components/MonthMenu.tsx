@@ -35,6 +35,7 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
   const {
     menus,
     originalMenus,
+    monthlyChangeData,
     loading,
     error,
     addMenu,
@@ -130,7 +131,27 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
           >
             <div className="flex gap-2 pl-6 pt-3">
               {[0, 1, 2].map((columnIndex) => {
-                const allItems = [...menus, ...originalMenus];
+                // 通常メニュー、オリジナルメニュー、変更データを結合
+                const changeItems = [
+                  ...Object.entries(monthlyChangeData.commonMenuIds).map(([menuId, isAdded]) => ({
+                    type: 'change' as const,
+                    id: `c-${menuId}`,
+                    title: `c-${menuId} ${isAdded ? "(追加)" : "(削除)"}`,
+                    isChange: true
+                  })),
+                  ...Object.entries(monthlyChangeData.originalMenuIds).map(([menuId, isAdded]) => ({
+                    type: 'change' as const,
+                    id: `c-${menuId}`,
+                    title: `c-${menuId} ${isAdded ? "(追加)" : "(削除)"}`,
+                    isChange: true
+                  }))
+                ];
+                
+                const allItems = [
+                  ...menus.map(menu => ({ ...menu, type: 'menu' as const, isChange: false })),
+                  ...originalMenus.map(originalMenu => ({ ...originalMenu, type: 'originalMenu' as const, isChange: false })),
+                  ...changeItems
+                ];
                 const totalItems = allItems.length;
                 const startIndex = columnIndex * 8;
                 const endIndex = (columnIndex + 1) * 8;
@@ -146,24 +167,26 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
 
                 return (
                   <div key={columnIndex} className="w-full flex flex-col">
-                    {displayItems.map((menu, index) => (
+                    {displayItems.map((item, index) => (
                       <div
-                        key={"item_code" in menu ? menu.item_code : menu.id}
+                        key={item.isChange ? item.id : ("item_code" in item ? item.item_code : item.id)}
                         className="flex justify-between items-center text-[10px] relative"
                       >
                         <div className="flex-1 truncate pr-6">
-                          {"item_code" in menu ? menu.title : menu.title}
+                          {item.title}
                         </div>
-                        <div
-                          className="text-black cursor-pointer pr-12 hover:text-red-600"
-                          onClick={() =>
-                            "item_code" in menu
-                              ? handleRemoveMenu(menu.item_code)
-                              : handleRemoveOriginalMenu(menu.id)
-                          }
-                        >
-                          <HiTrash />
-                        </div>
+                        {!item.isChange && (
+                          <div
+                            className="text-black cursor-pointer pr-12 hover:text-red-600"
+                            onClick={() =>
+                              item.type === 'menu'
+                                ? handleRemoveMenu((item as any).item_code)
+                                : handleRemoveOriginalMenu((item as any).id)
+                            }
+                          >
+                            <HiTrash />
+                          </div>
+                        )}
                       </div>
                     ))}
 
@@ -180,7 +203,7 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
               })}
             </div>
 
-            {menus.length === 0 && originalMenus.length === 0 && (
+            {menus.length === 0 && originalMenus.length === 0 && Object.keys(monthlyChangeData.commonMenuIds).length === 0 && Object.keys(monthlyChangeData.originalMenuIds).length === 0 && (
               <div className="text-center text-gray-500 py-8">
                 メニューがありません
                 <br />

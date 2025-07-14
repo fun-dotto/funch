@@ -275,4 +275,56 @@ export class ChangeMenuService {
   private formatMonthToString(year: number, month: number): string {
     return `${year}${String(month).padStart(2, "0")}`;
   }
+
+  // 日次変更データを取得
+  async getDailyChangeData(date: Date): Promise<{
+    commonMenuIds: Record<string, boolean>;
+    originalMenuIds: Record<string, boolean>;
+  }> {
+    const { doc, getDoc } = await import("firebase/firestore");
+    const { database } = await import("../infrastructure/firebase");
+
+    const dateStr = this.formatDateToString(date);
+    const docRef = doc(database, "funch_daily_change", dateStr);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      return {
+        commonMenuIds: data.common_menu_ids || {},
+        originalMenuIds: data.original_menu_ids || {},
+      };
+    }
+
+    return {
+      commonMenuIds: {},
+      originalMenuIds: {},
+    };
+  }
+
+  // 月次変更データを取得
+  async getMonthlyChangeData(year: number, month: number): Promise<{
+    commonMenuIds: Record<string, boolean>;
+    originalMenuIds: Record<string, boolean>;
+  }> {
+    const { doc, getDoc } = await import("firebase/firestore");
+    const { database } = await import("../infrastructure/firebase");
+
+    const monthStr = this.formatMonthToString(year, month);
+    const docRef = doc(database, "funch_monthly_change", monthStr);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      return {
+        commonMenuIds: data.common_menu_ids || {},
+        originalMenuIds: data.original_menu_ids || {},
+      };
+    }
+
+    return {
+      commonMenuIds: {},
+      originalMenuIds: {},
+    };
+  }
 }

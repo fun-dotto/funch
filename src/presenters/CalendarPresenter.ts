@@ -14,6 +14,9 @@ export const useCalendarMenuPresenter = (
   const [originalMenuData, setOriginalMenuData] = useState(
     new Map<UniqueIdentifier, OriginalMenu[]>()
   );
+  const [changeData, setChangeData] = useState(
+    new Map<UniqueIdentifier, { commonMenuIds: Record<string, boolean>; originalMenuIds: Record<string, boolean>; }>()
+  );
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -22,11 +25,12 @@ export const useCalendarMenuPresenter = (
 
       setLoading(true);
       try {
-        const { menuData: newMenuData, originalMenuData: newOriginalMenuData } =
+        const { menuData: newMenuData, originalMenuData: newOriginalMenuData, changeData: newChangeData } =
           await calendarMenuService.getMonthMenuData(currentYear, currentMonth);
 
         setMenuData(newMenuData);
         setOriginalMenuData(newOriginalMenuData);
+        setChangeData(newChangeData);
       } catch (error) {
         console.error("メニューデータの取得に失敗しました:", error);
       } finally {
@@ -75,6 +79,7 @@ export const useCalendarMenuPresenter = (
   return {
     menuData,
     originalMenuData,
+    changeData,
     loading,
     deleteDailyMenu,
     deleteDailyOriginalMenu,

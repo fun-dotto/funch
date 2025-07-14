@@ -16,6 +16,7 @@ export class CalendarMenuService {
   ): Promise<{
     menuData: Map<UniqueIdentifier, Menu[]>;
     originalMenuData: Map<UniqueIdentifier, OriginalMenu[]>;
+    changeData: Map<UniqueIdentifier, { commonMenuIds: Record<string, boolean>; originalMenuIds: Record<string, boolean>; }>;
   }> {
     const targetDay = new Date(year, month - 1);
     const monthStartDay = new Date(targetDay);
@@ -23,10 +24,33 @@ export class CalendarMenuService {
     const monthEndDay = new Date(targetDay);
     monthEndDay.setMonth(targetDay.getMonth() + 1, 0);
 
-    return await this.calendarMenuRepository.getDailyMenuData(
+    const { menuData, originalMenuData } = await this.calendarMenuRepository.getDailyMenuData(
       monthStartDay,
       monthEndDay
     );
+
+    // 各日の変更データを取得
+    const changeData = new Map<UniqueIdentifier, { commonMenuIds: Record<string, boolean>; originalMenuIds: Record<string, boolean>; }>();
+    
+    // カレンダーの各日について変更データを取得
+    const currentDate = new Date(monthStartDay);
+    while (currentDate <= monthEndDay) {
+      if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) { // 平日のみ
+        const dateOptions: Intl.DateTimeFormatOptions = {
+          timeZone: "Asia/Tokyo",
+          year: "numeric",
+          month: "numeric",
+          day: "numeric",
+        };
+        const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(currentDate);
+        
+        const dailyChangeData = await this.changeMenuService.getDailyChangeData(new Date(currentDate));
+        changeData.set(dateId, dailyChangeData);
+      }
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return { menuData, originalMenuData, changeData };
   }
 
   async deleteDailyMenu(date: Date, menuItemCode: number): Promise<void> {

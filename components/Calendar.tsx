@@ -26,6 +26,7 @@ const Calendar: React.FC<CalendarProps> = ({ year, month, children }) => {
   const {
     menuData,
     originalMenuData,
+    changeData,
     loading,
     deleteDailyMenu,
     deleteDailyOriginalMenu,
@@ -102,6 +103,7 @@ const Calendar: React.FC<CalendarProps> = ({ year, month, children }) => {
   const renderDay = (date: Date, dateId: string) => {
     const oneDayMenuData = menuData.get(dateId);
     const oneDayOriginalMenuData = originalMenuData.get(dateId);
+    const oneDayChangeData = changeData.get(dateId);
 
     const handleDeleteMenu = async (menuItemCode: number) => {
       if (window.confirm("このメニューを削除しますか？")) {
@@ -147,6 +149,30 @@ const Calendar: React.FC<CalendarProps> = ({ year, month, children }) => {
               </div>
             </div>
           ))}
+        {oneDayChangeData && (
+          <>
+            {Object.entries(oneDayChangeData.commonMenuIds).map(([menuId, isAdded]) => (
+              <div
+                key={`c-${menuId}`}
+                className="flex justify-between items-center my-1 text-xs relative"
+              >
+                <div className="flex-1 truncate pr-6">
+                  c-{menuId} {isAdded ? "(追加)" : "(削除)"}
+                </div>
+              </div>
+            ))}
+            {Object.entries(oneDayChangeData.originalMenuIds).map(([menuId, isAdded]) => (
+              <div
+                key={`c-${menuId}`}
+                className="flex justify-between items-center my-1 text-xs relative"
+              >
+                <div className="flex-1 truncate pr-6">
+                  c-{menuId} {isAdded ? "(追加)" : "(削除)"}
+                </div>
+              </div>
+            ))}
+          </>
+        )}
       </div>
     );
   };
