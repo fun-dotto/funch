@@ -1,9 +1,14 @@
-import { Menu, OriginalMenu } from "../types/Menu";
+import { Menu, OriginalMenu, MenuItem } from "../types/Menu";
 import { UniqueIdentifier } from "@dnd-kit/core";
 import { CalendarMenuRepository } from "../repositories/interfaces/CalendarMenuRepository";
+import { ChangeMenuService } from "./ChangeMenuService";
 
 export class CalendarMenuService {
-  constructor(private calendarMenuRepository: CalendarMenuRepository) {}
+  private changeMenuService: ChangeMenuService;
+
+  constructor(private calendarMenuRepository: CalendarMenuRepository) {
+    this.changeMenuService = new ChangeMenuService();
+  }
 
   async getMonthMenuData(
     year: number,
@@ -25,16 +30,27 @@ export class CalendarMenuService {
   }
 
   async deleteDailyMenu(date: Date, menuItemCode: number): Promise<void> {
-    await this.calendarMenuRepository.removeDailyMenu(date, menuItemCode);
+    // 削除フラグをfunch_daily_changeに記録（Firestoreからは削除しない）
+    const menuItem: MenuItem = { 
+      id: menuItemCode,
+      name: "",
+      category_id: 0,
+      prices: { medium: 0 }
+    };
+    await this.changeMenuService.saveDailyDeletion(date, menuItem);
   }
 
   async deleteDailyOriginalMenu(
     date: Date,
     originalMenuId: string
   ): Promise<void> {
-    await this.calendarMenuRepository.removeDailyOriginalMenu(
-      date,
-      originalMenuId
-    );
+    // 削除フラグをfunch_daily_changeに記録（Firestoreからは削除しない）
+    const menuItem: MenuItem = { 
+      id: originalMenuId,
+      name: "",
+      category_id: 0,
+      prices: { medium: 0 }
+    };
+    await this.changeMenuService.saveDailyDeletion(date, menuItem);
   }
 }

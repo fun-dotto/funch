@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { User } from "firebase/auth";
-import { Menu, OriginalMenu } from "../types/Menu";
+import { Menu, OriginalMenu, MenuItem } from "../types/Menu";
 import { MonthMenuService } from "../services/MonthMenuService";
+import { ChangeMenuService } from "../services/ChangeMenuService";
 
 export const useMonthMenuPresenter = (
   user: User | null,
@@ -13,6 +14,7 @@ export const useMonthMenuPresenter = (
   const [originalMenus, setOriginalMenus] = useState<OriginalMenu[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const changeMenuService = new ChangeMenuService();
 
   useEffect(() => {
     const fetchMonthMenuData = async () => {
@@ -80,19 +82,22 @@ export const useMonthMenuPresenter = (
   };
 
   const removeMenu = async (menuItemCode: number) => {
-    setMenus((prev) => prev.filter((menu) => menu.item_code !== menuItemCode));
-
-    // Firebase に保存
+    // 削除フラグをfunch_monthly_changeに記録（Firestoreからは削除しない）
     try {
-      const updatedMenus = menus.filter(
-        (menu) => menu.item_code !== menuItemCode
-      );
-      await monthMenuService.saveMonthMenuData(
+      const menuItem: MenuItem = {
+        id: menuItemCode,
+        name: "",
+        category_id: 0,
+        prices: { medium: 0 }
+      };
+      await changeMenuService.saveMonthlyDeletion(
         currentYear,
         currentMonth,
-        updatedMenus,
-        originalMenus
+        menuItem
       );
+      
+      // 削除フラグの記録のみで画面状態は変更しない
+      // （実際のFirestoreからは削除されていないため）
     } catch (error) {
       console.error("メニューの削除保存に失敗しました:", error);
       setError("メニューの削除保存に失敗しました");
@@ -100,21 +105,22 @@ export const useMonthMenuPresenter = (
   };
 
   const removeOriginalMenu = async (originalMenuId: string) => {
-    setOriginalMenus((prev) =>
-      prev.filter((menu) => menu.id !== originalMenuId)
-    );
-
-    // Firebase に保存
+    // 削除フラグをfunch_monthly_changeに記録（Firestoreからは削除しない）
     try {
-      const updatedOriginalMenus = originalMenus.filter(
-        (menu) => menu.id !== originalMenuId
-      );
-      await monthMenuService.saveMonthMenuData(
+      const menuItem: MenuItem = {
+        id: originalMenuId,
+        name: "",
+        category_id: 0,
+        prices: { medium: 0 }
+      };
+      await changeMenuService.saveMonthlyDeletion(
         currentYear,
         currentMonth,
-        menus,
-        updatedOriginalMenus
+        menuItem
       );
+      
+      // 削除フラグの記録のみで画面状態は変更しない
+      // （実際のFirestoreからは削除されていないため）
     } catch (error) {
       console.error("オリジナルメニューの削除保存に失敗しました:", error);
       setError("オリジナルメニューの削除保存に失敗しました");
