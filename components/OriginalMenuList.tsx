@@ -6,7 +6,6 @@ import { useOriginalMenuPresenter } from "../src/presenters/OriginalMenuPresente
 import { VscEdit } from "react-icons/vsc";
 import { OriginalMenuEditForm } from "./OriginalMenuEditForm";
 import { ImageService } from "../src/services/ImageService";
-import { OriginalMenuCRUDService } from "../src/services/OriginalMenuCRUDService";
 
 type OriginalMenuListProps = {
   className?: string;
@@ -17,8 +16,8 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
 }) => {
   const [editingMenuId, setEditingMenuId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const { getAllMenus, loading, error, refresh } = useOriginalMenuPresenter();
-  const originalMenuCRUDService = new OriginalMenuCRUDService();
+  const { getAllMenus, loading, error, refresh } =
+    useOriginalMenuPresenter();
 
   // 新規作成時の初期メニューオブジェクト
   const createNewMenu = (): OriginalMenu => ({
@@ -32,8 +31,38 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
 
   const handleSave = async (updatedMenu: OriginalMenu, imageFile?: File) => {
     try {
-      // Firestore直接操作で保存
-      const savedMenu = await originalMenuCRUDService.saveOriginalMenu(updatedMenu);
+      const isNewMenu = !updatedMenu.id || updatedMenu.id === "";
+      
+      // API経由で保存
+      const apiData = {
+        name: updatedMenu.title,
+        category_id: updatedMenu.category,
+        prices: updatedMenu.price,
+      };
+
+      let response;
+      if (isNewMenu) {
+        // 新規作成
+        response = await fetch("/api/original_menu", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(apiData),
+        });
+      } else {
+        // 更新
+        response = await fetch(`/api/original_menu/${updatedMenu.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(apiData),
+        });
+      }
+
+      if (!response.ok) {
+        throw new Error("保存に失敗しました");
+      }
+
+      const result = await response.json();
+      const savedMenu = result.data;
 
       // 新規作成で画像がある場合は、生成されたIDを使って画像を保存
       if (imageFile && savedMenu && savedMenu.id) {
@@ -60,8 +89,13 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
 
   const handleDelete = async (menuId: string) => {
     try {
-      // Firestore直接操作で削除
-      await originalMenuCRUDService.deleteOriginalMenu(menuId);
+      const response = await fetch(`/api/original_menu/${menuId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("削除に失敗しました");
+      }
 
       setEditingMenuId(null);
       refresh();

@@ -108,6 +108,19 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(({
 
   return (
     <div className="w-full">
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 shadow-xl">
+            <div className="flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#990000]"></div>
+              <span className="text-gray-700 font-medium">
+                メニューを読み込み中...
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           <p>{error}</p>
@@ -119,14 +132,7 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(({
           <h2 className="text-start text-[24px] font-bold">月間共通メニュー</h2>
         </div>
 
-        <div className="border border-[#CCCCCC] rounded-[8px] h-[144px] relative">
-          {loading && (
-            <div className="absolute inset-0 bg-white bg-opacity-90 z-10 flex items-center justify-center rounded-[8px]">
-              <span className="text-gray-700 font-medium">
-                メニューを読み込み中...
-              </span>
-            </div>
-          )}
+        <div className="border border-[#CCCCCC] rounded-[8px] h-[144px]">
           <MonthMenuDroppable
             onAddMenu={handleAddMenu}
             onAddOriginalMenu={handleAddOriginalMenu}
