@@ -13,75 +13,56 @@ export class ChangeMenuService {
     // 日付をYYYYMMDD形式に変換
     const dateStr = this.formatDateToString(date);
     
-    // まず funch_daily_menu で重複チェック
-    const dailyMenuRef = doc(database, "funch_daily_menu", dateStr);
-    const dailyMenuSnap = await getDoc(dailyMenuRef);
-    
-    if (dailyMenuSnap.exists()) {
-      const dailyMenuData = dailyMenuSnap.data();
-      const isOriginalMenu = typeof menuItem.id === "string";
-      
-      if (isOriginalMenu) {
-        // オリジナルメニューの重複チェック
-        const existingOriginalMenuIds = dailyMenuData.original_menu_ids || [];
-        if (existingOriginalMenuIds.includes(menuItem.id)) {
-          console.log(`オリジナルメニューID ${menuItem.id} は既に funch_daily_menu に存在します`);
-          return;
-        }
-      } else {
-        // 通常メニューの重複チェック
-        const existingCommonMenuIds = dailyMenuData.common_menu_ids || [];
-        if (existingCommonMenuIds.includes(menuItem.id)) {
-          console.log(`通常メニューID ${menuItem.id} は既に funch_daily_menu に存在します`);
-          return;
-        }
-      }
-    }
-
     const docRef = doc(database, "funch_daily_change", dateStr);
 
     // 既存ドキュメントを取得
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
-      // 既存ドキュメントがある場合は重複チェック後に更新
+      // 既存ドキュメントがある場合は更新
       const existingData = docSnap.data();
       const isOriginalMenu = typeof menuItem.id === "string";
 
       if (isOriginalMenu) {
         // オリジナルメニューの場合
         const existingOriginalMenuIds = existingData.original_menu_ids || {};
-        
-        // 重複チェック
-        if (existingOriginalMenuIds[menuItem.id]) {
-          console.log(`オリジナルメニューID ${menuItem.id} は既に存在します`);
-          return; // 重複している場合は何もしない
-        }
 
-        const updatedOriginalMenuIds = {
-          ...existingOriginalMenuIds,
-          [menuItem.id]: true,
-        };
-        await updateDoc(docRef, {
-          original_menu_ids: updatedOriginalMenuIds,
-        });
+        if (existingOriginalMenuIds[menuItem.id] === false) {
+          // falseの場合はデータを削除
+          const { [menuItem.id]: _, ...updatedOriginalMenuIds } = existingOriginalMenuIds;
+          await updateDoc(docRef, {
+            original_menu_ids: updatedOriginalMenuIds,
+          });
+        } else if (existingOriginalMenuIds[menuItem.id] === undefined) {
+          // データがない場合のみtrueを追加
+          const updatedOriginalMenuIds = {
+            ...existingOriginalMenuIds,
+            [menuItem.id]: true,
+          };
+          await updateDoc(docRef, {
+            original_menu_ids: updatedOriginalMenuIds,
+          });
+        }
       } else {
         // 通常メニューの場合
         const existingCommonMenuIds = existingData.common_menu_ids || {};
-        
-        // 重複チェック
-        if (existingCommonMenuIds[menuItem.id]) {
-          console.log(`通常メニューID ${menuItem.id} は既に存在します`);
-          return; // 重複している場合は何もしない
-        }
 
-        const updatedCommonMenuIds = {
-          ...existingCommonMenuIds,
-          [menuItem.id]: true,
-        };
-        await updateDoc(docRef, {
-          common_menu_ids: updatedCommonMenuIds,
-        });
+        if (existingCommonMenuIds[menuItem.id] === false) {
+          // falseの場合はデータを削除
+          const { [menuItem.id]: _, ...updatedCommonMenuIds } = existingCommonMenuIds;
+          await updateDoc(docRef, {
+            common_menu_ids: updatedCommonMenuIds,
+          });
+        } else if (existingCommonMenuIds[menuItem.id] === undefined) {
+          // データがない場合のみtrueを追加
+          const updatedCommonMenuIds = {
+            ...existingCommonMenuIds,
+            [menuItem.id]: true,
+          };
+          await updateDoc(docRef, {
+            common_menu_ids: updatedCommonMenuIds,
+          });
+        }
       }
     } else {
       // 新規ドキュメント作成
@@ -111,75 +92,56 @@ export class ChangeMenuService {
     const firstDayOfMonth = new Date(year, month - 1, 1, 0, 0, 0, 0);
     const monthStr = this.formatMonthToString(year, month);
     
-    // まず funch_monthly_menu で重複チェック
-    const monthlyMenuRef = doc(database, "funch_monthly_menu", monthStr);
-    const monthlyMenuSnap = await getDoc(monthlyMenuRef);
-    
-    if (monthlyMenuSnap.exists()) {
-      const monthlyMenuData = monthlyMenuSnap.data();
-      const isOriginalMenu = typeof menuItem.id === "string";
-      
-      if (isOriginalMenu) {
-        // オリジナルメニューの重複チェック
-        const existingOriginalMenuIds = monthlyMenuData.original_menu_ids || [];
-        if (existingOriginalMenuIds.includes(menuItem.id)) {
-          console.log(`オリジナルメニューID ${menuItem.id} は既に funch_monthly_menu に存在します`);
-          return;
-        }
-      } else {
-        // 通常メニューの重複チェック
-        const existingCommonMenuIds = monthlyMenuData.common_menu_ids || [];
-        if (existingCommonMenuIds.includes(menuItem.id)) {
-          console.log(`通常メニューID ${menuItem.id} は既に funch_monthly_menu に存在します`);
-          return;
-        }
-      }
-    }
-
     const docRef = doc(database, "funch_monthly_change", monthStr);
 
     // 既存ドキュメントを取得
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
-      // 既存ドキュメントがある場合は重複チェック後に更新
+      // 既存ドキュメントがある場合は更新
       const existingData = docSnap.data();
       const isOriginalMenu = typeof menuItem.id === "string";
 
       if (isOriginalMenu) {
         // オリジナルメニューの場合
         const existingOriginalMenuIds = existingData.original_menu_ids || {};
-        
-        // 重複チェック
-        if (existingOriginalMenuIds[menuItem.id]) {
-          console.log(`オリジナルメニューID ${menuItem.id} は既に存在します`);
-          return; // 重複している場合は何もしない
-        }
 
-        const updatedOriginalMenuIds = {
-          ...existingOriginalMenuIds,
-          [menuItem.id]: true,
-        };
-        await updateDoc(docRef, {
-          original_menu_ids: updatedOriginalMenuIds,
-        });
+        if (existingOriginalMenuIds[menuItem.id] === false) {
+          // falseの場合はデータを削除
+          const { [menuItem.id]: _, ...updatedOriginalMenuIds } = existingOriginalMenuIds;
+          await updateDoc(docRef, {
+            original_menu_ids: updatedOriginalMenuIds,
+          });
+        } else if (existingOriginalMenuIds[menuItem.id] === undefined) {
+          // データがない場合のみtrueを追加
+          const updatedOriginalMenuIds = {
+            ...existingOriginalMenuIds,
+            [menuItem.id]: true,
+          };
+          await updateDoc(docRef, {
+            original_menu_ids: updatedOriginalMenuIds,
+          });
+        }
       } else {
         // 通常メニューの場合
         const existingCommonMenuIds = existingData.common_menu_ids || {};
-        
-        // 重複チェック
-        if (existingCommonMenuIds[menuItem.id]) {
-          console.log(`通常メニューID ${menuItem.id} は既に存在します`);
-          return; // 重複している場合は何もしない
-        }
 
-        const updatedCommonMenuIds = {
-          ...existingCommonMenuIds,
-          [menuItem.id]: true,
-        };
-        await updateDoc(docRef, {
-          common_menu_ids: updatedCommonMenuIds,
-        });
+        if (existingCommonMenuIds[menuItem.id] === false) {
+          // falseの場合はデータを削除
+          const { [menuItem.id]: _, ...updatedCommonMenuIds } = existingCommonMenuIds;
+          await updateDoc(docRef, {
+            common_menu_ids: updatedCommonMenuIds,
+          });
+        } else if (existingCommonMenuIds[menuItem.id] === undefined) {
+          // データがない場合のみtrueを追加
+          const updatedCommonMenuIds = {
+            ...existingCommonMenuIds,
+            [menuItem.id]: true,
+          };
+          await updateDoc(docRef, {
+            common_menu_ids: updatedCommonMenuIds,
+          });
+        }
       }
     } else {
       // 新規ドキュメント作成
