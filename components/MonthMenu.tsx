@@ -218,7 +218,7 @@ const MonthMenuDroppable: React.FC<MonthMenuDroppableProps> = ({
     <div
       ref={setNodeRef}
       className={`w-full h-full rounded-[8px] ${
-        isOver ? "bg-[#D87C7C]/20" : "bg-white"
+        isOver ? "bg-[#D87C7C]" : "bg-white"
       }`}
     >
       {children}

@@ -22,7 +22,6 @@ export default function Home() {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [activeMenu, setActiveMenu] = useState<MenuItem | null>(null);
-  const [isDropSuccess, setIsDropSuccess] = useState(false);
   const changeMenuService = new ChangeMenuService();
 
   const handleYearMonthChange = (year: number, month: number) => {
@@ -34,7 +33,6 @@ export default function Home() {
     const { active } = event;
     if (active.data.current?.menu) {
       setActiveMenu(active.data.current.menu);
-      setIsDropSuccess(false);
     }
   };
 
@@ -58,36 +56,29 @@ export default function Home() {
         // overId形式: "2025/07/15" など
         const [year, month, day] = overId.split("/").map(Number);
         const targetDate = new Date(year, month - 1, day);
-        
-        setIsDropSuccess(true);
-        
-        // フェードアウト開始後にFirestore保存
-        setTimeout(async () => {
-          await changeMenuService.saveDailyChange(targetDate, menu);
-          console.log(`Daily change saved for ${overId}:`, menu.name);
-        }, 50);
-        
-        // フェードアウト完了後にアイテムを消去
-        setTimeout(() => {
-          setActiveMenu(null);
-          setIsDropSuccess(false);
-        }, 400);
+
+        // Firestore保存
+        await changeMenuService.saveDailyChange(targetDate, menu);
+        console.log(`Daily change saved for ${overId}:`, menu.name);
+
+        // 即座に非表示にする
+        setActiveMenu(null);
       }
       // 月間メニューへのドロップの場合
       else if (overId === "month-menu") {
-        setIsDropSuccess(true);
+        // Firestore保存
+        await changeMenuService.saveMonthlyChange(
+          currentYear,
+          currentMonth,
+          menu
+        );
+        console.log(
+          `Monthly change saved for ${currentYear}/${currentMonth}:`,
+          menu.name
+        );
         
-        // フェードアウト開始後にFirestore保存
-        setTimeout(async () => {
-          await changeMenuService.saveMonthlyChange(currentYear, currentMonth, menu);
-          console.log(`Monthly change saved for ${currentYear}/${currentMonth}:`, menu.name);
-        }, 50);
-        
-        // フェードアウト完了後にアイテムを消去
-        setTimeout(() => {
-          setActiveMenu(null);
-          setIsDropSuccess(false);
-        }, 400);
+        // 即座に非表示にする
+        setActiveMenu(null);
       } else {
         // ドロップ失敗
         setActiveMenu(null);
@@ -136,11 +127,7 @@ export default function Home() {
             </div>
             <DragOverlay>
               {activeMenu && (
-                <div 
-                  className={`z-30 p-2 my-1 mx-4 border rounded bg-white select-none w-fit cursor-grabbing transition-opacity duration-300 ${
-                    isDropSuccess ? 'opacity-0' : 'opacity-100'
-                  }`}
-                >
+                <div className="z-30 p-2 my-1 mx-4 border rounded bg-white select-none w-fit cursor-grabbing">
                   {typeof activeMenu.id === "number" ? (
                     <>
                       {activeMenu.name}
