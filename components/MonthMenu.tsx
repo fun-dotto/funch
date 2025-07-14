@@ -210,7 +210,7 @@ const MonthMenuDroppable: React.FC<MonthMenuDroppableProps> = ({
   children,
 }) => {
   const { setNodeRef, isOver } = useDroppable({
-    id: "monthMenu",
+    id: "month-menu",
     data: { type: "monthMenu" },
   });
 

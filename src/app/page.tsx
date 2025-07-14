@@ -15,12 +15,15 @@ import {
   DragEndEvent,
 } from "@dnd-kit/core";
 import { MenuItem } from "../types/Menu";
+import { ChangeMenuService } from "../services/ChangeMenuService";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [activeMenu, setActiveMenu] = useState<MenuItem | null>(null);
+  const [isDropSuccess, setIsDropSuccess] = useState(false);
+  const changeMenuService = new ChangeMenuService();
 
   const handleYearMonthChange = (year: number, month: number) => {
     setCurrentYear(year);
@@ -31,22 +34,68 @@ export default function Home() {
     const { active } = event;
     if (active.data.current?.menu) {
       setActiveMenu(active.data.current.menu);
+      setIsDropSuccess(false);
     }
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    setActiveMenu(null);
 
-    if (!over || !active.data.current?.menu) return;
+    if (!over || !active.data.current?.menu) {
+      setActiveMenu(null);
+      return;
+    }
 
-    const menu = active.data.current.menu;
-    const overId = over.id;
+    const menu = active.data.current.menu as MenuItem;
+    const overId = over.id as string;
 
     console.log("Dropped menu:", menu);
     console.log("Drop target:", overId);
 
-    // TODO: ドロップ処理の実装
+    try {
+      // カレンダーへのドロップの場合
+      if (overId.includes("/")) {
+        // overId形式: "2025/07/15" など
+        const [year, month, day] = overId.split("/").map(Number);
+        const targetDate = new Date(year, month - 1, day);
+        
+        setIsDropSuccess(true);
+        
+        // フェードアウト開始後にFirestore保存
+        setTimeout(async () => {
+          await changeMenuService.saveDailyChange(targetDate, menu);
+          console.log(`Daily change saved for ${overId}:`, menu.name);
+        }, 50);
+        
+        // フェードアウト完了後にアイテムを消去
+        setTimeout(() => {
+          setActiveMenu(null);
+          setIsDropSuccess(false);
+        }, 400);
+      }
+      // 月間メニューへのドロップの場合
+      else if (overId === "month-menu") {
+        setIsDropSuccess(true);
+        
+        // フェードアウト開始後にFirestore保存
+        setTimeout(async () => {
+          await changeMenuService.saveMonthlyChange(currentYear, currentMonth, menu);
+          console.log(`Monthly change saved for ${currentYear}/${currentMonth}:`, menu.name);
+        }, 50);
+        
+        // フェードアウト完了後にアイテムを消去
+        setTimeout(() => {
+          setActiveMenu(null);
+          setIsDropSuccess(false);
+        }, 400);
+      } else {
+        // ドロップ失敗
+        setActiveMenu(null);
+      }
+    } catch (error) {
+      console.error("Failed to save change:", error);
+      setActiveMenu(null);
+    }
   };
 
   useEffect(() => {
@@ -87,7 +136,11 @@ export default function Home() {
             </div>
             <DragOverlay>
               {activeMenu && (
-                <div className="z-30 p-2 my-1 mx-4 border rounded bg-white select-none w-fit cursor-grabbing">
+                <div 
+                  className={`z-30 p-2 my-1 mx-4 border rounded bg-white select-none w-fit cursor-grabbing transition-opacity duration-300 ${
+                    isDropSuccess ? 'opacity-0' : 'opacity-100'
+                  }`}
+                >
                   {typeof activeMenu.id === "number" ? (
                     <>
                       {activeMenu.name}
