@@ -91,13 +91,15 @@ export class MenuService {
 
   async getMenuById(id: number): Promise<MenuItem | null> {
     const rawMenus = await this.getRawMenuWithPrices();
-    return rawMenus.find(menu => menu.id === id) || null;
+    return rawMenus.find((menu) => menu.id === id) || null;
   }
 
   // getOriginalMenuById removed - no longer needed for API endpoints
 
   async getAllDailyMenuDates(): Promise<string[]> {
-    const { collection, getDocs, query, orderBy } = await import("firebase/firestore");
+    const { collection, getDocs, query, orderBy } = await import(
+      "firebase/firestore"
+    );
     const { database } = await import("../infrastructure/firebase");
 
     const docRef = query(
@@ -154,7 +156,9 @@ export class MenuService {
     // オリジナルメニューを取得
     const originalMenus = await this.getOriginalMenus();
     for (const originalMenuId of dailyMenu.original_menu_ids) {
-      const originalMenu = originalMenus.find(menu => menu.id === originalMenuId);
+      const originalMenu = originalMenus.find(
+        (menu) => menu.id === originalMenuId
+      );
       if (originalMenu) {
         const originalMenuItem = convertOriginalMenuToMenuItem(originalMenu);
         menuItems.push(originalMenuItem);
@@ -165,7 +169,9 @@ export class MenuService {
   }
 
   async getAllMonthlyMenuMonths(): Promise<string[]> {
-    const { collection, getDocs, query, orderBy } = await import("firebase/firestore");
+    const { collection, getDocs, query, orderBy } = await import(
+      "firebase/firestore"
+    );
     const { database } = await import("../infrastructure/firebase");
 
     const docRef = query(
@@ -229,7 +235,9 @@ export class MenuService {
     // オリジナルメニューを取得
     const originalMenus = await this.getOriginalMenus();
     for (const originalMenuId of monthlyMenu.original_menu_ids) {
-      const originalMenu = originalMenus.find(menu => menu.id === originalMenuId);
+      const originalMenu = originalMenus.find(
+        (menu) => menu.id === originalMenuId
+      );
       if (originalMenu) {
         const originalMenuItem = convertOriginalMenuToMenuItem(originalMenu);
         menuItems.push(originalMenuItem);

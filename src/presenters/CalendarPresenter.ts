@@ -15,7 +15,13 @@ export const useCalendarMenuPresenter = (
     new Map<UniqueIdentifier, OriginalMenu[]>()
   );
   const [changeData, setChangeData] = useState(
-    new Map<UniqueIdentifier, { commonMenuIds: Record<string, boolean>; originalMenuIds: Record<string, boolean>; }>()
+    new Map<
+      UniqueIdentifier,
+      {
+        commonMenuIds: Record<string, boolean>;
+        originalMenuIds: Record<string, boolean>;
+      }
+    >()
   );
   const [loading, setLoading] = useState(false);
 
@@ -25,8 +31,14 @@ export const useCalendarMenuPresenter = (
 
       setLoading(true);
       try {
-        const { menuData: newMenuData, originalMenuData: newOriginalMenuData, changeData: newChangeData } =
-          await calendarMenuService.getMonthMenuData(currentYear, currentMonth);
+        const {
+          menuData: newMenuData,
+          originalMenuData: newOriginalMenuData,
+          changeData: newChangeData,
+        } = await calendarMenuService.getMonthMenuData(
+          currentYear,
+          currentMonth
+        );
 
         setMenuData(newMenuData);
         setOriginalMenuData(newOriginalMenuData);
@@ -47,7 +59,7 @@ export const useCalendarMenuPresenter = (
     setLoading(true);
     try {
       await calendarMenuService.deleteDailyMenu(date, menuItemCode);
-      
+
       // 削除フラグの記録のみで画面状態は変更しない
       // （実際のFirestoreからは削除されていないため）
     } catch (error) {
@@ -81,8 +93,11 @@ export const useCalendarMenuPresenter = (
 
     setLoading(true);
     try {
-      const { menuData: newMenuData, originalMenuData: newOriginalMenuData, changeData: newChangeData } =
-        await calendarMenuService.getMonthMenuData(currentYear, currentMonth);
+      const {
+        menuData: newMenuData,
+        originalMenuData: newOriginalMenuData,
+        changeData: newChangeData,
+      } = await calendarMenuService.getMonthMenuData(currentYear, currentMonth);
 
       setMenuData(newMenuData);
       setOriginalMenuData(newOriginalMenuData);

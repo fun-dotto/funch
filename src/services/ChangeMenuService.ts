@@ -12,7 +12,7 @@ export class ChangeMenuService {
 
     // 日付をYYYYMMDD形式に変換
     const dateStr = this.formatDateToString(date);
-    
+
     const docRef = doc(database, "funch_daily_change", dateStr);
 
     // 既存ドキュメントを取得
@@ -29,7 +29,8 @@ export class ChangeMenuService {
 
         if (existingOriginalMenuIds[menuItem.id] === false) {
           // falseの場合はデータを削除
-          const { [menuItem.id]: _, ...updatedOriginalMenuIds } = existingOriginalMenuIds;
+          const { [menuItem.id]: _, ...updatedOriginalMenuIds } =
+            existingOriginalMenuIds;
           await updateDoc(docRef, {
             original_menu_ids: updatedOriginalMenuIds,
           });
@@ -49,7 +50,8 @@ export class ChangeMenuService {
 
         if (existingCommonMenuIds[menuItem.id] === false) {
           // falseの場合はデータを削除
-          const { [menuItem.id]: _, ...updatedCommonMenuIds } = existingCommonMenuIds;
+          const { [menuItem.id]: _, ...updatedCommonMenuIds } =
+            existingCommonMenuIds;
           await updateDoc(docRef, {
             common_menu_ids: updatedCommonMenuIds,
           });
@@ -91,7 +93,7 @@ export class ChangeMenuService {
     // 月の1日0時0分を作成
     const firstDayOfMonth = new Date(year, month - 1, 1, 0, 0, 0, 0);
     const monthStr = this.formatMonthToString(year, month);
-    
+
     const docRef = doc(database, "funch_monthly_change", monthStr);
 
     // 既存ドキュメントを取得
@@ -108,7 +110,8 @@ export class ChangeMenuService {
 
         if (existingOriginalMenuIds[menuItem.id] === false) {
           // falseの場合はデータを削除
-          const { [menuItem.id]: _, ...updatedOriginalMenuIds } = existingOriginalMenuIds;
+          const { [menuItem.id]: _, ...updatedOriginalMenuIds } =
+            existingOriginalMenuIds;
           await updateDoc(docRef, {
             original_menu_ids: updatedOriginalMenuIds,
           });
@@ -128,7 +131,8 @@ export class ChangeMenuService {
 
         if (existingCommonMenuIds[menuItem.id] === false) {
           // falseの場合はデータを削除
-          const { [menuItem.id]: _, ...updatedCommonMenuIds } = existingCommonMenuIds;
+          const { [menuItem.id]: _, ...updatedCommonMenuIds } =
+            existingCommonMenuIds;
           await updateDoc(docRef, {
             common_menu_ids: updatedCommonMenuIds,
           });
@@ -303,7 +307,10 @@ export class ChangeMenuService {
   }
 
   // 月次変更データを取得
-  async getMonthlyChangeData(year: number, month: number): Promise<{
+  async getMonthlyChangeData(
+    year: number,
+    month: number
+  ): Promise<{
     commonMenuIds: Record<string, boolean>;
     originalMenuIds: Record<string, boolean>;
   }> {

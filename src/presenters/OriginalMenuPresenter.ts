@@ -16,9 +16,9 @@ export const useOriginalMenuPresenter = () => {
       // Firestore直接操作でデータを取得
       const menuRepository = new FirebaseMenuRepository();
       const menuService = new MenuService(menuRepository);
-      
+
       const originalMenus = await menuService.getOriginalMenus();
-      
+
       // カテゴリで並び替え
       const sortedMenus = originalMenus.sort((a, b) => a.category - b.category);
       setOriginalMenus(sortedMenus);

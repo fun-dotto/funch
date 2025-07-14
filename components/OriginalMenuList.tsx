@@ -33,7 +33,9 @@ export const OriginalMenuList: FC<OriginalMenuListProps> = ({
   const handleSave = async (updatedMenu: OriginalMenu, imageFile?: File) => {
     try {
       // Firestore直接操作で保存
-      const savedMenu = await originalMenuCRUDService.saveOriginalMenu(updatedMenu);
+      const savedMenu = await originalMenuCRUDService.saveOriginalMenu(
+        updatedMenu
+      );
 
       // 新規作成で画像がある場合は、生成されたIDを使って画像を保存
       if (imageFile && savedMenu && savedMenu.id) {

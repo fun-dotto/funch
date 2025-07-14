@@ -119,18 +119,17 @@ export class FirebaseMonthMenuRepository implements MonthMenuRepository {
     // 月の1日0時0分のTimestampを作成
     const firstDayOfMonth = new Date(year, month - 1, 1, 0, 0, 0, 0);
     const docId = this.formatDateJST(firstDayOfMonth, false).substring(0, 6); // YYYYMM
-    
-    const docMonthRef = doc(
-      database,
-      "funch_monthly_menu",
-      docId
-    );
+
+    const docMonthRef = doc(database, "funch_monthly_menu", docId);
     const docMonthSnap = await getDoc(docMonthRef);
 
     if (docMonthSnap.exists()) {
       const data = docMonthSnap.data();
 
-      const menuCodes = data.common_menu_ids != undefined ? (data.common_menu_ids as number[]) : [];
+      const menuCodes =
+        data.common_menu_ids != undefined
+          ? (data.common_menu_ids as number[])
+          : [];
       const menus = menuCodes
         .map((m: number) => {
           return allMenus.find((menu) => menu.item_code == m);

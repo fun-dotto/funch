@@ -36,7 +36,10 @@ export const useMonthMenuPresenter = (
         setOriginalMenus(newOriginalMenus);
 
         // 月次変更データを取得
-        const monthlyChange = await changeMenuService.getMonthlyChangeData(currentYear, currentMonth);
+        const monthlyChange = await changeMenuService.getMonthlyChangeData(
+          currentYear,
+          currentMonth
+        );
         setMonthlyChangeData(monthlyChange);
       } catch (error) {
         console.error("月間メニューデータの取得に失敗しました:", error);
@@ -96,14 +99,14 @@ export const useMonthMenuPresenter = (
         id: menuItemCode,
         name: "",
         category_id: 0,
-        prices: { medium: 0 }
+        prices: { medium: 0 },
       };
       await changeMenuService.saveMonthlyDeletion(
         currentYear,
         currentMonth,
         menuItem
       );
-      
+
       // 削除フラグの記録のみで画面状態は変更しない
       // （実際のFirestoreからは削除されていないため）
     } catch (error) {
@@ -119,14 +122,14 @@ export const useMonthMenuPresenter = (
         id: originalMenuId,
         name: "",
         category_id: 0,
-        prices: { medium: 0 }
+        prices: { medium: 0 },
       };
       await changeMenuService.saveMonthlyDeletion(
         currentYear,
         currentMonth,
         menuItem
       );
-      
+
       // 削除フラグの記録のみで画面状態は変更しない
       // （実際のFirestoreからは削除されていないため）
     } catch (error) {
@@ -150,7 +153,10 @@ export const useMonthMenuPresenter = (
       setOriginalMenus(newOriginalMenus);
 
       // 月次変更データを取得
-      const monthlyChange = await changeMenuService.getMonthlyChangeData(currentYear, currentMonth);
+      const monthlyChange = await changeMenuService.getMonthlyChangeData(
+        currentYear,
+        currentMonth
+      );
       setMonthlyChangeData(monthlyChange);
     } catch (error) {
       console.error("月間メニューデータの取得に失敗しました:", error);

@@ -81,10 +81,10 @@ export default function Home() {
           `Monthly change saved for ${currentYear}/${currentMonth}:`,
           menu.name
         );
-        
+
         // 月間メニューデータのみを更新
         await monthMenuRef.current?.refreshData();
-        
+
         // 即座に非表示にする
         setActiveMenu(null);
       } else {
@@ -124,9 +124,17 @@ export default function Home() {
                       month={currentMonth}
                       onYearMonthChange={handleYearMonthChange}
                     />
-                    <MonthMenu ref={monthMenuRef} year={currentYear} month={currentMonth} />
+                    <MonthMenu
+                      ref={monthMenuRef}
+                      year={currentYear}
+                      month={currentMonth}
+                    />
                   </div>
-                  <Calendar ref={calendarRef} year={currentYear} month={currentMonth} />
+                  <Calendar
+                    ref={calendarRef}
+                    year={currentYear}
+                    month={currentMonth}
+                  />
                 </div>
               </div>
               <div className="flex-1">

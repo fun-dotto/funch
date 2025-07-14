@@ -120,7 +120,10 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
       const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
 
       // 通常メニュー
-      const menuCodes = data.common_menu_ids != undefined ? (data.common_menu_ids as number[]) : [];
+      const menuCodes =
+        data.common_menu_ids != undefined
+          ? (data.common_menu_ids as number[])
+          : [];
       const menus = menuCodes
         .map((m: number) => {
           return allMenus.find((menu) => menu.item_code == m);
@@ -145,7 +148,6 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
   }
 
   async removeDailyMenu(date: Date, menuItemCode: number): Promise<void> {
-
     // 該当する日付のドキュメントを取得
     const docRef = query(
       collection(database, "funch_daily_menu"),
@@ -168,7 +170,6 @@ export class FirebaseCalendarMenuRepository implements CalendarMenuRepository {
     date: Date,
     originalMenuId: string
   ): Promise<void> {
-
     // 該当する日付のドキュメントを取得
     const docRef = query(
       collection(database, "funch_daily_menu"),
