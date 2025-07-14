@@ -87,41 +87,14 @@ export class MenuService {
     };
   }
 
-  async createOriginalMenu(
-    menuData: Omit<OriginalMenu, "id">
-  ): Promise<OriginalMenu> {
-    const newMenu: OriginalMenu = {
-      ...menuData,
-      id: "0", // OriginalMenuCRUDServiceが新規作成として認識
-    };
-    return await this.originalMenuCRUDService.saveOriginalMenu(newMenu);
-  }
-
-  async updateOriginalMenu(
-    id: string,
-    menuData: Omit<OriginalMenu, "id">
-  ): Promise<OriginalMenu> {
-    const updatedMenu: OriginalMenu = {
-      ...menuData,
-      id,
-    };
-    return await this.originalMenuCRUDService.saveOriginalMenu(updatedMenu);
-  }
-
-  async deleteOriginalMenu(id: string): Promise<void> {
-    return await this.originalMenuCRUDService.deleteOriginalMenu(id);
-  }
+  // Original menu CRUD methods removed - now handled by direct OriginalMenuCRUDService usage
 
   async getMenuById(id: number): Promise<MenuItem | null> {
     const rawMenus = await this.getRawMenuWithPrices();
     return rawMenus.find(menu => menu.id === id) || null;
   }
 
-  async getOriginalMenuById(id: string): Promise<MenuItem | null> {
-    const originalMenus = await this.getOriginalMenus();
-    const originalMenu = originalMenus.find(menu => menu.id === id);
-    return originalMenu ? convertOriginalMenuToMenuItem(originalMenu) : null;
-  }
+  // getOriginalMenuById removed - no longer needed for API endpoints
 
   async getAllDailyMenuDates(): Promise<string[]> {
     const { collection, getDocs, query, orderBy } = await import("firebase/firestore");
@@ -179,9 +152,11 @@ export class MenuService {
     }
 
     // オリジナルメニューを取得
+    const originalMenus = await this.getOriginalMenus();
     for (const originalMenuId of dailyMenu.original_menu_ids) {
-      const originalMenuItem = await this.getOriginalMenuById(originalMenuId);
-      if (originalMenuItem) {
+      const originalMenu = originalMenus.find(menu => menu.id === originalMenuId);
+      if (originalMenu) {
+        const originalMenuItem = convertOriginalMenuToMenuItem(originalMenu);
         menuItems.push(originalMenuItem);
       }
     }
@@ -252,9 +227,11 @@ export class MenuService {
     }
 
     // オリジナルメニューを取得
+    const originalMenus = await this.getOriginalMenus();
     for (const originalMenuId of monthlyMenu.original_menu_ids) {
-      const originalMenuItem = await this.getOriginalMenuById(originalMenuId);
-      if (originalMenuItem) {
+      const originalMenu = originalMenus.find(menu => menu.id === originalMenuId);
+      if (originalMenu) {
+        const originalMenuItem = convertOriginalMenuToMenuItem(originalMenu);
         menuItems.push(originalMenuItem);
       }
     }
