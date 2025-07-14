@@ -76,6 +76,24 @@ export const useCalendarMenuPresenter = (
     }
   };
 
+  const refreshData = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      const { menuData: newMenuData, originalMenuData: newOriginalMenuData, changeData: newChangeData } =
+        await calendarMenuService.getMonthMenuData(currentYear, currentMonth);
+
+      setMenuData(newMenuData);
+      setOriginalMenuData(newOriginalMenuData);
+      setChangeData(newChangeData);
+    } catch (error) {
+      console.error("メニューデータの取得に失敗しました:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     menuData,
     originalMenuData,
@@ -83,5 +101,6 @@ export const useCalendarMenuPresenter = (
     loading,
     deleteDailyMenu,
     deleteDailyOriginalMenu,
+    refreshData,
   };
 };

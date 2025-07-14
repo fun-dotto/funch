@@ -1,11 +1,11 @@
 "use client";
 
 import { onAuthStateChanged, User } from "firebase/auth";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { auth } from "../infrastructure/firebase";
 import Header from "../../components/Header";
-import Calendar from "@/components/Calendar";
-import MonthMenu from "@/components/MonthMenu";
+import Calendar, { CalendarRef } from "@/components/Calendar";
+import MonthMenu, { MonthMenuRef } from "@/components/MonthMenu";
 import { YearMonthDisplay } from "@/components/Date";
 import SettingTab from "@/components/SettingTab";
 import {
@@ -23,6 +23,8 @@ export default function Home() {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [activeMenu, setActiveMenu] = useState<MenuItem | null>(null);
   const changeMenuService = new ChangeMenuService();
+  const calendarRef = useRef<CalendarRef>(null);
+  const monthMenuRef = useRef<MonthMenuRef>(null);
 
   const handleYearMonthChange = (year: number, month: number) => {
     setCurrentYear(year);
@@ -61,6 +63,9 @@ export default function Home() {
         await changeMenuService.saveDailyChange(targetDate, menu);
         console.log(`Daily change saved for ${overId}:`, menu.name);
 
+        // カレンダーデータのみを更新
+        await calendarRef.current?.refreshData();
+
         // 即座に非表示にする
         setActiveMenu(null);
       }
@@ -76,6 +81,9 @@ export default function Home() {
           `Monthly change saved for ${currentYear}/${currentMonth}:`,
           menu.name
         );
+        
+        // 月間メニューデータのみを更新
+        await monthMenuRef.current?.refreshData();
         
         // 即座に非表示にする
         setActiveMenu(null);
@@ -116,9 +124,9 @@ export default function Home() {
                       month={currentMonth}
                       onYearMonthChange={handleYearMonthChange}
                     />
-                    <MonthMenu year={currentYear} month={currentMonth} />
+                    <MonthMenu ref={monthMenuRef} year={currentYear} month={currentMonth} />
                   </div>
-                  <Calendar year={currentYear} month={currentMonth} />
+                  <Calendar ref={calendarRef} year={currentYear} month={currentMonth} />
                 </div>
               </div>
               <div className="flex-1">

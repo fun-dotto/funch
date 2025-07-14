@@ -1,6 +1,6 @@
 "use client";
 
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "../src/infrastructure/firebase";
 import { useMonthMenuPresenter } from "../src/presenters/MonthMenuPresenter";
@@ -22,14 +22,18 @@ type MonthMenuProps = {
   children?: ReactNode;
 };
 
-const MonthMenu: React.FC<MonthMenuProps> = ({
+export type MonthMenuRef = {
+  refreshData: () => Promise<void>;
+};
+
+const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(({
   year,
   month,
   onAddMenu,
   onAddOriginalMenu,
   onDragEnd,
   children,
-}) => {
+}, ref) => {
   const [user, setUser] = useState<User | null>(null);
 
   const {
@@ -43,6 +47,7 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
     removeMenu,
     removeOriginalMenu,
     saveMonthMenuData,
+    refreshData,
   } = useMonthMenuPresenter(user, year, month, monthMenuService);
 
   useEffect(() => {
@@ -56,6 +61,10 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
 
     return () => unsubscribe();
   }, [setUser]);
+
+  useImperativeHandle(ref, () => ({
+    refreshData,
+  }));
 
   const handleAddMenu = (menu: Menu) => {
     addMenu(menu);
@@ -217,7 +226,7 @@ const MonthMenu: React.FC<MonthMenuProps> = ({
       {children}
     </div>
   );
-};
+});
 
 type MonthMenuDroppableProps = {
   onAddMenu: (menu: Menu) => void;

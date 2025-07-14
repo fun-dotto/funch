@@ -135,6 +135,31 @@ export const useMonthMenuPresenter = (
     }
   };
 
+  const refreshData = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { menus: newMenus, originalMenus: newOriginalMenus } =
+        await monthMenuService.getMonthMenuData(currentYear, currentMonth);
+
+      const sortedMenus = monthMenuService.sortMenus(newMenus);
+      setMenus(sortedMenus);
+      setOriginalMenus(newOriginalMenus);
+
+      // 月次変更データを取得
+      const monthlyChange = await changeMenuService.getMonthlyChangeData(currentYear, currentMonth);
+      setMonthlyChangeData(monthlyChange);
+    } catch (error) {
+      console.error("月間メニューデータの取得に失敗しました:", error);
+      setError("月間メニューデータの取得に失敗しました");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     menus,
     originalMenus,
@@ -146,5 +171,6 @@ export const useMonthMenuPresenter = (
     removeMenu,
     removeOriginalMenu,
     saveMonthMenuData,
+    refreshData,
   };
 };
