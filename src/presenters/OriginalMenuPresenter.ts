@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { OriginalMenu, MenuItem } from "../types/Menu";
+import { OriginalMenu } from "../types/Menu";
+import { MenuService } from "../services/MenuService";
+import { FirebaseMenuRepository } from "../repositories/firebase/MenuRepository";
 
 export const useOriginalMenuPresenter = () => {
   const [originalMenus, setOriginalMenus] = useState<OriginalMenu[]>([]);
@@ -11,24 +13,12 @@ export const useOriginalMenuPresenter = () => {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("/api/original_menu");
-
-      if (!response.ok) {
-        throw new Error("API呼び出しに失敗しました");
-      }
-
-      const data = await response.json();
-
-      // APIからのMenuItem形式をOriginalMenu形式に変換
-      const originalMenus: OriginalMenu[] = data.data.menus.map(
-        (item: MenuItem) => ({
-          id: String(item.id),
-          title: item.name,
-          category: item.category_id,
-          price: item.prices,
-        })
-      );
-
+      // Firestore直接操作でデータを取得
+      const menuRepository = new FirebaseMenuRepository();
+      const menuService = new MenuService(menuRepository);
+      
+      const originalMenus = await menuService.getOriginalMenus();
+      
       // カテゴリで並び替え
       const sortedMenus = originalMenus.sort((a, b) => a.category - b.category);
       setOriginalMenus(sortedMenus);
