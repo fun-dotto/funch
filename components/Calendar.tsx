@@ -176,6 +176,11 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
                     <div className="flex-1 truncate pr-6">
                       c-{menuId} {isAdded ? "(追加)" : "(削除)"}
                     </div>
+                    <div
+                      className="text-black cursor-pointer absolute right-2 hover:text-red-600"
+                    >
+                      <HiTrash />
+                    </div>
                   </div>
                 )
               )}
@@ -187,6 +192,11 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
                   >
                     <div className="flex-1 truncate pr-6">
                       c-{menuId} {isAdded ? "(追加)" : "(削除)"}
+                    </div>
+                    <div
+                      className="text-black cursor-pointer absolute right-2 hover:text-red-600"
+                    >
+                      <HiTrash />
                     </div>
                   </div>
                 )

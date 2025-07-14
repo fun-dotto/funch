@@ -140,13 +140,17 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(({
                     type: 'change' as const,
                     id: `c-${menuId}`,
                     title: `c-${menuId} ${isAdded ? "(追加)" : "(削除)"}`,
-                    isChange: true
+                    isChange: true,
+                    menuId: menuId,
+                    isAdded: isAdded
                   })),
                   ...Object.entries(monthlyChangeData.originalMenuIds).map(([menuId, isAdded]) => ({
                     type: 'change' as const,
                     id: `c-${menuId}`,
                     title: `c-${menuId} ${isAdded ? "(追加)" : "(削除)"}`,
-                    isChange: true
+                    isChange: true,
+                    menuId: menuId,
+                    isAdded: isAdded
                   }))
                 ];
                 
@@ -178,7 +182,7 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(({
                         <div className="flex-1 truncate pr-6">
                           {item.title}
                         </div>
-                        {!item.isChange && (
+                        {!item.isChange ? (
                           <div
                             className="text-black cursor-pointer pr-12 hover:text-red-600"
                             onClick={() =>
@@ -186,6 +190,12 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(({
                                 ? handleRemoveMenu((item as any).item_code)
                                 : handleRemoveOriginalMenu((item as any).id)
                             }
+                          >
+                            <HiTrash />
+                          </div>
+                        ) : (
+                          <div
+                            className="text-black cursor-pointer pr-12 hover:text-red-600"
                           >
                             <HiTrash />
                           </div>
