@@ -171,14 +171,14 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
                 ([menuId, isAdded]) => (
                   <div
                     key={`c-${menuId}`}
-                    className="flex justify-between items-center my-1 text-xs relative"
+                    className={`flex justify-between items-center  text-xs relative ${
+                      isAdded ? "bg-green-100" : "bg-red-100"
+                    }`}
                   >
                     <div className="flex-1 truncate pr-6">
                       c-{menuId} {isAdded ? "(追加)" : "(削除)"}
                     </div>
-                    <div
-                      className="text-black cursor-pointer absolute right-2 hover:text-red-600"
-                    >
+                    <div className="text-black cursor-pointer absolute right-2 hover:text-red-600">
                       <HiTrash />
                     </div>
                   </div>
@@ -188,14 +188,14 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
                 ([menuId, isAdded]) => (
                   <div
                     key={`c-${menuId}`}
-                    className="flex justify-between items-center my-1 text-xs relative"
+                    className={`flex justify-between items-center text-xs relative ${
+                      isAdded ? "bg-green-100" : "bg-red-100"
+                    }`}
                   >
                     <div className="flex-1 truncate pr-6">
                       c-{menuId} {isAdded ? "(追加)" : "(削除)"}
                     </div>
-                    <div
-                      className="text-black cursor-pointer absolute right-2 hover:text-red-600"
-                    >
+                    <div className="text-black cursor-pointer absolute right-2 hover:text-red-600">
                       <HiTrash />
                     </div>
                   </div>
