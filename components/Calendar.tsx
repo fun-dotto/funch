@@ -133,10 +133,62 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
         }
       };
 
-      return (
-        <div className="flex flex-col">
-          {oneDayMenuData &&
-            oneDayMenuData.map((m) => (
+      // 優先順位に従って表示項目を管理
+      const displayItems: JSX.Element[] = [];
+      const displayedIds = new Set<string>();
+
+      // 1. 優先順位最高：change false（削除）
+      if (oneDayChangeData) {
+        // commonMenuIds の false
+        Object.entries(oneDayChangeData.commonMenuIds).forEach(
+          ([menuId, isAdded]) => {
+            if (!isAdded) {
+              displayItems.push(
+                <div
+                  key={`c-${menuId}`}
+                  className="flex justify-between items-center text-xs relative bg-red-100"
+                >
+                  <div className="flex-1 truncate pr-6">
+                    c-{menuId} (削除)
+                  </div>
+                  <div className="text-black cursor-pointer absolute right-2 hover:text-red-600">
+                    <HiTrash />
+                  </div>
+                </div>
+              );
+              displayedIds.add(menuId);
+            }
+          }
+        );
+
+        // originalMenuIds の false
+        Object.entries(oneDayChangeData.originalMenuIds).forEach(
+          ([menuId, isAdded]) => {
+            if (!isAdded) {
+              displayItems.push(
+                <div
+                  key={`c-${menuId}`}
+                  className="flex justify-between items-center text-xs relative bg-red-100"
+                >
+                  <div className="flex-1 truncate pr-6">
+                    c-{menuId} (削除)
+                  </div>
+                  <div className="text-black cursor-pointer absolute right-2 hover:text-red-600">
+                    <HiTrash />
+                  </div>
+                </div>
+              );
+              displayedIds.add(menuId);
+            }
+          }
+        );
+      }
+
+      // 2. 中優先：普通のmenu（重複除く）
+      if (oneDayMenuData) {
+        oneDayMenuData.forEach((m) => {
+          if (!displayedIds.has(m.item_code.toString())) {
+            displayItems.push(
               <div
                 key={m.item_code}
                 className="flex justify-between items-center my-1 text-xs relative"
@@ -149,9 +201,16 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
                   <HiTrash />
                 </div>
               </div>
-            ))}
-          {oneDayOriginalMenuData &&
-            oneDayOriginalMenuData.map((m) => (
+            );
+            displayedIds.add(m.item_code.toString());
+          }
+        });
+      }
+
+      if (oneDayOriginalMenuData) {
+        oneDayOriginalMenuData.forEach((m) => {
+          if (!displayedIds.has(m.id)) {
+            displayItems.push(
               <div
                 key={m.id}
                 className="flex justify-between items-center my-1 text-xs relative"
@@ -164,45 +223,62 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
                   <HiTrash />
                 </div>
               </div>
-            ))}
-          {oneDayChangeData && (
-            <>
-              {Object.entries(oneDayChangeData.commonMenuIds).map(
-                ([menuId, isAdded]) => (
-                  <div
-                    key={`c-${menuId}`}
-                    className={`flex justify-between items-center  text-xs relative ${
-                      isAdded ? "bg-green-100" : "bg-red-100"
-                    }`}
-                  >
-                    <div className="flex-1 truncate pr-6">
-                      c-{menuId} {isAdded ? "(追加)" : "(削除)"}
-                    </div>
-                    <div className="text-black cursor-pointer absolute right-2 hover:text-red-600">
-                      <HiTrash />
-                    </div>
+            );
+            displayedIds.add(m.id);
+          }
+        });
+      }
+
+      // 3. 低優先：change true（追加）（重複除く）
+      if (oneDayChangeData) {
+        // commonMenuIds の true
+        Object.entries(oneDayChangeData.commonMenuIds).forEach(
+          ([menuId, isAdded]) => {
+            if (isAdded && !displayedIds.has(menuId)) {
+              displayItems.push(
+                <div
+                  key={`c-${menuId}`}
+                  className="flex justify-between items-center text-xs relative bg-green-100"
+                >
+                  <div className="flex-1 truncate pr-6">
+                    c-{menuId} (追加)
                   </div>
-                )
-              )}
-              {Object.entries(oneDayChangeData.originalMenuIds).map(
-                ([menuId, isAdded]) => (
-                  <div
-                    key={`c-${menuId}`}
-                    className={`flex justify-between items-center text-xs relative ${
-                      isAdded ? "bg-green-100" : "bg-red-100"
-                    }`}
-                  >
-                    <div className="flex-1 truncate pr-6">
-                      c-{menuId} {isAdded ? "(追加)" : "(削除)"}
-                    </div>
-                    <div className="text-black cursor-pointer absolute right-2 hover:text-red-600">
-                      <HiTrash />
-                    </div>
+                  <div className="text-black cursor-pointer absolute right-2 hover:text-red-600">
+                    <HiTrash />
                   </div>
-                )
-              )}
-            </>
-          )}
+                </div>
+              );
+              displayedIds.add(menuId);
+            }
+          }
+        );
+
+        // originalMenuIds の true
+        Object.entries(oneDayChangeData.originalMenuIds).forEach(
+          ([menuId, isAdded]) => {
+            if (isAdded && !displayedIds.has(menuId)) {
+              displayItems.push(
+                <div
+                  key={`c-${menuId}`}
+                  className="flex justify-between items-center text-xs relative bg-green-100"
+                >
+                  <div className="flex-1 truncate pr-6">
+                    c-{menuId} (追加)
+                  </div>
+                  <div className="text-black cursor-pointer absolute right-2 hover:text-red-600">
+                    <HiTrash />
+                  </div>
+                </div>
+              );
+              displayedIds.add(menuId);
+            }
+          }
+        );
+      }
+
+      return (
+        <div className="flex flex-col">
+          {displayItems}
         </div>
       );
     };

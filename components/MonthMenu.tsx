@@ -136,43 +136,104 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
             >
               <div className="flex gap-2 pl-6 pt-3">
                 {[0, 1, 2].map((columnIndex) => {
-                  // 通常メニュー、オリジナルメニュー、変更データを結合
-                  const changeItems = [
-                    ...Object.entries(monthlyChangeData.commonMenuIds).map(
-                      ([menuId, isAdded]) => ({
-                        type: "change" as const,
-                        id: `c-${menuId}`,
-                        title: `c-${menuId} ${isAdded ? "(追加)" : "(削除)"}`,
-                        isChange: true,
-                        menuId: menuId,
-                        isAdded: isAdded,
-                      })
-                    ),
-                    ...Object.entries(monthlyChangeData.originalMenuIds).map(
-                      ([menuId, isAdded]) => ({
-                        type: "change" as const,
-                        id: `c-${menuId}`,
-                        title: `c-${menuId} ${isAdded ? "(追加)" : "(削除)"}`,
-                        isChange: true,
-                        menuId: menuId,
-                        isAdded: isAdded,
-                      })
-                    ),
-                  ];
+                  // 優先順位に従って表示項目を管理
+                  const prioritizedItems: any[] = [];
+                  const displayedIds = new Set<string>();
 
-                  const allItems = [
-                    ...menus.map((menu) => ({
-                      ...menu,
-                      type: "menu" as const,
-                      isChange: false,
-                    })),
-                    ...originalMenus.map((originalMenu) => ({
-                      ...originalMenu,
-                      type: "originalMenu" as const,
-                      isChange: false,
-                    })),
-                    ...changeItems,
-                  ];
+                  // 1. 優先順位最高：change false（削除）
+                  // commonMenuIds の false
+                  Object.entries(monthlyChangeData.commonMenuIds).forEach(
+                    ([menuId, isAdded]) => {
+                      if (!isAdded) {
+                        prioritizedItems.push({
+                          type: "change" as const,
+                          id: `c-${menuId}`,
+                          title: `c-${menuId} (削除)`,
+                          isChange: true,
+                          menuId: menuId,
+                          isAdded: isAdded,
+                        });
+                        displayedIds.add(menuId);
+                      }
+                    }
+                  );
+
+                  // originalMenuIds の false
+                  Object.entries(monthlyChangeData.originalMenuIds).forEach(
+                    ([menuId, isAdded]) => {
+                      if (!isAdded) {
+                        prioritizedItems.push({
+                          type: "change" as const,
+                          id: `c-${menuId}`,
+                          title: `c-${menuId} (削除)`,
+                          isChange: true,
+                          menuId: menuId,
+                          isAdded: isAdded,
+                        });
+                        displayedIds.add(menuId);
+                      }
+                    }
+                  );
+
+                  // 2. 中優先：普通のmenu（重複除く）
+                  menus.forEach((menu) => {
+                    if (!displayedIds.has(menu.item_code.toString())) {
+                      prioritizedItems.push({
+                        ...menu,
+                        type: "menu" as const,
+                        isChange: false,
+                      });
+                      displayedIds.add(menu.item_code.toString());
+                    }
+                  });
+
+                  originalMenus.forEach((originalMenu) => {
+                    if (!displayedIds.has(originalMenu.id)) {
+                      prioritizedItems.push({
+                        ...originalMenu,
+                        type: "originalMenu" as const,
+                        isChange: false,
+                      });
+                      displayedIds.add(originalMenu.id);
+                    }
+                  });
+
+                  // 3. 低優先：change true（追加）（重複除く）
+                  // commonMenuIds の true
+                  Object.entries(monthlyChangeData.commonMenuIds).forEach(
+                    ([menuId, isAdded]) => {
+                      if (isAdded && !displayedIds.has(menuId)) {
+                        prioritizedItems.push({
+                          type: "change" as const,
+                          id: `c-${menuId}`,
+                          title: `c-${menuId} (追加)`,
+                          isChange: true,
+                          menuId: menuId,
+                          isAdded: isAdded,
+                        });
+                        displayedIds.add(menuId);
+                      }
+                    }
+                  );
+
+                  // originalMenuIds の true
+                  Object.entries(monthlyChangeData.originalMenuIds).forEach(
+                    ([menuId, isAdded]) => {
+                      if (isAdded && !displayedIds.has(menuId)) {
+                        prioritizedItems.push({
+                          type: "change" as const,
+                          id: `c-${menuId}`,
+                          title: `c-${menuId} (追加)`,
+                          isChange: true,
+                          menuId: menuId,
+                          isAdded: isAdded,
+                        });
+                        displayedIds.add(menuId);
+                      }
+                    }
+                  );
+
+                  const allItems = prioritizedItems;
                   const totalItems = allItems.length;
                   const startIndex = columnIndex * 8;
                   const endIndex = (columnIndex + 1) * 8;
@@ -181,14 +242,14 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
                   // 23件目まで表示し、24件目に「他X件」を表示
                   const shouldShowMore =
                     totalItems > 23 && startIndex + columnItems.length > 23;
-                  const displayItems = shouldShowMore
+                  const finalDisplayItems = shouldShowMore
                     ? columnItems.slice(0, 23 - startIndex)
                     : columnItems;
                   const remainingCount = totalItems - 23;
 
                   return (
                     <div key={columnIndex} className="w-full flex flex-col">
-                      {displayItems.map((item, index) => (
+                      {finalDisplayItems.map((item) => (
                         <div
                           key={
                             item.isChange
@@ -230,7 +291,7 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
                       {/* 「他X件」の表示 */}
                       {shouldShowMore &&
                         startIndex <= 23 &&
-                        startIndex + displayItems.length === 23 && (
+                        startIndex + finalDisplayItems.length === 23 && (
                           <div className="flex justify-center items-center text-[10px] text-gray-600 py-1">
                             他{remainingCount}件
                           </div>
