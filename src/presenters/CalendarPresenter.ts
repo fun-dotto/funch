@@ -119,6 +119,36 @@ export const useCalendarMenuPresenter = (
     }
   };
 
+  // 🚀 最適化: 特定日の変更データのみを更新
+  const refreshSingleDayChange = async (date: Date) => {
+    if (!user) return;
+
+    setLoading(true); // ローディング開始
+    try {
+      const dateOptions: Intl.DateTimeFormatOptions = {
+        timeZone: "Asia/Tokyo",
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+      };
+      const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
+      
+      // 特定日の変更データのみ取得
+      const dailyChangeData = await calendarMenuService.getSingleDayChangeData(date);
+      
+      // 該当日のみ更新
+      setChangeData(prev => {
+        const newChangeData = new Map(prev);
+        newChangeData.set(dateId, dailyChangeData);
+        return newChangeData;
+      });
+    } catch (error) {
+      console.error("変更データの更新に失敗しました:", error);
+    } finally {
+      setLoading(false); // ローディング終了
+    }
+  };
+
   // メニューIDからメニュー名を取得する関数
   const getMenuNameById = (menuId: string): string => {
     // 数値IDの場合は共通メニューから検索
@@ -141,6 +171,7 @@ export const useCalendarMenuPresenter = (
     deleteDailyMenu,
     deleteDailyOriginalMenu,
     refreshData,
+    refreshSingleDayChange, // 🚀 新機能
     getMenuNameById,
   };
 };

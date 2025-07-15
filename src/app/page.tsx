@@ -63,8 +63,12 @@ export default function Home() {
         await changeMenuService.saveDailyChange(targetDate, menu);
         console.log(`Daily change saved for ${overId}:`, menu.name);
 
-        // カレンダーデータのみを更新
-        await calendarRef.current?.refreshData();
+        // 🚀 最適化: 該当日のみ更新（全データ再取得なし）
+        if (calendarRef.current?.refreshSingleDayChange) {
+          await calendarRef.current.refreshSingleDayChange(targetDate);
+        } else {
+          await calendarRef.current?.refreshData();
+        }
 
         // 即座に非表示にする
         setActiveMenu(null);

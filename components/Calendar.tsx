@@ -26,6 +26,7 @@ type CalendarProps = {
 
 export type CalendarRef = {
   refreshData: () => Promise<void>;
+  refreshSingleDayChange: (date: Date) => Promise<void>; // 🚀 最適化関数
 };
 
 const Calendar = forwardRef<CalendarRef, CalendarProps>(
@@ -42,6 +43,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
       deleteDailyMenu,
       deleteDailyOriginalMenu,
       refreshData,
+      refreshSingleDayChange,
       getMenuNameById,
     } = useCalendarMenuPresenter(
       user,
@@ -64,6 +66,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
 
     useImperativeHandle(ref, () => ({
       refreshData,
+      refreshSingleDayChange, // 🚀 最適化関数を公開
     }));
 
     const targetDay = new Date(currentYear, currentMonth - 1);

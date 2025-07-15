@@ -95,4 +95,12 @@ export class CalendarMenuService {
     };
     await this.changeMenuService.saveDailyDeletion(date, menuItem);
   }
+
+  // 🚀 最適化: 特定日の変更データのみを取得
+  async getSingleDayChangeData(date: Date): Promise<{
+    commonMenuIds: Record<string, boolean>;
+    originalMenuIds: Record<string, boolean>;
+  }> {
+    return await this.changeMenuService.getDailyChangeData(date);
+  }
 }
