@@ -13,7 +13,7 @@ import { auth } from "../src/infrastructure/firebase";
 import { useCalendarMenuPresenter } from "../src/presenters/CalendarPresenter";
 import { CalendarMenuService } from "../src/services/CalendarService";
 import { FirebaseCalendarMenuRepository } from "../src/repositories/firebase/CalendarRepository";
-import { HiTrash } from "react-icons/hi";
+import { MenuItemList, DisplayMenuItem } from "./MenuItemList";
 
 const calendarMenuRepository = new FirebaseCalendarMenuRepository();
 const calendarMenuService = new CalendarMenuService(calendarMenuRepository);
@@ -156,21 +156,16 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
       };
 
       // 🚀 change要素のリバート処理
-      const handleRevertChange = async (menuId: string, isCommonMenu: boolean) => {
+      const handleRevertChange = async (
+        menuId: string,
+        isCommonMenu: boolean
+      ) => {
         if (window.confirm("この変更を取り消しますか？")) {
           await revertChange(date, menuId, isCommonMenu);
         }
       };
 
       // 🚀 五十音順ソートのためのデータ構造
-      interface DisplayMenuItem {
-        id: string;
-        title: string;
-        type: "deleted" | "normal" | "added";
-        itemCode?: number;
-        originalId?: string;
-      }
-
       const menuItems: DisplayMenuItem[] = [];
       const displayedIds = new Set<string>();
 
@@ -182,7 +177,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
             if (!isAdded) {
               menuItems.push({
                 id: `c-${menuId}`,
-                title: getMenuNameById(menuId),
+                title: `${getMenuNameById(menuId)} (削除)`,
                 type: "deleted",
                 itemCode: parseInt(menuId, 10) || undefined,
               });
@@ -197,7 +192,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
             if (!isAdded) {
               menuItems.push({
                 id: `c-${menuId}`,
-                title: getMenuNameById(menuId),
+                title: `${getMenuNameById(menuId)} (削除)`,
                 type: "deleted",
                 originalId: menuId,
               });
@@ -244,7 +239,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
             if (isAdded && !displayedIds.has(menuId)) {
               menuItems.push({
                 id: `c-${menuId}`,
-                title: getMenuNameById(menuId),
+                title: `${getMenuNameById(menuId)} (追加)`,
                 type: "added",
                 itemCode: parseInt(menuId, 10) || undefined,
               });
@@ -259,7 +254,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
             if (isAdded && !displayedIds.has(menuId)) {
               menuItems.push({
                 id: `c-${menuId}`,
-                title: getMenuNameById(menuId),
+                title: `${getMenuNameById(menuId)} (追加)`,
                 type: "added",
                 originalId: menuId,
               });
@@ -269,87 +264,41 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
         );
       }
 
-      // 🚀 五十音順でソート
-      const sortedMenuItems = menuItems.sort((a, b) =>
-        a.title.localeCompare(b.title, "ja", { sensitivity: "base" })
+      return (
+        <div className="flex flex-col">
+          <MenuItemList
+            items={menuItems}
+            onDeleteMenu={handleDeleteMenu}
+            onDeleteOriginalMenu={handleDeleteOriginalMenu}
+            onRevertChange={handleRevertChange}
+            variant="calendar"
+          />
+        </div>
       );
-
-      // ソート後のJSX要素を生成
-      const displayItems = sortedMenuItems.map((item) => {
-        const getClassName = () => {
-          switch (item.type) {
-            case "deleted":
-              return "flex justify-between items-center text-xs relative bg-red-100";
-            case "added":
-              return "flex justify-between items-center text-xs relative bg-green-100";
-            default:
-              return "flex justify-between items-center text-xs relative";
-          }
-        };
-
-        const getDisplayTitle = () => {
-          switch (item.type) {
-            case "deleted":
-              return `${item.title} (削除)`;
-            case "added":
-              return `${item.title} (追加)`;
-            default:
-              return item.title;
-          }
-        };
-
-        const getClickHandler = () => {
-          if (item.type === "normal") {
-            if (item.itemCode) {
-              return () => handleDeleteMenu(item.itemCode!);
-            } else if (item.originalId) {
-              return () => handleDeleteOriginalMenu(item.originalId!);
-            }
-          } else if (item.type === "deleted" || item.type === "added") {
-            // 🚀 change要素のリバート処理
-            const menuId = item.itemCode ? item.itemCode.toString() : item.originalId!;
-            const isCommonMenu = !!item.itemCode; // itemCodeがあれば共通メニュー
-            return () => handleRevertChange(menuId, isCommonMenu);
-          }
-          return undefined;
-        };
-
-        return (
-          <div key={item.id} className={getClassName()}>
-            <div className="flex-1 truncate pr-6">{getDisplayTitle()}</div>
-            <div
-              className="text-black cursor-pointer absolute right-2 hover:text-red-600"
-              onClick={getClickHandler()}
-            >
-              <HiTrash />
-            </div>
-          </div>
-        );
-      });
-
-      return <div className="flex flex-col">{displayItems}</div>;
     };
 
     // 変更があるかどうかをチェック
     const hasAnyChanges = () => {
       // 日替わりメニューの変更をチェック
       for (const [, change] of changeData) {
-        if (change && (
-          Object.keys(change.commonMenuIds).length > 0 ||
-          Object.keys(change.originalMenuIds).length > 0
-        )) {
+        if (
+          change &&
+          (Object.keys(change.commonMenuIds).length > 0 ||
+            Object.keys(change.originalMenuIds).length > 0)
+        ) {
           return true;
         }
       }
-      
+
       // 月間共通メニューの変更をチェック
-      if (monthlyChangeData && (
-        Object.keys(monthlyChangeData.commonMenuIds).length > 0 ||
-        Object.keys(monthlyChangeData.originalMenuIds).length > 0
-      )) {
+      if (
+        monthlyChangeData &&
+        (Object.keys(monthlyChangeData.commonMenuIds).length > 0 ||
+          Object.keys(monthlyChangeData.originalMenuIds).length > 0)
+      ) {
         return true;
       }
-      
+
       return false;
     };
 
