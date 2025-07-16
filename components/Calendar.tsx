@@ -22,6 +22,10 @@ type CalendarProps = {
   year?: number;
   month?: number;
   children?: ReactNode;
+  monthlyChangeData?: {
+    commonMenuIds: Record<string, boolean>;
+    originalMenuIds: Record<string, boolean>;
+  };
 };
 
 export type CalendarRef = {
@@ -35,7 +39,7 @@ export type CalendarRef = {
 };
 
 const Calendar = forwardRef<CalendarRef, CalendarProps>(
-  ({ year, month, children }, ref) => {
+  ({ year, month, children, monthlyChangeData }, ref) => {
     const [user, setUser] = useState<User | null>(null);
     const currentYear = year || new Date().getFullYear();
     const currentMonth = month || new Date().getMonth() + 1;
@@ -326,14 +330,44 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
       return <div className="flex flex-col">{displayItems}</div>;
     };
 
+    // 変更があるかどうかをチェック
+    const hasAnyChanges = () => {
+      // 日替わりメニューの変更をチェック
+      for (const [, change] of changeData) {
+        if (change && (
+          Object.keys(change.commonMenuIds).length > 0 ||
+          Object.keys(change.originalMenuIds).length > 0
+        )) {
+          return true;
+        }
+      }
+      
+      // 月間共通メニューの変更をチェック
+      if (monthlyChangeData && (
+        Object.keys(monthlyChangeData.commonMenuIds).length > 0 ||
+        Object.keys(monthlyChangeData.originalMenuIds).length > 0
+      )) {
+        return true;
+      }
+      
+      return false;
+    };
+
     return (
       <div className="">
         {/* Date component removed - now handled in page.tsx */}
         <div>
           <div className="my-2 mx-auto">
-            <h2 className="text-start text-[24px] mb-2 font-bold">
-              日替わりメニュー
-            </h2>
+            <div className="flex items-center gap-2 mb-2">
+              <h2 className="text-start text-[24px] font-bold">
+                日替わりメニュー
+              </h2>
+              {hasAnyChanges() && (
+                <span className="text-red-600 text-sm font-medium">
+                  変更あり
+                </span>
+              )}
+            </div>
             <div className="w-[1000px] relative">
               {loading && (
                 <div className="absolute inset-0 bg-white bg-opacity-90 z-10 flex items-center justify-center">

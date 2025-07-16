@@ -22,6 +22,10 @@ export default function Home() {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [activeMenu, setActiveMenu] = useState<MenuItem | null>(null);
+  const [monthlyChangeData, setMonthlyChangeData] = useState<{
+    commonMenuIds: Record<string, boolean>;
+    originalMenuIds: Record<string, boolean>;
+  }>({ commonMenuIds: {}, originalMenuIds: {} });
   const changeMenuService = new ChangeMenuService();
   const calendarRef = useRef<CalendarRef>(null);
   const monthMenuRef = useRef<MonthMenuRef>(null);
@@ -30,6 +34,21 @@ export default function Home() {
     setCurrentYear(year);
     setCurrentMonth(month);
   };
+
+  // 月間変更データを更新する関数
+  const updateMonthlyChangeData = () => {
+    const monthlyData = monthMenuRef.current?.getCurrentData();
+    if (monthlyData) {
+      setMonthlyChangeData(monthlyData.monthlyChangeData);
+    }
+  };
+
+  // 年月が変わった時に月間変更データを更新
+  useEffect(() => {
+    if (user) {
+      setTimeout(updateMonthlyChangeData, 100); // MonthMenuの読み込み完了を待つ
+    }
+  }, [currentYear, currentMonth, user]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -140,6 +159,12 @@ export default function Home() {
           await monthMenuRef.current?.refreshData();
         }
 
+        // 月間変更データを更新
+        const updatedMonthlyData = monthMenuRef.current?.getCurrentData();
+        if (updatedMonthlyData) {
+          setMonthlyChangeData(updatedMonthlyData.monthlyChangeData);
+        }
+
         // 即座に非表示にする
         setActiveMenu(null);
       } else {
@@ -189,6 +214,7 @@ export default function Home() {
                     ref={calendarRef}
                     year={currentYear}
                     month={currentMonth}
+                    monthlyChangeData={monthlyChangeData}
                   />
                 </div>
               </div>
