@@ -108,4 +108,9 @@ export class CalendarMenuService {
   async revertDailyChange(date: Date, menuId: string, isCommonMenu: boolean): Promise<void> {
     await this.changeMenuService.revertDailyChange(date, menuId, isCommonMenu);
   }
+
+  // 🚀 全ての変更データを確定処理
+  async confirmAllChanges(): Promise<void> {
+    await this.changeMenuService.confirmAllChanges();
+  }
 }

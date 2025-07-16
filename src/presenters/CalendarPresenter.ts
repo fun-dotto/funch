@@ -227,6 +227,24 @@ export const useCalendarMenuPresenter = (
     return originalMenu ? originalMenu.title : `メニュー(ID: ${menuId})`;
   };
 
+  // 🚀 メニューの確定処理 - 月に関係なくすべてのデータに対して実行
+  const confirmMenuChanges = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      // 全ての変更データを確定処理
+      await calendarMenuService.confirmAllChanges();
+      
+      // 確定後にデータを再取得
+      await refreshData();
+    } catch (error) {
+      console.error("メニューの確定処理に失敗しました:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     menuData,
     originalMenuData,
@@ -238,5 +256,6 @@ export const useCalendarMenuPresenter = (
     refreshSingleDayChange, // 🚀 新機能
     revertChange, // 🚀 リバート機能
     getMenuNameById,
+    confirmMenuChanges, // 🚀 確定処理
   };
 };

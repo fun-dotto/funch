@@ -6,7 +6,7 @@ import { auth } from "../infrastructure/firebase";
 import Header from "../../components/Header";
 import Calendar, { CalendarRef } from "@/components/Calendar";
 import MonthMenu, { MonthMenuRef } from "@/components/MonthMenu";
-import { YearMonthDisplay } from "@/components/Date";
+import { YearMonthDisplay } from "@/components/date";
 import SettingTab from "@/components/SettingTab";
 import {
   DndContext,
@@ -33,6 +33,27 @@ export default function Home() {
   const handleYearMonthChange = (year: number, month: number) => {
     setCurrentYear(year);
     setCurrentMonth(month);
+  };
+
+  // 🚀 メニュー確定処理
+  const handleConfirmMenuChanges = async () => {
+    if (!user) return;
+    
+    try {
+      // 全ての変更データを確定
+      await changeMenuService.confirmAllChanges();
+      
+      // 確定後に各コンポーネントのデータを更新
+      await calendarRef.current?.refreshData();
+      await monthMenuRef.current?.refreshData();
+      
+      // 月間変更データをリセット
+      setMonthlyChangeData({ commonMenuIds: {}, originalMenuIds: {} });
+      
+      console.log("メニューの確定処理が完了しました");
+    } catch (error) {
+      console.error("メニュー確定処理に失敗しました:", error);
+    }
   };
 
   // 月間変更データを更新する関数
@@ -203,6 +224,7 @@ export default function Home() {
                       year={currentYear}
                       month={currentMonth}
                       onYearMonthChange={handleYearMonthChange}
+                      onConfirmMenuChanges={handleConfirmMenuChanges}
                     />
                     <MonthMenu
                       ref={monthMenuRef}

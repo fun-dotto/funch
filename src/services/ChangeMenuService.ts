@@ -448,4 +448,137 @@ export class ChangeMenuService {
   async revertDailyChange(date: Date, menuId: string, isCommonMenu: boolean): Promise<void> {
     await this.removeChangeEntry(date, menuId, !isCommonMenu);
   }
+
+  // 🚀 全ての変更データを確定処理
+  async confirmAllChanges(): Promise<void> {
+    const { collection, getDocs, doc, getDoc, setDoc, deleteDoc, Timestamp } = await import("firebase/firestore");
+    const { database } = await import("../infrastructure/firebase");
+
+    // 1. 全ての日次変更データを取得
+    const dailyChangeCollection = collection(database, "funch_daily_change");
+    const dailyChangeSnapshot = await getDocs(dailyChangeCollection);
+
+    // 2. 全ての月次変更データを取得
+    const monthlyChangeCollection = collection(database, "funch_monthly_change");
+    const monthlyChangeSnapshot = await getDocs(monthlyChangeCollection);
+
+    // 3. 日次変更データを処理
+    for (const changeDoc of dailyChangeSnapshot.docs) {
+      const changeData = changeDoc.data();
+      const dateStr = changeDoc.id;
+      const date = this.parseStringToDate(dateStr);
+
+      // 実際のメニューデータを取得
+      const menuDocRef = doc(database, "funch_daily_menu", dateStr);
+      const menuDoc = await getDoc(menuDocRef);
+      
+      let menuData = {
+        common_menu_ids: [],
+        original_menu_ids: [],
+        date: Timestamp.fromDate(date)
+      };
+
+      if (menuDoc.exists()) {
+        menuData = menuDoc.data() as any;
+      }
+
+      // 変更データを適用
+      const updatedMenuData = await this.applyChangesToMenu(menuData, changeData);
+
+      // メニューデータを更新
+      await setDoc(menuDocRef, updatedMenuData);
+    }
+
+    // 4. 月次変更データを処理
+    for (const changeDoc of monthlyChangeSnapshot.docs) {
+      const changeData = changeDoc.data();
+      const monthStr = changeDoc.id;
+      const { year, month } = this.parseMonthString(monthStr);
+      const date = new Date(year, month - 1, 1);
+
+      // 実際のメニューデータを取得
+      const menuDocRef = doc(database, "funch_monthly_menu", monthStr);
+      const menuDoc = await getDoc(menuDocRef);
+      
+      let menuData = {
+        common_menu_ids: [],
+        original_menu_ids: [],
+        date: Timestamp.fromDate(date)
+      };
+
+      if (menuDoc.exists()) {
+        menuData = menuDoc.data() as any;
+      }
+
+      // 変更データを適用
+      const updatedMenuData = await this.applyChangesToMenu(menuData, changeData);
+
+      // メニューデータを更新
+      await setDoc(menuDocRef, updatedMenuData);
+    }
+
+    // 5. 全ての変更データを削除
+    for (const changeDoc of dailyChangeSnapshot.docs) {
+      await deleteDoc(changeDoc.ref);
+    }
+    for (const changeDoc of monthlyChangeSnapshot.docs) {
+      await deleteDoc(changeDoc.ref);
+    }
+  }
+
+  // 変更データをメニューデータに適用
+  private async applyChangesToMenu(menuData: any, changeData: any): Promise<any> {
+    let commonMenuIds = [...(menuData.common_menu_ids || [])];
+    let originalMenuIds = [...(menuData.original_menu_ids || [])];
+
+    // 共通メニューの変更を適用
+    const commonChanges = changeData.common_menu_ids || {};
+    for (const [menuId, isAdd] of Object.entries(commonChanges)) {
+      const numericId = parseInt(menuId);
+      if (isAdd) {
+        // 追加（重複チェック）
+        if (!commonMenuIds.includes(numericId)) {
+          commonMenuIds.push(numericId);
+        }
+      } else {
+        // 削除
+        commonMenuIds = commonMenuIds.filter(id => id !== numericId);
+      }
+    }
+
+    // オリジナルメニューの変更を適用
+    const originalChanges = changeData.original_menu_ids || {};
+    for (const [menuId, isAdd] of Object.entries(originalChanges)) {
+      if (isAdd) {
+        // 追加（重複チェック）
+        if (!originalMenuIds.includes(menuId)) {
+          originalMenuIds.push(menuId);
+        }
+      } else {
+        // 削除
+        originalMenuIds = originalMenuIds.filter(id => id !== menuId);
+      }
+    }
+
+    return {
+      ...menuData,
+      common_menu_ids: commonMenuIds,
+      original_menu_ids: originalMenuIds
+    };
+  }
+
+  // YYYYMMDD形式の文字列をDateオブジェクトに変換
+  private parseStringToDate(dateStr: string): Date {
+    const year = parseInt(dateStr.substring(0, 4));
+    const month = parseInt(dateStr.substring(4, 6)) - 1; // 月は0ベース
+    const day = parseInt(dateStr.substring(6, 8));
+    return new Date(year, month, day);
+  }
+
+  // YYYYMM形式の文字列をyear, monthに分解
+  private parseMonthString(monthStr: string): { year: number; month: number } {
+    const year = parseInt(monthStr.substring(0, 4));
+    const month = parseInt(monthStr.substring(4, 6));
+    return { year, month };
+  }
 }
