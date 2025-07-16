@@ -8,6 +8,7 @@ type YearMonthDisplayProps = {
   month?: number;
   style?: React.CSSProperties;
   onYearMonthChange?: (year: number, month: number) => void;
+  onConfirmMenuChanges?: () => void;
 };
 
 const getCurrentYearMonth = () => {
@@ -23,6 +24,7 @@ export const YearMonthDisplay: React.FC<YearMonthDisplayProps> = ({
   month,
   style,
   onYearMonthChange,
+  onConfirmMenuChanges,
 }) => {
   const { year: currentYear, month: currentMonth } = getCurrentYearMonth();
   const [displayYear, setDisplayYear] = useState(year ?? currentYear);
@@ -92,7 +94,11 @@ export const YearMonthDisplay: React.FC<YearMonthDisplayProps> = ({
         </button>
       </div>
       <div className="pt-4 md:pt-6">
-        <Button variant="default" className="bg-[#0089F0] hover:bg-[#0060AB]">
+        <Button 
+          variant="default" 
+          className="bg-[#0089F0] hover:bg-[#0060AB]"
+          onClick={onConfirmMenuChanges}
+        >
           メニューの確定
         </Button>
       </div>

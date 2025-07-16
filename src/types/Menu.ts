@@ -18,6 +18,16 @@ export type PriceStructure = {
   large?: number;
 };
 
+// 変更追跡用メニューアイテム型
+export type ChangeItem = {
+  name: string;
+  category_id: number;
+  prices: PriceStructure;
+  change: boolean;
+  id: number | string;
+  date?: string; // 日付情報（日次・月次共通）
+};
+
 // ====== 互換性維持のための既存型 ======
 // Firebase Storage の menu.json 用（既存システムとの互換性維持）
 export class Menu {

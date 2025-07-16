@@ -3,6 +3,11 @@ import { User } from "firebase/auth";
 import { Menu, OriginalMenu } from "../types/Menu";
 import { UniqueIdentifier } from "@dnd-kit/core";
 import { CalendarMenuService } from "../services/CalendarService";
+import { MenuService } from "../services/MenuService";
+import { FirebaseMenuRepository } from "../repositories/firebase/MenuRepository";
+
+const menuRepository = new FirebaseMenuRepository();
+const menuService = new MenuService(menuRepository);
 
 export const useCalendarMenuPresenter = (
   user: User | null,
@@ -14,6 +19,17 @@ export const useCalendarMenuPresenter = (
   const [originalMenuData, setOriginalMenuData] = useState(
     new Map<UniqueIdentifier, OriginalMenu[]>()
   );
+  const [changeData, setChangeData] = useState(
+    new Map<
+      UniqueIdentifier,
+      {
+        commonMenuIds: Record<string, boolean>;
+        originalMenuIds: Record<string, boolean>;
+      }
+    >()
+  );
+  const [allMenus, setAllMenus] = useState<Menu[]>([]);
+  const [allOriginalMenus, setAllOriginalMenus] = useState<OriginalMenu[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -22,11 +38,19 @@ export const useCalendarMenuPresenter = (
 
       setLoading(true);
       try {
-        const { menuData: newMenuData, originalMenuData: newOriginalMenuData } =
-          await calendarMenuService.getMonthMenuData(currentYear, currentMonth);
+        // メニューデータを並行して取得
+        const [menuResult, allMenusResult, allOriginalMenusResult] =
+          await Promise.all([
+            calendarMenuService.getMonthMenuData(currentYear, currentMonth),
+            menuService.getAllMenus(),
+            menuService.getOriginalMenus(),
+          ]);
 
-        setMenuData(newMenuData);
-        setOriginalMenuData(newOriginalMenuData);
+        setMenuData(menuResult.menuData);
+        setOriginalMenuData(menuResult.originalMenuData);
+        setChangeData(menuResult.changeData);
+        setAllMenus(allMenusResult);
+        setAllOriginalMenus(allOriginalMenusResult);
       } catch (error) {
         console.error("メニューデータの取得に失敗しました:", error);
       } finally {
@@ -44,7 +68,7 @@ export const useCalendarMenuPresenter = (
     try {
       await calendarMenuService.deleteDailyMenu(date, menuItemCode);
 
-      // ローカルのstateを更新
+      // 🚀 削除後に該当日の変更データを即時更新（ローディング状態は維持）
       const dateOptions: Intl.DateTimeFormatOptions = {
         timeZone: "Asia/Tokyo",
         year: "numeric",
@@ -53,14 +77,12 @@ export const useCalendarMenuPresenter = (
       };
       const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
 
-      setMenuData((prev) => {
-        const newMenuData = new Map(prev);
-        const currentMenus = newMenuData.get(dateId) || [];
-        const updatedMenus = currentMenus.filter(
-          (menu) => menu.item_code !== menuItemCode
-        );
-        newMenuData.set(dateId, updatedMenus);
-        return newMenuData;
+      const dailyChangeData = await calendarMenuService.getSingleDayChangeData(date);
+
+      setChangeData((prev) => {
+        const newChangeData = new Map(prev);
+        newChangeData.set(dateId, dailyChangeData);
+        return newChangeData;
       });
     } catch (error) {
       console.error("メニューの削除に失敗しました:", error);
@@ -79,7 +101,7 @@ export const useCalendarMenuPresenter = (
     try {
       await calendarMenuService.deleteDailyOriginalMenu(date, originalMenuId);
 
-      // ローカルのstateを更新
+      // 🚀 削除後に該当日の変更データを即時更新（ローディング状態は維持）
       const dateOptions: Intl.DateTimeFormatOptions = {
         timeZone: "Asia/Tokyo",
         year: "numeric",
@@ -88,14 +110,12 @@ export const useCalendarMenuPresenter = (
       };
       const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
 
-      setOriginalMenuData((prev) => {
-        const newOriginalMenuData = new Map(prev);
-        const currentMenus = newOriginalMenuData.get(dateId) || [];
-        const updatedMenus = currentMenus.filter(
-          (menu) => menu.id !== originalMenuId
-        );
-        newOriginalMenuData.set(dateId, updatedMenus);
-        return newOriginalMenuData;
+      const dailyChangeData = await calendarMenuService.getSingleDayChangeData(date);
+
+      setChangeData((prev) => {
+        const newChangeData = new Map(prev);
+        newChangeData.set(dateId, dailyChangeData);
+        return newChangeData;
       });
     } catch (error) {
       console.error("オリジナルメニューの削除に失敗しました:", error);
@@ -104,11 +124,138 @@ export const useCalendarMenuPresenter = (
     }
   };
 
+  const refreshData = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      // メニューデータを並行して取得
+      const [menuResult, allMenusResult, allOriginalMenusResult] =
+        await Promise.all([
+          calendarMenuService.getMonthMenuData(currentYear, currentMonth),
+          menuService.getAllMenus(),
+          menuService.getOriginalMenus(),
+        ]);
+
+      setMenuData(menuResult.menuData);
+      setOriginalMenuData(menuResult.originalMenuData);
+      setChangeData(menuResult.changeData);
+      setAllMenus(allMenusResult);
+      setAllOriginalMenus(allOriginalMenusResult);
+    } catch (error) {
+      console.error("メニューデータの取得に失敗しました:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🚀 最適化: 特定日の変更データのみを更新
+  const refreshSingleDayChange = async (date: Date) => {
+    if (!user) return;
+
+    setLoading(true); // ローディング開始
+    try {
+      const dateOptions: Intl.DateTimeFormatOptions = {
+        timeZone: "Asia/Tokyo",
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+      };
+      const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
+
+      // 特定日の変更データのみ取得
+      const dailyChangeData = await calendarMenuService.getSingleDayChangeData(
+        date
+      );
+
+      // 該当日のみ更新
+      setChangeData((prev) => {
+        const newChangeData = new Map(prev);
+        newChangeData.set(dateId, dailyChangeData);
+        return newChangeData;
+      });
+    } catch (error) {
+      console.error("変更データの更新に失敗しました:", error);
+    } finally {
+      setLoading(false); // ローディング終了
+    }
+  };
+
+  // 🚀 change要素のリバート処理（変更を取り消し）
+  const revertChange = async (date: Date, menuId: string, isCommonMenu: boolean) => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      // 該当の変更データを削除してリバート
+      await calendarMenuService.revertDailyChange(date, menuId, isCommonMenu);
+
+      // リバート後に該当日の変更データを即座に更新
+      const dateOptions: Intl.DateTimeFormatOptions = {
+        timeZone: "Asia/Tokyo",
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+      };
+      const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
+
+      const dailyChangeData = await calendarMenuService.getSingleDayChangeData(date);
+
+      setChangeData((prev) => {
+        const newChangeData = new Map(prev);
+        newChangeData.set(dateId, dailyChangeData);
+        return newChangeData;
+      });
+    } catch (error) {
+      console.error("変更のリバートに失敗しました:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // メニューIDからメニュー名を取得する関数
+  const getMenuNameById = (menuId: string): string => {
+    // 数値IDの場合は共通メニューから検索
+    const numericId = parseInt(menuId, 10);
+    if (!isNaN(numericId)) {
+      const menu = allMenus.find((m) => m.item_code === numericId);
+      return menu ? menu.title : `メニュー(ID: ${menuId})`;
+    }
+
+    // 文字列IDの場合はオリジナルメニューから検索
+    const originalMenu = allOriginalMenus.find((m) => m.id === menuId);
+    return originalMenu ? originalMenu.title : `メニュー(ID: ${menuId})`;
+  };
+
+  // 🚀 メニューの確定処理 - 月に関係なくすべてのデータに対して実行
+  const confirmMenuChanges = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      // 全ての変更データを確定処理
+      await calendarMenuService.confirmAllChanges();
+      
+      // 確定後にデータを再取得
+      await refreshData();
+    } catch (error) {
+      console.error("メニューの確定処理に失敗しました:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     menuData,
     originalMenuData,
+    changeData,
     loading,
     deleteDailyMenu,
     deleteDailyOriginalMenu,
+    refreshData,
+    refreshSingleDayChange, // 🚀 新機能
+    revertChange, // 🚀 リバート機能
+    getMenuNameById,
+    confirmMenuChanges, // 🚀 確定処理
   };
 };

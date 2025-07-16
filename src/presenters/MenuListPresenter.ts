@@ -29,7 +29,11 @@ export const useMenuListPresenter = () => {
         setMenuItems(menuData.data.menus);
         setOriginalMenuItems(originalMenuData.data.menus);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "メニューデータの取得に失敗しました");
+        setError(
+          err instanceof Error
+            ? err.message
+            : "メニューデータの取得に失敗しました"
+        );
       } finally {
         setLoading(false);
       }
@@ -39,7 +43,7 @@ export const useMenuListPresenter = () => {
   }, []);
 
   const getCategoryMenus = (categoryCode: number): MenuItem[] => {
-    return menuItems.filter(menu => menu.category_id === categoryCode);
+    return menuItems.filter((menu) => menu.category_id === categoryCode);
   };
 
   return {

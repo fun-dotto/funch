@@ -1,6 +1,12 @@
 "use client";
 
-import React, { ReactNode, useEffect, useState } from "react";
+import React, {
+  ReactNode,
+  useEffect,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "../src/infrastructure/firebase";
@@ -16,223 +22,423 @@ type CalendarProps = {
   year?: number;
   month?: number;
   children?: ReactNode;
+  monthlyChangeData?: {
+    commonMenuIds: Record<string, boolean>;
+    originalMenuIds: Record<string, boolean>;
+  };
 };
 
-const Calendar: React.FC<CalendarProps> = ({ year, month, children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const currentYear = year || new Date().getFullYear();
-  const currentMonth = month || new Date().getMonth() + 1;
+export type CalendarRef = {
+  refreshData: () => Promise<void>;
+  refreshSingleDayChange: (date: Date) => Promise<void>; // 🚀 最適化関数
+  getCurrentData: (dateId: string) => {
+    menuData: any[];
+    originalMenuData: any[];
+    changeData: any;
+  }; // 🚀 データ取得
+};
 
-  const {
-    menuData,
-    originalMenuData,
-    loading,
-    deleteDailyMenu,
-    deleteDailyOriginalMenu,
-  } = useCalendarMenuPresenter(
-    user,
-    currentYear,
-    currentMonth,
-    calendarMenuService
-  );
+const Calendar = forwardRef<CalendarRef, CalendarProps>(
+  ({ year, month, children, monthlyChangeData }, ref) => {
+    const [user, setUser] = useState<User | null>(null);
+    const currentYear = year || new Date().getFullYear();
+    const currentMonth = month || new Date().getMonth() + 1;
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        setUser(null);
-      }
-    });
+    const {
+      menuData,
+      originalMenuData,
+      changeData,
+      loading,
+      deleteDailyMenu,
+      deleteDailyOriginalMenu,
+      refreshData,
+      refreshSingleDayChange,
+      revertChange,
+      getMenuNameById,
+    } = useCalendarMenuPresenter(
+      user,
+      currentYear,
+      currentMonth,
+      calendarMenuService
+    );
 
-    return () => unsubscribe();
-  }, [setUser]);
+    useEffect(() => {
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+          setUser(user);
+        } else {
+          setUser(null);
+        }
+      });
 
-  const targetDay = new Date(currentYear, currentMonth - 1);
-  const monthStartDay = new Date(targetDay);
-  monthStartDay.setDate(1);
-  const monthEndDay = new Date(targetDay);
-  monthEndDay.setMonth(targetDay.getMonth() + 1, 0);
+      return () => unsubscribe();
+    }, [setUser]);
 
-  const dateOptions: Intl.DateTimeFormatOptions = {
-    timeZone: "Asia/Tokyo",
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-  };
+    useImperativeHandle(ref, () => ({
+      refreshData,
+      refreshSingleDayChange, // 🚀 最適化関数を公開
+      getCurrentData: (dateId: string) => ({
+        menuData: menuData.get(dateId) || [],
+        originalMenuData: originalMenuData.get(dateId) || [],
+        changeData: changeData.get(dateId) || {
+          commonMenuIds: {},
+          originalMenuIds: {},
+        },
+      }),
+    }));
 
-  const dayOptions: Intl.DateTimeFormatOptions = {
-    timeZone: "Asia/Tokyo",
-    day: "numeric",
-  };
+    const targetDay = new Date(currentYear, currentMonth - 1);
+    const monthStartDay = new Date(targetDay);
+    monthStartDay.setDate(1);
+    const monthEndDay = new Date(targetDay);
+    monthEndDay.setMonth(targetDay.getMonth() + 1, 0);
 
-  const calendar: Date[] = [];
-  const calendarStartDate = new Date(monthStartDay);
-  calendarStartDate.setDate(
-    1 + monthStartDay.getDay() == 0 ? -6 : 1 - monthStartDay.getDay()
-  );
-  let i = 0;
-  for (i = 0; i < 7 * 5; i++) {
-    const pushDate = new Date(calendarStartDate);
-    pushDate.setDate(pushDate.getDate() + i);
-    if (pushDate.getDay() > 0 && pushDate.getDay() < 6) {
-      calendar.push(pushDate);
-    }
-  }
-  const checkDate = new Date(calendarStartDate);
-  checkDate.setDate(checkDate.getDate() + i);
-  if (checkDate <= monthEndDay) {
-    for (; i < 7 * 6; i++) {
+    const dateOptions: Intl.DateTimeFormatOptions = {
+      timeZone: "Asia/Tokyo",
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+    };
+
+    const dayOptions: Intl.DateTimeFormatOptions = {
+      timeZone: "Asia/Tokyo",
+      day: "numeric",
+    };
+
+    const calendar: Date[] = [];
+    const calendarStartDate = new Date(monthStartDay);
+    calendarStartDate.setDate(
+      1 + monthStartDay.getDay() == 0 ? -6 : 1 - monthStartDay.getDay()
+    );
+    let i = 0;
+    for (i = 0; i < 7 * 5; i++) {
       const pushDate = new Date(calendarStartDate);
       pushDate.setDate(pushDate.getDate() + i);
       if (pushDate.getDay() > 0 && pushDate.getDay() < 6) {
         calendar.push(pushDate);
       }
     }
-  }
-
-  // 行ごとにカレンダーを分割
-  const calendarRows: Date[][] = [];
-  for (let i = 0; i < calendar.length; i += 5) {
-    calendarRows.push(calendar.slice(i, i + 5));
-  }
-
-  const calendarWeekStr = ["月", "火", "水", "木", "金"];
-
-  const renderDay = (date: Date, dateId: string) => {
-    const oneDayMenuData = menuData.get(dateId);
-    const oneDayOriginalMenuData = originalMenuData.get(dateId);
-
-    const handleDeleteMenu = async (menuItemCode: number) => {
-      if (window.confirm("このメニューを削除しますか？")) {
-        await deleteDailyMenu(date, menuItemCode);
+    const checkDate = new Date(calendarStartDate);
+    checkDate.setDate(checkDate.getDate() + i);
+    if (checkDate <= monthEndDay) {
+      for (; i < 7 * 6; i++) {
+        const pushDate = new Date(calendarStartDate);
+        pushDate.setDate(pushDate.getDate() + i);
+        if (pushDate.getDay() > 0 && pushDate.getDay() < 6) {
+          calendar.push(pushDate);
+        }
       }
+    }
+
+    // 行ごとにカレンダーを分割
+    const calendarRows: Date[][] = [];
+    for (let i = 0; i < calendar.length; i += 5) {
+      calendarRows.push(calendar.slice(i, i + 5));
+    }
+
+    const calendarWeekStr = ["月", "火", "水", "木", "金"];
+
+    const renderDay = (date: Date, dateId: string) => {
+      const oneDayMenuData = menuData.get(dateId);
+      const oneDayOriginalMenuData = originalMenuData.get(dateId);
+      const oneDayChangeData = changeData.get(dateId);
+
+      const handleDeleteMenu = async (menuItemCode: number) => {
+        if (window.confirm("このメニューを削除しますか？")) {
+          await deleteDailyMenu(date, menuItemCode);
+        }
+      };
+
+      const handleDeleteOriginalMenu = async (originalMenuId: string) => {
+        if (window.confirm("このオリジナルメニューを削除しますか？")) {
+          await deleteDailyOriginalMenu(date, originalMenuId);
+        }
+      };
+
+      // 🚀 change要素のリバート処理
+      const handleRevertChange = async (menuId: string, isCommonMenu: boolean) => {
+        if (window.confirm("この変更を取り消しますか？")) {
+          await revertChange(date, menuId, isCommonMenu);
+        }
+      };
+
+      // 🚀 五十音順ソートのためのデータ構造
+      interface DisplayMenuItem {
+        id: string;
+        title: string;
+        type: "deleted" | "normal" | "added";
+        itemCode?: number;
+        originalId?: string;
+      }
+
+      const menuItems: DisplayMenuItem[] = [];
+      const displayedIds = new Set<string>();
+
+      // 1. change false（削除）を収集
+      if (oneDayChangeData) {
+        // commonMenuIds の false
+        Object.entries(oneDayChangeData.commonMenuIds).forEach(
+          ([menuId, isAdded]) => {
+            if (!isAdded) {
+              menuItems.push({
+                id: `c-${menuId}`,
+                title: getMenuNameById(menuId),
+                type: "deleted",
+                itemCode: parseInt(menuId, 10) || undefined,
+              });
+              displayedIds.add(menuId);
+            }
+          }
+        );
+
+        // originalMenuIds の false
+        Object.entries(oneDayChangeData.originalMenuIds).forEach(
+          ([menuId, isAdded]) => {
+            if (!isAdded) {
+              menuItems.push({
+                id: `c-${menuId}`,
+                title: getMenuNameById(menuId),
+                type: "deleted",
+                originalId: menuId,
+              });
+              displayedIds.add(menuId);
+            }
+          }
+        );
+      }
+
+      // 2. 普通のmenu（重複除く）
+      if (oneDayMenuData) {
+        oneDayMenuData.forEach((m) => {
+          if (!displayedIds.has(m.item_code.toString())) {
+            menuItems.push({
+              id: m.item_code.toString(),
+              title: m.title,
+              type: "normal",
+              itemCode: m.item_code,
+            });
+            displayedIds.add(m.item_code.toString());
+          }
+        });
+      }
+
+      if (oneDayOriginalMenuData) {
+        oneDayOriginalMenuData.forEach((m) => {
+          if (!displayedIds.has(m.id)) {
+            menuItems.push({
+              id: m.id,
+              title: m.title,
+              type: "normal",
+              originalId: m.id,
+            });
+            displayedIds.add(m.id);
+          }
+        });
+      }
+
+      // 3. change true（追加）（重複除く）
+      if (oneDayChangeData) {
+        // commonMenuIds の true
+        Object.entries(oneDayChangeData.commonMenuIds).forEach(
+          ([menuId, isAdded]) => {
+            if (isAdded && !displayedIds.has(menuId)) {
+              menuItems.push({
+                id: `c-${menuId}`,
+                title: getMenuNameById(menuId),
+                type: "added",
+                itemCode: parseInt(menuId, 10) || undefined,
+              });
+              displayedIds.add(menuId);
+            }
+          }
+        );
+
+        // originalMenuIds の true
+        Object.entries(oneDayChangeData.originalMenuIds).forEach(
+          ([menuId, isAdded]) => {
+            if (isAdded && !displayedIds.has(menuId)) {
+              menuItems.push({
+                id: `c-${menuId}`,
+                title: getMenuNameById(menuId),
+                type: "added",
+                originalId: menuId,
+              });
+              displayedIds.add(menuId);
+            }
+          }
+        );
+      }
+
+      // 🚀 五十音順でソート
+      const sortedMenuItems = menuItems.sort((a, b) =>
+        a.title.localeCompare(b.title, "ja", { sensitivity: "base" })
+      );
+
+      // ソート後のJSX要素を生成
+      const displayItems = sortedMenuItems.map((item) => {
+        const getClassName = () => {
+          switch (item.type) {
+            case "deleted":
+              return "flex justify-between items-center text-xs relative bg-red-100";
+            case "added":
+              return "flex justify-between items-center text-xs relative bg-green-100";
+            default:
+              return "flex justify-between items-center text-xs relative";
+          }
+        };
+
+        const getDisplayTitle = () => {
+          switch (item.type) {
+            case "deleted":
+              return `${item.title} (削除)`;
+            case "added":
+              return `${item.title} (追加)`;
+            default:
+              return item.title;
+          }
+        };
+
+        const getClickHandler = () => {
+          if (item.type === "normal") {
+            if (item.itemCode) {
+              return () => handleDeleteMenu(item.itemCode!);
+            } else if (item.originalId) {
+              return () => handleDeleteOriginalMenu(item.originalId!);
+            }
+          } else if (item.type === "deleted" || item.type === "added") {
+            // 🚀 change要素のリバート処理
+            const menuId = item.itemCode ? item.itemCode.toString() : item.originalId!;
+            const isCommonMenu = !!item.itemCode; // itemCodeがあれば共通メニュー
+            return () => handleRevertChange(menuId, isCommonMenu);
+          }
+          return undefined;
+        };
+
+        return (
+          <div key={item.id} className={getClassName()}>
+            <div className="flex-1 truncate pr-6">{getDisplayTitle()}</div>
+            <div
+              className="text-black cursor-pointer absolute right-2 hover:text-red-600"
+              onClick={getClickHandler()}
+            >
+              <HiTrash />
+            </div>
+          </div>
+        );
+      });
+
+      return <div className="flex flex-col">{displayItems}</div>;
     };
 
-    const handleDeleteOriginalMenu = async (originalMenuId: string) => {
-      if (window.confirm("このオリジナルメニューを削除しますか？")) {
-        await deleteDailyOriginalMenu(date, originalMenuId);
+    // 変更があるかどうかをチェック
+    const hasAnyChanges = () => {
+      // 日替わりメニューの変更をチェック
+      for (const [, change] of changeData) {
+        if (change && (
+          Object.keys(change.commonMenuIds).length > 0 ||
+          Object.keys(change.originalMenuIds).length > 0
+        )) {
+          return true;
+        }
       }
+      
+      // 月間共通メニューの変更をチェック
+      if (monthlyChangeData && (
+        Object.keys(monthlyChangeData.commonMenuIds).length > 0 ||
+        Object.keys(monthlyChangeData.originalMenuIds).length > 0
+      )) {
+        return true;
+      }
+      
+      return false;
     };
 
     return (
-      <div className="flex flex-col">
-        {oneDayMenuData &&
-          oneDayMenuData.map((m) => (
-            <div
-              key={m.item_code}
-              className="flex justify-between items-center my-1 text-xs relative"
-            >
-              <div className="flex-1 truncate pr-6">{m.title}</div>
-              <div
-                className="text-black cursor-pointer absolute right-2 hover:text-red-600"
-                onClick={() => handleDeleteMenu(m.item_code)}
-              >
-                <HiTrash />
-              </div>
+      <div className="">
+        {/* Date component removed - now handled in page.tsx */}
+        <div>
+          <div className="my-2 mx-auto">
+            <div className="flex items-center gap-2 mb-2">
+              <h2 className="text-start text-[24px] font-bold">
+                日替わりメニュー
+              </h2>
+              {hasAnyChanges() && (
+                <span className="text-red-600 text-sm font-medium">
+                  変更あり
+                </span>
+              )}
             </div>
-          ))}
-        {oneDayOriginalMenuData &&
-          oneDayOriginalMenuData.map((m) => (
-            <div
-              key={m.id}
-              className="flex justify-between items-center my-1 text-xs relative"
-            >
-              <div className="flex-1 truncate pr-6">{m.title}</div>
-              <div
-                className="text-black cursor-pointer absolute right-2 hover:text-red-600"
-                onClick={() => handleDeleteOriginalMenu(m.id)}
-              >
-                <HiTrash />
+            <div className="w-[1000px] relative">
+              {loading && (
+                <div className="absolute inset-0 bg-white bg-opacity-90 z-10 flex items-center justify-center">
+                  <span className="text-gray-700 font-medium">
+                    メニューを読み込み中...
+                  </span>
+                </div>
+              )}
+              {/* 曜日ヘッダー */}
+              <div className="grid grid-cols-5 justify-items-stretch text-left gap-1 mb-1">
+                {calendarWeekStr.map((v) => (
+                  <div
+                    className="w-[196px] bg-[#990000] text-white h-8 border-gray-300 rounded-[8px] flex items-center justify-center text-[16px]"
+                    key={v}
+                  >
+                    {v}
+                  </div>
+                ))}
               </div>
-            </div>
-          ))}
-      </div>
-    );
-  };
 
-  return (
-    <div className="">
-      {/* Date component removed - now handled in page.tsx */}
-      {loading && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg p-6 shadow-xl">
-            <div className="flex items-center space-x-3">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#990000]"></div>
-              <span className="text-gray-700 font-medium">
-                メニューを読み込み中...
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-      <div>
-        <div className="my-2 mx-auto">
-          <h2 className="text-start text-[24px] mb-2 font-bold">
-            日替わりメニュー
-          </h2>
-          <div className="w-[1000px]">
-            {/* 曜日ヘッダー */}
-            <div className="grid grid-cols-5 justify-items-stretch text-left gap-1 mb-1">
-              {calendarWeekStr.map((v) => (
+              {/* 各行 */}
+              {calendarRows.map((row, rowIndex) => (
                 <div
-                  className="w-[196px] bg-[#990000] text-white h-8 border-gray-300 rounded-[8px] flex items-center justify-center text-[16px]"
-                  key={v}
+                  key={rowIndex}
+                  className="grid grid-cols-5 justify-items-stretch text-left gap-1 mb-1 items-stretch"
                 >
-                  {v}
+                  {row.map((v) => {
+                    const dateId = new Intl.DateTimeFormat(
+                      "ja-JP",
+                      dateOptions
+                    ).format(v);
+                    const isCurrentMonth =
+                      v >= monthStartDay && v <= monthEndDay;
+                    return (
+                      <div
+                        className={
+                          isCurrentMonth
+                            ? "w-[196px] min-h-[98px] bg-white border border-[#CCCCCC] rounded-[8px] text-[#990000] font-blacks"
+                            : "w-[196px] min-h-[98px] bg-[#3C373C]/35 rounded-[8px]"
+                        }
+                        key={dateId}
+                      >
+                        {isCurrentMonth ? (
+                          <Droppable date={v} id={dateId}>
+                            <span className="pl-2 text-[#990000] font-bold">
+                              {new Intl.DateTimeFormat("ja-JP", dayOptions)
+                                .format(v)
+                                .replace("日", "")}
+                            </span>
+                            {renderDay && (
+                              <div className="text-black pl-2 pr-2 overflow-hidden items-start relative">
+                                <div className="w-full break-words">
+                                  {renderDay(v, dateId)}
+                                </div>
+                              </div>
+                            )}
+                          </Droppable>
+                        ) : null}
+                      </div>
+                    );
+                  })}
                 </div>
               ))}
             </div>
-
-            {/* 各行 */}
-            {calendarRows.map((row, rowIndex) => (
-              <div
-                key={rowIndex}
-                className="grid grid-cols-5 justify-items-stretch text-left gap-1 mb-1 items-stretch"
-              >
-                {row.map((v) => {
-                  const dateId = new Intl.DateTimeFormat(
-                    "ja-JP",
-                    dateOptions
-                  ).format(v);
-                  const isCurrentMonth = v >= monthStartDay && v <= monthEndDay;
-                  return (
-                    <div
-                      className={
-                        isCurrentMonth
-                          ? "w-[196px] min-h-[98px] bg-white border border-[#CCCCCC] rounded-[8px] text-[#990000] font-blacks"
-                          : "w-[196px] min-h-[98px] bg-[#3C373C]/35 rounded-[8px]"
-                      }
-                      key={dateId}
-                    >
-                      {isCurrentMonth ? (
-                        <Droppable date={v} id={dateId}>
-                          <span className="pl-2 text-[#990000] font-bold">
-                            {new Intl.DateTimeFormat("ja-JP", dayOptions)
-                              .format(v)
-                              .replace("日", "")}
-                          </span>
-                          {renderDay && (
-                            <div className="text-black pl-2 pr-2 overflow-hidden items-start relative">
-                              <div className="w-full break-words">
-                                {renderDay(v, dateId)}
-                              </div>
-                            </div>
-                          )}
-                        </Droppable>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
           </div>
+          {children}
         </div>
-        {children}
       </div>
-    </div>
-  );
-};
+    );
+  }
+);
 
 type DroppableProps = {
   date: Date;
