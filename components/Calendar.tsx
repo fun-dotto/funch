@@ -150,29 +150,30 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
         }
       };
 
-      // 優先順位に従って表示項目を管理
-      const displayItems: JSX.Element[] = [];
+      // 🚀 五十音順ソートのためのデータ構造
+      interface DisplayMenuItem {
+        id: string;
+        title: string;
+        type: 'deleted' | 'normal' | 'added';
+        itemCode?: number;
+        originalId?: string;
+      }
+
+      const menuItems: DisplayMenuItem[] = [];
       const displayedIds = new Set<string>();
 
-      // 1. 優先順位最高：change false（削除）
+      // 1. change false（削除）を収集
       if (oneDayChangeData) {
         // commonMenuIds の false
         Object.entries(oneDayChangeData.commonMenuIds).forEach(
           ([menuId, isAdded]) => {
             if (!isAdded) {
-              displayItems.push(
-                <div
-                  key={`c-${menuId}`}
-                  className="flex justify-between items-center text-xs relative bg-red-100"
-                >
-                  <div className="flex-1 truncate pr-6">
-                    {getMenuNameById(menuId)} (削除)
-                  </div>
-                  <div className="text-black cursor-pointer absolute right-2 hover:text-red-600">
-                    <HiTrash />
-                  </div>
-                </div>
-              );
+              menuItems.push({
+                id: `c-${menuId}`,
+                title: getMenuNameById(menuId),
+                type: 'deleted',
+                itemCode: parseInt(menuId, 10) || undefined,
+              });
               displayedIds.add(menuId);
             }
           }
@@ -182,43 +183,28 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
         Object.entries(oneDayChangeData.originalMenuIds).forEach(
           ([menuId, isAdded]) => {
             if (!isAdded) {
-              displayItems.push(
-                <div
-                  key={`c-${menuId}`}
-                  className="flex justify-between items-center text-xs relative bg-red-100"
-                >
-                  <div className="flex-1 truncate pr-6">
-                    {getMenuNameById(menuId)} (削除)
-                  </div>
-                  <div className="text-black cursor-pointer absolute right-2 hover:text-red-600">
-                    <HiTrash />
-                  </div>
-                </div>
-              );
+              menuItems.push({
+                id: `c-${menuId}`,
+                title: getMenuNameById(menuId),
+                type: 'deleted',
+                originalId: menuId,
+              });
               displayedIds.add(menuId);
             }
           }
         );
       }
 
-      // 2. 中優先：普通のmenu（重複除く）
+      // 2. 普通のmenu（重複除く）
       if (oneDayMenuData) {
         oneDayMenuData.forEach((m) => {
           if (!displayedIds.has(m.item_code.toString())) {
-            displayItems.push(
-              <div
-                key={m.item_code}
-                className="flex justify-between items-center text-xs relative"
-              >
-                <div className="flex-1 truncate pr-6">{m.title}</div>
-                <div
-                  className="text-black cursor-pointer absolute right-2 hover:text-red-600"
-                  onClick={() => handleDeleteMenu(m.item_code)}
-                >
-                  <HiTrash />
-                </div>
-              </div>
-            );
+            menuItems.push({
+              id: m.item_code.toString(),
+              title: m.title,
+              type: 'normal',
+              itemCode: m.item_code,
+            });
             displayedIds.add(m.item_code.toString());
           }
         });
@@ -227,44 +213,29 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
       if (oneDayOriginalMenuData) {
         oneDayOriginalMenuData.forEach((m) => {
           if (!displayedIds.has(m.id)) {
-            displayItems.push(
-              <div
-                key={m.id}
-                className="flex justify-between items-center text-xs relative"
-              >
-                <div className="flex-1 truncate pr-6">{m.title}</div>
-                <div
-                  className="text-black cursor-pointer absolute right-2 hover:text-red-600"
-                  onClick={() => handleDeleteOriginalMenu(m.id)}
-                >
-                  <HiTrash />
-                </div>
-              </div>
-            );
+            menuItems.push({
+              id: m.id,
+              title: m.title,
+              type: 'normal',
+              originalId: m.id,
+            });
             displayedIds.add(m.id);
           }
         });
       }
 
-      // 3. 低優先：change true（追加）（重複除く）
+      // 3. change true（追加）（重複除く）
       if (oneDayChangeData) {
         // commonMenuIds の true
         Object.entries(oneDayChangeData.commonMenuIds).forEach(
           ([menuId, isAdded]) => {
             if (isAdded && !displayedIds.has(menuId)) {
-              displayItems.push(
-                <div
-                  key={`c-${menuId}`}
-                  className="flex justify-between items-center text-xs relative bg-green-100"
-                >
-                  <div className="flex-1 truncate pr-6">
-                    {getMenuNameById(menuId)} (追加)
-                  </div>
-                  <div className="text-black cursor-pointer absolute right-2 hover:text-red-600">
-                    <HiTrash />
-                  </div>
-                </div>
-              );
+              menuItems.push({
+                id: `c-${menuId}`,
+                title: getMenuNameById(menuId),
+                type: 'added',
+                itemCode: parseInt(menuId, 10) || undefined,
+              });
               displayedIds.add(menuId);
             }
           }
@@ -274,24 +245,73 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
         Object.entries(oneDayChangeData.originalMenuIds).forEach(
           ([menuId, isAdded]) => {
             if (isAdded && !displayedIds.has(menuId)) {
-              displayItems.push(
-                <div
-                  key={`c-${menuId}`}
-                  className="flex justify-between items-center text-xs relative bg-green-100"
-                >
-                  <div className="flex-1 truncate pr-6">
-                    {getMenuNameById(menuId)} (追加)
-                  </div>
-                  <div className="text-black cursor-pointer absolute right-2 hover:text-red-600">
-                    <HiTrash />
-                  </div>
-                </div>
-              );
+              menuItems.push({
+                id: `c-${menuId}`,
+                title: getMenuNameById(menuId),
+                type: 'added',
+                originalId: menuId,
+              });
               displayedIds.add(menuId);
             }
           }
         );
       }
+
+      // 🚀 五十音順でソート
+      const sortedMenuItems = menuItems.sort((a, b) => 
+        a.title.localeCompare(b.title, 'ja', { sensitivity: 'base' })
+      );
+
+      // ソート後のJSX要素を生成
+      const displayItems = sortedMenuItems.map((item) => {
+        const getClassName = () => {
+          switch (item.type) {
+            case 'deleted':
+              return "flex justify-between items-center text-xs relative bg-red-100";
+            case 'added':
+              return "flex justify-between items-center text-xs relative bg-green-100";
+            default:
+              return "flex justify-between items-center text-xs relative";
+          }
+        };
+
+        const getDisplayTitle = () => {
+          switch (item.type) {
+            case 'deleted':
+              return `${item.title} (削除)`;
+            case 'added':
+              return `${item.title} (追加)`;
+            default:
+              return item.title;
+          }
+        };
+
+        const getClickHandler = () => {
+          if (item.type === 'normal') {
+            if (item.itemCode) {
+              return () => handleDeleteMenu(item.itemCode!);
+            } else if (item.originalId) {
+              return () => handleDeleteOriginalMenu(item.originalId!);
+            }
+          }
+          return undefined;
+        };
+
+        return (
+          <div
+            key={item.id}
+            className={getClassName()}
+          >
+            <div className="flex-1 truncate pr-6">{getDisplayTitle()}</div>
+            <div
+              className="text-black cursor-pointer absolute right-2 hover:text-red-600"
+              onClick={getClickHandler()}
+            >
+              <HiTrash />
+            </div>
+          </div>
+        );
+      });
 
       return <div className="flex flex-col">{displayItems}</div>;
     };
