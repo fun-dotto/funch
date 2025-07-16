@@ -152,7 +152,9 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
                   key={`c-${menuId}`}
                   className="flex justify-between items-center text-xs relative bg-red-100"
                 >
-                  <div className="flex-1 truncate pr-6">{getMenuNameById(menuId)} (削除)</div>
+                  <div className="flex-1 truncate pr-6">
+                    {getMenuNameById(menuId)} (削除)
+                  </div>
                   <div className="text-black cursor-pointer absolute right-2 hover:text-red-600">
                     <HiTrash />
                   </div>
@@ -172,7 +174,9 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
                   key={`c-${menuId}`}
                   className="flex justify-between items-center text-xs relative bg-red-100"
                 >
-                  <div className="flex-1 truncate pr-6">{getMenuNameById(menuId)} (削除)</div>
+                  <div className="flex-1 truncate pr-6">
+                    {getMenuNameById(menuId)} (削除)
+                  </div>
                   <div className="text-black cursor-pointer absolute right-2 hover:text-red-600">
                     <HiTrash />
                   </div>
@@ -240,7 +244,9 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
                   key={`c-${menuId}`}
                   className="flex justify-between items-center text-xs relative bg-green-100"
                 >
-                  <div className="flex-1 truncate pr-6">{getMenuNameById(menuId)} (追加)</div>
+                  <div className="flex-1 truncate pr-6">
+                    {getMenuNameById(menuId)} (追加)
+                  </div>
                   <div className="text-black cursor-pointer absolute right-2 hover:text-red-600">
                     <HiTrash />
                   </div>
@@ -260,7 +266,9 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
                   key={`c-${menuId}`}
                   className="flex justify-between items-center text-xs relative bg-green-100"
                 >
-                  <div className="flex-1 truncate pr-6">{getMenuNameById(menuId)} (追加)</div>
+                  <div className="flex-1 truncate pr-6">
+                    {getMenuNameById(menuId)} (追加)
+                  </div>
                   <div className="text-black cursor-pointer absolute right-2 hover:text-red-600">
                     <HiTrash />
                   </div>

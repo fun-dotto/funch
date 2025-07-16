@@ -86,8 +86,12 @@ export default function Home() {
           menu.name
         );
 
-        // 月間メニューデータのみを更新
-        await monthMenuRef.current?.refreshData();
+        // 🚀 最適化: 月間変更データのみ更新（全データ再取得なし）
+        if (monthMenuRef.current?.refreshMonthlyChangeOnly) {
+          await monthMenuRef.current.refreshMonthlyChangeOnly();
+        } else {
+          await monthMenuRef.current?.refreshData();
+        }
 
         // 即座に非表示にする
         setActiveMenu(null);

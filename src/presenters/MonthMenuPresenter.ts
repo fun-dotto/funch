@@ -36,11 +36,16 @@ export const useMonthMenuPresenter = (
 
       try {
         // メニューデータを並行して取得
-        const [monthResult, allMenusResult, allOriginalMenusResult, monthlyChange] = await Promise.all([
+        const [
+          monthResult,
+          allMenusResult,
+          allOriginalMenusResult,
+          monthlyChange,
+        ] = await Promise.all([
           monthMenuService.getMonthMenuData(currentYear, currentMonth),
           menuService.getAllMenus(),
           menuService.getOriginalMenus(),
-          changeMenuService.getMonthlyChangeData(currentYear, currentMonth)
+          changeMenuService.getMonthlyChangeData(currentYear, currentMonth),
         ]);
 
         const sortedMenus = monthMenuService.sortMenus(monthResult.menus);
@@ -154,11 +159,16 @@ export const useMonthMenuPresenter = (
 
     try {
       // メニューデータを並行して取得
-      const [monthResult, allMenusResult, allOriginalMenusResult, monthlyChange] = await Promise.all([
+      const [
+        monthResult,
+        allMenusResult,
+        allOriginalMenusResult,
+        monthlyChange,
+      ] = await Promise.all([
         monthMenuService.getMonthMenuData(currentYear, currentMonth),
         menuService.getAllMenus(),
         menuService.getOriginalMenus(),
-        changeMenuService.getMonthlyChangeData(currentYear, currentMonth)
+        changeMenuService.getMonthlyChangeData(currentYear, currentMonth),
       ]);
 
       const sortedMenus = monthMenuService.sortMenus(monthResult.menus);
@@ -180,13 +190,35 @@ export const useMonthMenuPresenter = (
     // 数値IDの場合は共通メニューから検索
     const numericId = parseInt(menuId, 10);
     if (!isNaN(numericId)) {
-      const menu = allMenus.find(m => m.item_code === numericId);
+      const menu = allMenus.find((m) => m.item_code === numericId);
       return menu ? menu.title : `メニュー(ID: ${menuId})`;
     }
-    
+
     // 文字列IDの場合はオリジナルメニューから検索
-    const originalMenu = allOriginalMenus.find(m => m.id === menuId);
+    const originalMenu = allOriginalMenus.find((m) => m.id === menuId);
     return originalMenu ? originalMenu.title : `メニュー(ID: ${menuId})`;
+  };
+
+  // 🚀 最適化: 月間変更データのみを更新
+  const refreshMonthlyChangeOnly = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // 月間変更データのみ取得（他は再取得しない）
+      const monthlyChange = await changeMenuService.getMonthlyChangeData(
+        currentYear,
+        currentMonth
+      );
+      setMonthlyChangeData(monthlyChange);
+    } catch (error) {
+      console.error("月間変更データの取得に失敗しました:", error);
+      setError("月間変更データの取得に失敗しました");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return {
@@ -201,6 +233,7 @@ export const useMonthMenuPresenter = (
     removeOriginalMenu,
     saveMonthMenuData,
     refreshData,
+    refreshMonthlyChangeOnly, // 🚀 新機能
     getMenuNameById,
   };
 };

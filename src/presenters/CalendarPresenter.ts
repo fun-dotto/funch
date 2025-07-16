@@ -39,11 +39,12 @@ export const useCalendarMenuPresenter = (
       setLoading(true);
       try {
         // メニューデータを並行して取得
-        const [menuResult, allMenusResult, allOriginalMenusResult] = await Promise.all([
-          calendarMenuService.getMonthMenuData(currentYear, currentMonth),
-          menuService.getAllMenus(),
-          menuService.getOriginalMenus()
-        ]);
+        const [menuResult, allMenusResult, allOriginalMenusResult] =
+          await Promise.all([
+            calendarMenuService.getMonthMenuData(currentYear, currentMonth),
+            menuService.getAllMenus(),
+            menuService.getOriginalMenus(),
+          ]);
 
         setMenuData(menuResult.menuData);
         setOriginalMenuData(menuResult.originalMenuData);
@@ -101,11 +102,12 @@ export const useCalendarMenuPresenter = (
     setLoading(true);
     try {
       // メニューデータを並行して取得
-      const [menuResult, allMenusResult, allOriginalMenusResult] = await Promise.all([
-        calendarMenuService.getMonthMenuData(currentYear, currentMonth),
-        menuService.getAllMenus(),
-        menuService.getOriginalMenus()
-      ]);
+      const [menuResult, allMenusResult, allOriginalMenusResult] =
+        await Promise.all([
+          calendarMenuService.getMonthMenuData(currentYear, currentMonth),
+          menuService.getAllMenus(),
+          menuService.getOriginalMenus(),
+        ]);
 
       setMenuData(menuResult.menuData);
       setOriginalMenuData(menuResult.originalMenuData);
@@ -132,12 +134,14 @@ export const useCalendarMenuPresenter = (
         day: "numeric",
       };
       const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
-      
+
       // 特定日の変更データのみ取得
-      const dailyChangeData = await calendarMenuService.getSingleDayChangeData(date);
-      
+      const dailyChangeData = await calendarMenuService.getSingleDayChangeData(
+        date
+      );
+
       // 該当日のみ更新
-      setChangeData(prev => {
+      setChangeData((prev) => {
         const newChangeData = new Map(prev);
         newChangeData.set(dateId, dailyChangeData);
         return newChangeData;
@@ -154,12 +158,12 @@ export const useCalendarMenuPresenter = (
     // 数値IDの場合は共通メニューから検索
     const numericId = parseInt(menuId, 10);
     if (!isNaN(numericId)) {
-      const menu = allMenus.find(m => m.item_code === numericId);
+      const menu = allMenus.find((m) => m.item_code === numericId);
       return menu ? menu.title : `メニュー(ID: ${menuId})`;
     }
-    
+
     // 文字列IDの場合はオリジナルメニューから検索
-    const originalMenu = allOriginalMenus.find(m => m.id === menuId);
+    const originalMenu = allOriginalMenus.find((m) => m.id === menuId);
     return originalMenu ? originalMenu.title : `メニュー(ID: ${menuId})`;
   };
 
