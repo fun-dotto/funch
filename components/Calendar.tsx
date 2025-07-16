@@ -27,7 +27,11 @@ type CalendarProps = {
 export type CalendarRef = {
   refreshData: () => Promise<void>;
   refreshSingleDayChange: (date: Date) => Promise<void>; // 🚀 最適化関数
-  getCurrentData: (dateId: string) => { menuData: any[], originalMenuData: any[], changeData: any }; // 🚀 データ取得
+  getCurrentData: (dateId: string) => {
+    menuData: any[];
+    originalMenuData: any[];
+    changeData: any;
+  }; // 🚀 データ取得
 };
 
 const Calendar = forwardRef<CalendarRef, CalendarProps>(
@@ -71,8 +75,11 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
       getCurrentData: (dateId: string) => ({
         menuData: menuData.get(dateId) || [],
         originalMenuData: originalMenuData.get(dateId) || [],
-        changeData: changeData.get(dateId) || { commonMenuIds: {}, originalMenuIds: {} }
-      })
+        changeData: changeData.get(dateId) || {
+          commonMenuIds: {},
+          originalMenuIds: {},
+        },
+      }),
     }));
 
     const targetDay = new Date(currentYear, currentMonth - 1);
@@ -201,7 +208,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
             displayItems.push(
               <div
                 key={m.item_code}
-                className="flex justify-between items-center my-1 text-xs relative"
+                className="flex justify-between items-center text-xs relative"
               >
                 <div className="flex-1 truncate pr-6">{m.title}</div>
                 <div
@@ -223,7 +230,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
             displayItems.push(
               <div
                 key={m.id}
-                className="flex justify-between items-center my-1 text-xs relative"
+                className="flex justify-between items-center text-xs relative"
               >
                 <div className="flex-1 truncate pr-6">{m.title}</div>
                 <div
