@@ -107,6 +107,9 @@ export const useMonthMenuPresenter = (
 
   const removeMenu = async (menuItemCode: number) => {
     // 削除フラグをfunch_monthly_changeに記録（Firestoreからは削除しない）
+    setLoading(true);
+    setError(null);
+    
     try {
       const menuItem: MenuItem = {
         id: menuItemCode,
@@ -120,16 +123,25 @@ export const useMonthMenuPresenter = (
         menuItem
       );
 
-      // 削除フラグの記録のみで画面状態は変更しない
-      // （実際のFirestoreからは削除されていないため）
+      // 🚀 削除後に月間変更データを即時更新
+      const monthlyChange = await changeMenuService.getMonthlyChangeData(
+        currentYear,
+        currentMonth
+      );
+      setMonthlyChangeData(monthlyChange);
     } catch (error) {
       console.error("メニューの削除保存に失敗しました:", error);
       setError("メニューの削除保存に失敗しました");
+    } finally {
+      setLoading(false);
     }
   };
 
   const removeOriginalMenu = async (originalMenuId: string) => {
     // 削除フラグをfunch_monthly_changeに記録（Firestoreからは削除しない）
+    setLoading(true);
+    setError(null);
+    
     try {
       const menuItem: MenuItem = {
         id: originalMenuId,
@@ -143,11 +155,17 @@ export const useMonthMenuPresenter = (
         menuItem
       );
 
-      // 削除フラグの記録のみで画面状態は変更しない
-      // （実際のFirestoreからは削除されていないため）
+      // 🚀 削除後に月間変更データを即時更新
+      const monthlyChange = await changeMenuService.getMonthlyChangeData(
+        currentYear,
+        currentMonth
+      );
+      setMonthlyChangeData(monthlyChange);
     } catch (error) {
       console.error("オリジナルメニューの削除保存に失敗しました:", error);
       setError("オリジナルメニューの削除保存に失敗しました");
+    } finally {
+      setLoading(false);
     }
   };
 

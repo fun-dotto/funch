@@ -68,8 +68,22 @@ export const useCalendarMenuPresenter = (
     try {
       await calendarMenuService.deleteDailyMenu(date, menuItemCode);
 
-      // 削除フラグの記録のみで画面状態は変更しない
-      // （実際のFirestoreからは削除されていないため）
+      // 🚀 削除後に該当日の変更データを即時更新（ローディング状態は維持）
+      const dateOptions: Intl.DateTimeFormatOptions = {
+        timeZone: "Asia/Tokyo",
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+      };
+      const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
+
+      const dailyChangeData = await calendarMenuService.getSingleDayChangeData(date);
+
+      setChangeData((prev) => {
+        const newChangeData = new Map(prev);
+        newChangeData.set(dateId, dailyChangeData);
+        return newChangeData;
+      });
     } catch (error) {
       console.error("メニューの削除に失敗しました:", error);
     } finally {
@@ -87,8 +101,22 @@ export const useCalendarMenuPresenter = (
     try {
       await calendarMenuService.deleteDailyOriginalMenu(date, originalMenuId);
 
-      // 削除フラグの記録のみで画面状態は変更しない
-      // （実際のFirestoreからは削除されていないため）
+      // 🚀 削除後に該当日の変更データを即時更新（ローディング状態は維持）
+      const dateOptions: Intl.DateTimeFormatOptions = {
+        timeZone: "Asia/Tokyo",
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+      };
+      const dateId = new Intl.DateTimeFormat("ja-JP", dateOptions).format(date);
+
+      const dailyChangeData = await calendarMenuService.getSingleDayChangeData(date);
+
+      setChangeData((prev) => {
+        const newChangeData = new Map(prev);
+        newChangeData.set(dateId, dailyChangeData);
+        return newChangeData;
+      });
     } catch (error) {
       console.error("オリジナルメニューの削除に失敗しました:", error);
     } finally {
