@@ -27,6 +27,7 @@ type CalendarProps = {
 export type CalendarRef = {
   refreshData: () => Promise<void>;
   refreshSingleDayChange: (date: Date) => Promise<void>; // 🚀 最適化関数
+  getCurrentData: (dateId: string) => { menuData: any[], originalMenuData: any[], changeData: any }; // 🚀 データ取得
 };
 
 const Calendar = forwardRef<CalendarRef, CalendarProps>(
@@ -67,6 +68,11 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
     useImperativeHandle(ref, () => ({
       refreshData,
       refreshSingleDayChange, // 🚀 最適化関数を公開
+      getCurrentData: (dateId: string) => ({
+        menuData: menuData.get(dateId) || [],
+        originalMenuData: originalMenuData.get(dateId) || [],
+        changeData: changeData.get(dateId) || { commonMenuIds: {}, originalMenuIds: {} }
+      })
     }));
 
     const targetDay = new Date(currentYear, currentMonth - 1);

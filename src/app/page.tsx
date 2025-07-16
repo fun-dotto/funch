@@ -58,10 +58,37 @@ export default function Home() {
         // overId形式: "2025/07/15" など
         const [year, month, day] = overId.split("/").map(Number);
         const targetDate = new Date(year, month - 1, day);
+        const dateId = overId;
 
-        // Firestore保存
-        await changeMenuService.saveDailyChange(targetDate, menu);
-        console.log(`Daily change saved for ${overId}:`, menu.name);
+        // 🚀 現在のデータを取得
+        const currentData = calendarRef.current?.getCurrentData(dateId);
+        if (!currentData) {
+          console.error('カレンダーデータが取得できません');
+          setActiveMenu(null);
+          return;
+        }
+
+        // 🚀 重複チェック付き保存
+        const result = await changeMenuService.saveDailyChangeWithDuplicateCheck(
+          targetDate, 
+          menu,
+          currentData.menuData,
+          currentData.originalMenuData,
+          currentData.changeData
+        );
+
+        // 結果をログ出力
+        switch(result) {
+          case 'added':
+            console.log(`新規追加: ${menu.name}`);
+            break;
+          case 'revived':
+            console.log(`復活: ${menu.name}`);
+            break;
+          case 'ignored':
+            console.log(`重複のため無視: ${menu.name}`);
+            break;
+        }
 
         // 🚀 最適化: 該当日のみ更新（全データ再取得なし）
         if (calendarRef.current?.refreshSingleDayChange) {
@@ -75,16 +102,36 @@ export default function Home() {
       }
       // 月間メニューへのドロップの場合
       else if (overId === "month-menu") {
-        // Firestore保存
-        await changeMenuService.saveMonthlyChange(
+        // 🚀 現在のデータを取得
+        const currentData = monthMenuRef.current?.getCurrentData();
+        if (!currentData) {
+          console.error('月間メニューデータが取得できません');
+          setActiveMenu(null);
+          return;
+        }
+
+        // 🚀 重複チェック付き保存
+        const result = await changeMenuService.saveMonthlyChangeWithDuplicateCheck(
           currentYear,
           currentMonth,
-          menu
+          menu,
+          currentData.menus,
+          currentData.originalMenus,
+          currentData.monthlyChangeData
         );
-        console.log(
-          `Monthly change saved for ${currentYear}/${currentMonth}:`,
-          menu.name
-        );
+
+        // 結果をログ出力
+        switch(result) {
+          case 'added':
+            console.log(`新規追加: ${menu.name}`);
+            break;
+          case 'revived':
+            console.log(`復活: ${menu.name}`);
+            break;
+          case 'ignored':
+            console.log(`重複のため無視: ${menu.name}`);
+            break;
+        }
 
         // 🚀 最適化: 月間変更データのみ更新（全データ再取得なし）
         if (monthMenuRef.current?.refreshMonthlyChangeOnly) {
