@@ -443,4 +443,9 @@ export class ChangeMenuService {
       [fieldPath]: deleteField()
     });
   }
+
+  // 🚀 日次変更のリバート処理（change要素の削除）
+  async revertDailyChange(date: Date, menuId: string, isCommonMenu: boolean): Promise<void> {
+    await this.removeChangeEntry(date, menuId, !isCommonMenu);
+  }
 }

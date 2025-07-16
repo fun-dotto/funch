@@ -103,4 +103,9 @@ export class CalendarMenuService {
   }> {
     return await this.changeMenuService.getDailyChangeData(date);
   }
+
+  // 🚀 change要素のリバート処理（変更を取り消し）
+  async revertDailyChange(date: Date, menuId: string, isCommonMenu: boolean): Promise<void> {
+    await this.changeMenuService.revertDailyChange(date, menuId, isCommonMenu);
+  }
 }

@@ -49,6 +49,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
       deleteDailyOriginalMenu,
       refreshData,
       refreshSingleDayChange,
+      revertChange,
       getMenuNameById,
     } = useCalendarMenuPresenter(
       user,
@@ -150,11 +151,18 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
         }
       };
 
+      // 🚀 change要素のリバート処理
+      const handleRevertChange = async (menuId: string, isCommonMenu: boolean) => {
+        if (window.confirm("この変更を取り消しますか？")) {
+          await revertChange(date, menuId, isCommonMenu);
+        }
+      };
+
       // 🚀 五十音順ソートのためのデータ構造
       interface DisplayMenuItem {
         id: string;
         title: string;
-        type: 'deleted' | 'normal' | 'added';
+        type: "deleted" | "normal" | "added";
         itemCode?: number;
         originalId?: string;
       }
@@ -171,7 +179,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
               menuItems.push({
                 id: `c-${menuId}`,
                 title: getMenuNameById(menuId),
-                type: 'deleted',
+                type: "deleted",
                 itemCode: parseInt(menuId, 10) || undefined,
               });
               displayedIds.add(menuId);
@@ -186,7 +194,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
               menuItems.push({
                 id: `c-${menuId}`,
                 title: getMenuNameById(menuId),
-                type: 'deleted',
+                type: "deleted",
                 originalId: menuId,
               });
               displayedIds.add(menuId);
@@ -202,7 +210,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
             menuItems.push({
               id: m.item_code.toString(),
               title: m.title,
-              type: 'normal',
+              type: "normal",
               itemCode: m.item_code,
             });
             displayedIds.add(m.item_code.toString());
@@ -216,7 +224,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
             menuItems.push({
               id: m.id,
               title: m.title,
-              type: 'normal',
+              type: "normal",
               originalId: m.id,
             });
             displayedIds.add(m.id);
@@ -233,7 +241,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
               menuItems.push({
                 id: `c-${menuId}`,
                 title: getMenuNameById(menuId),
-                type: 'added',
+                type: "added",
                 itemCode: parseInt(menuId, 10) || undefined,
               });
               displayedIds.add(menuId);
@@ -248,7 +256,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
               menuItems.push({
                 id: `c-${menuId}`,
                 title: getMenuNameById(menuId),
-                type: 'added',
+                type: "added",
                 originalId: menuId,
               });
               displayedIds.add(menuId);
@@ -258,17 +266,17 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
       }
 
       // 🚀 五十音順でソート
-      const sortedMenuItems = menuItems.sort((a, b) => 
-        a.title.localeCompare(b.title, 'ja', { sensitivity: 'base' })
+      const sortedMenuItems = menuItems.sort((a, b) =>
+        a.title.localeCompare(b.title, "ja", { sensitivity: "base" })
       );
 
       // ソート後のJSX要素を生成
       const displayItems = sortedMenuItems.map((item) => {
         const getClassName = () => {
           switch (item.type) {
-            case 'deleted':
+            case "deleted":
               return "flex justify-between items-center text-xs relative bg-red-100";
-            case 'added':
+            case "added":
               return "flex justify-between items-center text-xs relative bg-green-100";
             default:
               return "flex justify-between items-center text-xs relative";
@@ -277,9 +285,9 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
 
         const getDisplayTitle = () => {
           switch (item.type) {
-            case 'deleted':
+            case "deleted":
               return `${item.title} (削除)`;
-            case 'added':
+            case "added":
               return `${item.title} (追加)`;
             default:
               return item.title;
@@ -287,21 +295,23 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
         };
 
         const getClickHandler = () => {
-          if (item.type === 'normal') {
+          if (item.type === "normal") {
             if (item.itemCode) {
               return () => handleDeleteMenu(item.itemCode!);
             } else if (item.originalId) {
               return () => handleDeleteOriginalMenu(item.originalId!);
             }
+          } else if (item.type === "deleted" || item.type === "added") {
+            // 🚀 change要素のリバート処理
+            const menuId = item.itemCode ? item.itemCode.toString() : item.originalId!;
+            const isCommonMenu = !!item.itemCode; // itemCodeがあれば共通メニュー
+            return () => handleRevertChange(menuId, isCommonMenu);
           }
           return undefined;
         };
 
         return (
-          <div
-            key={item.id}
-            className={getClassName()}
-          >
+          <div key={item.id} className={getClassName()}>
             <div className="flex-1 truncate pr-6">{getDisplayTitle()}</div>
             <div
               className="text-black cursor-pointer absolute right-2 hover:text-red-600"
