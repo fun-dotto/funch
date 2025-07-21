@@ -312,7 +312,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
                 日替わりメニュー
               </h2>
               {hasAnyChanges() && (
-                <span className="text-red-600 text-sm font-medium">
+                <span className="text-[#F51F1F] text-sm font-medium">
                   変更あり
                 </span>
               )}

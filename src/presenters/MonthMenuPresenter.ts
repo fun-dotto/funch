@@ -48,8 +48,7 @@ export const useMonthMenuPresenter = (
           changeMenuService.getMonthlyChangeData(currentYear, currentMonth),
         ]);
 
-        const sortedMenus = monthMenuService.sortMenus(monthResult.menus);
-        setMenus(sortedMenus);
+        setMenus(monthResult.menus);
         setOriginalMenus(monthResult.originalMenus);
         setAllMenus(allMenusResult);
         setAllOriginalMenus(allOriginalMenusResult);
@@ -91,8 +90,7 @@ export const useMonthMenuPresenter = (
       const exists = prev.find((m) => m.item_code === menu.item_code);
       if (exists) return prev;
 
-      const newMenus = [...prev, menu];
-      return monthMenuService.sortMenus(newMenus);
+      return [...prev, menu];
     });
   };
 
@@ -189,8 +187,7 @@ export const useMonthMenuPresenter = (
         changeMenuService.getMonthlyChangeData(currentYear, currentMonth),
       ]);
 
-      const sortedMenus = monthMenuService.sortMenus(monthResult.menus);
-      setMenus(sortedMenus);
+      setMenus(monthResult.menus);
       setOriginalMenus(monthResult.originalMenus);
       setAllMenus(allMenusResult);
       setAllOriginalMenus(allOriginalMenusResult);

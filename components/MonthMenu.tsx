@@ -15,9 +15,11 @@ import { FirebaseMonthMenuRepository } from "../src/repositories/firebase/MonthM
 import { Menu, OriginalMenu } from "../src/types/Menu";
 import { useDroppable } from "@dnd-kit/core";
 import { MenuItemList, DisplayMenuItem } from "./MenuItemList";
+import { ChangeMenuService } from "../src/services/ChangeMenuService";
 
 const monthMenuRepository = new FirebaseMonthMenuRepository();
 const monthMenuService = new MonthMenuService(monthMenuRepository);
+const changeMenuService = new ChangeMenuService();
 
 type MonthMenuProps = {
   year: number;
@@ -103,6 +105,18 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
     const handleRemoveOriginalMenu = async (originalMenuId: string) => {
       if (window.confirm("このオリジナルメニューを削除しますか？")) {
         await removeOriginalMenu(originalMenuId);
+      }
+    };
+
+    const handleRevertChange = async (menuId: string, isCommonMenu: boolean) => {
+      if (window.confirm("この変更を取り消しますか？")) {
+        await changeMenuService.removeMonthlyChangeEntry(
+          year,
+          month,
+          menuId,
+          !isCommonMenu
+        );
+        await refreshMonthlyChangeOnly();
       }
     };
 
@@ -262,6 +276,7 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
                         items={columnItems}
                         onDeleteMenu={handleRemoveMenu}
                         onDeleteOriginalMenu={handleRemoveOriginalMenu}
+                        onRevertChange={handleRevertChange}
                         variant="monthMenu"
                         maxItems={
                           endIndex <= 23 ? 8 : Math.max(0, 23 - startIndex)

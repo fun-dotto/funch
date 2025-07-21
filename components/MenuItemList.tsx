@@ -84,6 +84,11 @@ export const MenuItemList: React.FC<MenuItemListProps> = ({
         } else if (item.originalId) {
           return () => onDeleteOriginalMenu?.(item.originalId!);
         }
+      } else {
+        // 変更アイテム（追加・削除）の場合
+        const menuId = item.itemCode?.toString() || item.originalId!;
+        const isCommonMenu = !!item.itemCode;
+        return () => onRevertChange?.(menuId, isCommonMenu);
       }
     } else {
       // Calendarの場合

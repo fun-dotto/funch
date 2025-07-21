@@ -36,16 +36,4 @@ export class MonthMenuService {
     );
   }
 
-  sortMenus(menus: Menu[]): Menu[] {
-    const sortOrder = [1, 2, 9, 4, 5, 11, 7, 8, 10];
-
-    return menus.sort((a, b) => {
-      const diff =
-        sortOrder.indexOf(a.category) - sortOrder.indexOf(b.category);
-      if (diff !== 0) {
-        return diff;
-      }
-      return a.title.localeCompare(b.title, "ja");
-    });
-  }
 }

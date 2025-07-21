@@ -428,7 +428,7 @@ export class ChangeMenuService {
   }
 
   // 月間変更エントリ除去
-  private async removeMonthlyChangeEntry(year: number, month: number, menuId: string | number, isOriginalMenu: boolean): Promise<void> {
+  async removeMonthlyChangeEntry(year: number, month: number, menuId: string | number, isOriginalMenu: boolean): Promise<void> {
     const { doc, updateDoc, deleteField } = await import("firebase/firestore");
     const { database } = await import("../infrastructure/firebase");
     
