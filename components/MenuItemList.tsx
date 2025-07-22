@@ -50,25 +50,18 @@ export const MenuItemList: React.FC<MenuItemListProps> = ({
 
     let stateClass = "";
 
-    if (variant === "monthMenu") {
-      if (item.isChange) {
-        stateClass =
-          item.isAdded === false
-            ? "bg-red-100" // 削除
-            : "bg-green-100"; // 追加
-      }
-    } else {
-      // calendar variant
-      switch (item.type) {
-        case "deleted":
-          stateClass = "bg-red-100";
-          break;
-        case "added":
-          stateClass = "bg-green-100";
-          break;
-        default:
-          stateClass = "";
-      }
+    // 統一されたスタイル
+    if (
+      (variant === "monthMenu" && item.isChange) ||
+      (variant === "calendar" && item.type !== "normal")
+    ) {
+      const isDeleted =
+        variant === "monthMenu"
+          ? item.isAdded === false
+          : item.type === "deleted";
+      stateClass = isDeleted
+        ? "bg-[#FFE2E2] text-[#B91212]"
+        : "bg-[#CDEFCF] text-[#006504]";
     }
 
     return `${baseClass} ${textSize} ${stateClass}`;
