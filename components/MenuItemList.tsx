@@ -1,5 +1,7 @@
 import React from "react";
 import { MdClose } from "react-icons/md";
+import { FaPlus } from "react-icons/fa6";
+import { FaMinus } from "react-icons/fa6";
 
 export interface DisplayMenuItem {
   id: string;
@@ -116,14 +118,14 @@ export const MenuItemList: React.FC<MenuItemListProps> = ({
     <div className={className}>
       {displayItems.map((item) => (
         <div key={item.id} className={getClassName(item)}>
-          <div className="flex-1 truncate pr-6">{getDisplayTitle(item)}</div>
-          <div
-            className={`text-black cursor-pointer hover:text-red-600 ${
-              variant === "monthMenu" ? "pr-12" : "absolute right-2"
-            }`}
-            onClick={getClickHandler(item)}
-          >
-            <MdClose />
+          <div className="flex justify-between items-center w-full gap-2">
+            <div className="flex-1 truncate">{getDisplayTitle(item)}</div>
+            <div
+              className="text-black cursor-pointer hover:text-[#F51F1F]"
+              onClick={getClickHandler(item)}
+            >
+              <MdClose />
+            </div>
           </div>
         </div>
       ))}
