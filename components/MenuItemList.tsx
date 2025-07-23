@@ -53,7 +53,11 @@ export const MenuItemList: React.FC<MenuItemListProps> = ({
   // 内側コンテンツのスタイル取得
   const getContentClassName = (item: DisplayMenuItem): string => {
     const baseClass = "flex justify-between items-center w-full";
+    return baseClass;
+  };
 
+  // 背景色のスタイル取得
+  const getBackgroundClassName = (item: DisplayMenuItem): string => {
     let stateClass = "";
 
     // 統一されたスタイル
@@ -70,7 +74,7 @@ export const MenuItemList: React.FC<MenuItemListProps> = ({
         : "bg-[#CDEFCF] text-[#006504]";
     }
 
-    return `${baseClass} ${stateClass}`;
+    return stateClass;
   };
 
   // クリックハンドラー取得
@@ -135,12 +139,12 @@ export const MenuItemList: React.FC<MenuItemListProps> = ({
   return (
     <div className={className}>
       {displayItems.map((item) => (
-        <div key={item.id} className={`${getContainerClassName()} pr-16`}>
+        <div key={item.id} className={`${getContainerClassName()} pr-4`}>
           <div className={getContentClassName(item)}>
             <div
               className={`flex items-center truncate ${
                 variant === "monthMenu" ? "w-[80%]" : ""
-              }`}
+              } ${getBackgroundClassName(item)}`}
             >
               <span className="truncate">{getDisplayTitle(item)}</span>
             </div>
