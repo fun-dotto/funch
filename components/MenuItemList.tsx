@@ -1,5 +1,5 @@
 import React from "react";
-import { HiTrash } from "react-icons/hi";
+import { MdClose } from "react-icons/md";
 
 export interface DisplayMenuItem {
   id: string;
@@ -123,7 +123,7 @@ export const MenuItemList: React.FC<MenuItemListProps> = ({
             }`}
             onClick={getClickHandler(item)}
           >
-            <HiTrash />
+            <MdClose />
           </div>
         </div>
       ))}

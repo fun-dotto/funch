@@ -307,7 +307,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
         {/* Date component removed - now handled in page.tsx */}
         <div>
           <div className="my-2 mx-auto">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex w-full items-center gap-2 mb-2">
               <h2 className="text-start text-[24px] font-bold">
                 日替わりメニュー
               </h2>
@@ -317,7 +317,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
                 </span>
               )}
             </div>
-            <div className="w-[1000px] relative">
+            <div className="w-full relative">
               {loading && (
                 <div className="absolute inset-0 bg-white bg-opacity-90 z-10 flex items-center justify-center">
                   <span className="text-gray-700 font-medium">
