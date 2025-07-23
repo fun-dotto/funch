@@ -97,36 +97,24 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
     };
 
     const handleRemoveMenu = async (menuItemCode: number) => {
-      if (window.confirm("このメニューを削除しますか？")) {
-        await removeMenu(menuItemCode);
-      }
+      await removeMenu(menuItemCode);
     };
 
     const handleRemoveOriginalMenu = async (originalMenuId: string) => {
-      if (window.confirm("このオリジナルメニューを削除しますか？")) {
-        await removeOriginalMenu(originalMenuId);
-      }
+      await removeOriginalMenu(originalMenuId);
     };
 
     const handleRevertChange = async (
       menuId: string,
       isCommonMenu: boolean
     ) => {
-      if (window.confirm("この変更を取り消しますか？")) {
-        await changeMenuService.removeMonthlyChangeEntry(
-          year,
-          month,
-          menuId,
-          !isCommonMenu
-        );
-        await refreshMonthlyChangeOnly();
-      }
-    };
-
-    const handleSave = async () => {
-      if (window.confirm("月間メニューを保存しますか？")) {
-        await saveMonthMenuData();
-      }
+      await changeMenuService.removeMonthlyChangeEntry(
+        year,
+        month,
+        menuId,
+        !isCommonMenu
+      );
+      await refreshMonthlyChangeOnly();
     };
 
     if (!user) {

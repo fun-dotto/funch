@@ -144,15 +144,11 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
       const oneDayChangeData = changeData.get(dateId);
 
       const handleDeleteMenu = async (menuItemCode: number) => {
-        if (window.confirm("このメニューを削除しますか？")) {
-          await deleteDailyMenu(date, menuItemCode);
-        }
+        await deleteDailyMenu(date, menuItemCode);
       };
 
       const handleDeleteOriginalMenu = async (originalMenuId: string) => {
-        if (window.confirm("このオリジナルメニューを削除しますか？")) {
-          await deleteDailyOriginalMenu(date, originalMenuId);
-        }
+        await deleteDailyOriginalMenu(date, originalMenuId);
       };
 
       // 🚀 change要素のリバート処理
@@ -160,9 +156,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
         menuId: string,
         isCommonMenu: boolean
       ) => {
-        if (window.confirm("この変更を取り消しますか？")) {
-          await revertChange(date, menuId, isCommonMenu);
-        }
+        await revertChange(date, menuId, isCommonMenu);
       };
 
       // 🚀 五十音順ソートのためのデータ構造

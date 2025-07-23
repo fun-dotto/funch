@@ -89,9 +89,6 @@ export default function Home() {
     const menu = active.data.current.menu as MenuItem;
     const overId = over.id as string;
 
-    console.log("Dropped menu:", menu);
-    console.log("Drop target:", overId);
-
     try {
       // カレンダーへのドロップの場合
       if (overId.includes("/")) {
@@ -117,19 +114,6 @@ export default function Home() {
             currentData.originalMenuData,
             currentData.changeData
           );
-
-        // 結果をログ出力
-        switch (result) {
-          case "added":
-            console.log(`新規追加: ${menu.name}`);
-            break;
-          case "revived":
-            console.log(`復活: ${menu.name}`);
-            break;
-          case "ignored":
-            console.log(`重複のため無視: ${menu.name}`);
-            break;
-        }
 
         // 🚀 最適化: 該当日のみ更新（全データ再取得なし）
         if (calendarRef.current?.refreshSingleDayChange) {
@@ -161,19 +145,6 @@ export default function Home() {
             currentData.originalMenus,
             currentData.monthlyChangeData
           );
-
-        // 結果をログ出力
-        switch (result) {
-          case "added":
-            console.log(`新規追加: ${menu.name}`);
-            break;
-          case "revived":
-            console.log(`復活: ${menu.name}`);
-            break;
-          case "ignored":
-            console.log(`重複のため無視: ${menu.name}`);
-            break;
-        }
 
         // 🚀 最適化: 月間変更データのみ更新（全データ再取得なし）
         if (monthMenuRef.current?.refreshMonthlyChangeOnly) {
