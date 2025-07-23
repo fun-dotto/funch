@@ -1,5 +1,4 @@
 import React from "react";
-import { MdClose } from "react-icons/md";
 import { FaPlus } from "react-icons/fa6";
 import { FaMinus } from "react-icons/fa6";
 
@@ -45,10 +44,15 @@ export const MenuItemList: React.FC<MenuItemListProps> = ({
     ? Math.max(0, sortedMenuItems.length - maxItems)
     : 0;
 
-  // 状態別スタイル取得
-  const getClassName = (item: DisplayMenuItem): string => {
-    const baseClass = "flex justify-between items-center relative";
+  // 外側コンテナのスタイル取得
+  const getContainerClassName = (): string => {
     const textSize = variant === "monthMenu" ? "text-[10px]" : "text-xs";
+    return `${textSize}`;
+  };
+
+  // 内側コンテンツのスタイル取得
+  const getContentClassName = (item: DisplayMenuItem): string => {
+    const baseClass = "flex justify-between items-center w-full gap-4";
 
     let stateClass = "";
 
@@ -66,7 +70,7 @@ export const MenuItemList: React.FC<MenuItemListProps> = ({
         : "bg-[#CDEFCF] text-[#006504]";
     }
 
-    return `${baseClass} ${textSize} ${stateClass}`;
+    return `${baseClass} ${stateClass}`;
   };
 
   // クリックハンドラー取得
@@ -114,17 +118,41 @@ export const MenuItemList: React.FC<MenuItemListProps> = ({
     return item.title;
   };
 
+  // ボタンアイコン取得
+  const getButtonIcon = (item: DisplayMenuItem) => {
+    const isDeleted =
+      variant === "monthMenu"
+        ? item.isAdded === false
+        : item.type === "deleted";
+
+    if (isDeleted) {
+      return <FaPlus />;
+    } else {
+      return <FaMinus />;
+    }
+  };
+
   return (
     <div className={className}>
       {displayItems.map((item) => (
-        <div key={item.id} className={getClassName(item)}>
-          <div className="flex justify-between items-center w-full gap-2">
-            <div className="flex-1 truncate">{getDisplayTitle(item)}</div>
+        <div key={item.id} className={getContainerClassName()}>
+          <div className={getContentClassName(item)}>
+            <div className="flex items-center truncate">
+              <span className="truncate">{getDisplayTitle(item)}</span>
+            </div>
             <div
-              className="text-black cursor-pointer hover:text-[#F51F1F]"
+              className={`text-black cursor-pointer ${
+                variant === "monthMenu"
+                  ? item.isAdded === false
+                    ? "hover:text-[#006504]" // 削除状態（プラスアイコン）は追加時の色
+                    : "hover:text-[#F51F1F]" // ノーマル・追加状態（マイナスアイコン）は削除時の色
+                  : item.type === "deleted"
+                  ? "hover:text-[#006504]" // 削除状態（プラスアイコン）は追加時の色
+                  : "hover:text-[#F51F1F]" // ノーマル・追加状態（マイナスアイコン）は削除時の色
+              }`}
               onClick={getClickHandler(item)}
             >
-              <MdClose />
+              {getButtonIcon(item)}
             </div>
           </div>
         </div>

@@ -108,7 +108,10 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
       }
     };
 
-    const handleRevertChange = async (menuId: string, isCommonMenu: boolean) => {
+    const handleRevertChange = async (
+      menuId: string,
+      isCommonMenu: boolean
+    ) => {
       if (window.confirm("この変更を取り消しますか？")) {
         await changeMenuService.removeMonthlyChangeEntry(
           year,
@@ -162,7 +165,7 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
               onAddOriginalMenu={handleAddOriginalMenu}
               onDragEnd={onDragEnd}
             >
-              <div className="flex gap-2 pl-6 pt-3">
+              <div className="flex gap-4 pl-6 pt-3 pr-3">
                 {[0, 1, 2].map((columnIndex) => {
                   // 🚀 五十音順ソートのためのデータ構造
                   const menuItems: DisplayMenuItem[] = [];
