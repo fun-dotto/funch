@@ -137,7 +137,7 @@ export const MenuItemList: React.FC<MenuItemListProps> = ({
       {displayItems.map((item) => (
         <div key={item.id} className={getContainerClassName()}>
           <div className={getContentClassName(item)}>
-            <div className="flex items-center truncate">
+            <div className={`flex items-center truncate ${variant === "monthMenu" ? "w-[100px]" : ""}`}>
               <span className="truncate">{getDisplayTitle(item)}</span>
             </div>
             <div

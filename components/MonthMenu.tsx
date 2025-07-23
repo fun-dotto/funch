@@ -274,7 +274,7 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
                   const columnItems = menuItems.slice(startIndex, endIndex);
 
                   return (
-                    <div key={columnIndex} className="w-full flex flex-col">
+                    <div key={columnIndex} className="flex-1 flex flex-col">
                       <MenuItemList
                         items={columnItems}
                         onDeleteMenu={handleRemoveMenu}
