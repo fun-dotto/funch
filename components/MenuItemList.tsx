@@ -52,7 +52,7 @@ export const MenuItemList: React.FC<MenuItemListProps> = ({
 
   // 内側コンテンツのスタイル取得
   const getContentClassName = (item: DisplayMenuItem): string => {
-    const baseClass = "flex justify-between items-center w-full gap-4";
+    const baseClass = "flex justify-between items-center w-full pr-12";
 
     let stateClass = "";
 
@@ -137,7 +137,11 @@ export const MenuItemList: React.FC<MenuItemListProps> = ({
       {displayItems.map((item) => (
         <div key={item.id} className={getContainerClassName()}>
           <div className={getContentClassName(item)}>
-            <div className={`flex items-center truncate ${variant === "monthMenu" ? "w-[100px]" : ""}`}>
+            <div
+              className={`flex items-center truncate ${
+                variant === "monthMenu" ? "w-[70%]" : ""
+              }`}
+            >
               <span className="truncate">{getDisplayTitle(item)}</span>
             </div>
             <div

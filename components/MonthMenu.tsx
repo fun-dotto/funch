@@ -165,7 +165,7 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
               onAddOriginalMenu={handleAddOriginalMenu}
               onDragEnd={onDragEnd}
             >
-              <div className="flex gap-4 pl-6 pt-3 pr-3">
+              <div className="flex pl-6 pt-3 pr-3">
                 {[0, 1, 2].map((columnIndex) => {
                   // 🚀 五十音順ソートのためのデータ構造
                   const menuItems: DisplayMenuItem[] = [];
@@ -274,7 +274,10 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
                   const columnItems = menuItems.slice(startIndex, endIndex);
 
                   return (
-                    <div key={columnIndex} className="flex-1 flex flex-col">
+                    <div
+                      key={columnIndex}
+                      className="w-[33.333%] flex flex-col"
+                    >
                       <MenuItemList
                         items={columnItems}
                         onDeleteMenu={handleRemoveMenu}
