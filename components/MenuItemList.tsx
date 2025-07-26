@@ -166,13 +166,6 @@ export const MenuItemList: React.FC<MenuItemListProps> = ({
         </div>
       ))}
 
-      {/* 残り件数表示（MonthMenuのみ） */}
-      {variant === "monthMenu" && remainingCount > 0 && (
-        <div className="flex justify-between items-center text-[10px] relative text-gray-500">
-          <div className="flex-1 truncate pr-6">他{remainingCount}件</div>
-          <div className="pr-12"></div>
-        </div>
-      )}
     </div>
   );
 };

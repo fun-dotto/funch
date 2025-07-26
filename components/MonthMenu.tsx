@@ -190,7 +190,10 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
                   // 2. 通常のオリジナルメニュー
                   originalMenus.forEach((originalMenu) => {
                     // 削除された場合は削除状態として表示
-                    if (monthlyChangeData.originalMenuIds[originalMenu.id] === false) {
+                    if (
+                      monthlyChangeData.originalMenuIds[originalMenu.id] ===
+                      false
+                    ) {
                       allMenuItems.push({
                         id: `c-${originalMenu.id}`,
                         title: `${originalMenu.title} (削除)`,
@@ -247,13 +250,29 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
 
                   // 🚀 全体をソートしてから列ごとに分割（カレンダーと同じソート順）
                   const sortedAllMenuItems = allMenuItems.sort((a, b) =>
-                    a.title.localeCompare(b.title, "ja", { sensitivity: "base" })
+                    a.title.localeCompare(b.title, "ja", {
+                      sensitivity: "base",
+                    })
                   );
 
                   // 各列のアイテムを計算
                   const startIndex = columnIndex * 8;
                   const endIndex = (columnIndex + 1) * 8;
-                  const columnItems = sortedAllMenuItems.slice(startIndex, endIndex);
+                  const columnItems = sortedAllMenuItems.slice(
+                    startIndex,
+                    endIndex
+                  );
+
+                  // 最後の列で全体の残り件数を計算
+                  const totalRemainingCount =
+                    sortedAllMenuItems.length > 23
+                      ? sortedAllMenuItems.length - 23
+                      : 0;
+                  const isLastColumn = columnIndex === 2;
+                  const maxItemsForColumn =
+                    isLastColumn && totalRemainingCount > 0
+                      ? Math.max(0, 23 - startIndex)
+                      : 8;
 
                   return (
                     <div
@@ -266,10 +285,17 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
                         onDeleteOriginalMenu={handleRemoveOriginalMenu}
                         onRevertChange={handleRevertChange}
                         variant="monthMenu"
-                        maxItems={
-                          endIndex <= 23 ? 8 : Math.max(0, 23 - startIndex)
-                        }
+                        maxItems={isLastColumn && totalRemainingCount > 0 ? maxItemsForColumn : undefined}
                       />
+                      {/* 最後の列でのみ全体の残り件数を表示 */}
+                      {isLastColumn && totalRemainingCount > 0 && (
+                        <div className="flex justify-between items-center text-[10px] relative text-gray-500">
+                          <div className="flex-1 truncate pr-6">
+                            他{totalRemainingCount}件
+                          </div>
+                          <div className="pr-12"></div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
