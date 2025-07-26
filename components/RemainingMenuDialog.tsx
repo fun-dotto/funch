@@ -39,22 +39,13 @@ export const RemainingMenuDialog: React.FC<RemainingMenuDialogProps> = ({
         </div>
 
         <div className="overflow-y-auto max-h-[65vh] bg-gray-50 rounded-lg p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {items.map((item, index) => (
-              <div
-                key={`${item.id}-${index}`}
-                className="border border-gray-200 bg-white rounded-lg p-3 hover:shadow-md transition-shadow duration-200"
-              >
-                <MenuItemList
-                  items={[item]}
-                  onDeleteMenu={onDeleteMenu}
-                  onDeleteOriginalMenu={onDeleteOriginalMenu}
-                  onRevertChange={onRevertChange}
-                  variant="monthMenu"
-                />
-              </div>
-            ))}
-          </div>
+          <MenuItemList
+            items={items}
+            onDeleteMenu={onDeleteMenu}
+            onDeleteOriginalMenu={onDeleteOriginalMenu}
+            onRevertChange={onRevertChange}
+            variant="monthMenu"
+          />
 
           {items.length === 0 && (
             <div className="text-center text-gray-500 py-8">
