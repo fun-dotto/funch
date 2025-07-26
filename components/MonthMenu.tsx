@@ -158,78 +158,64 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
             >
               <div className="flex pl-6 pt-3 pr-3">
                 {[0, 1, 2].map((columnIndex) => {
-                  // 🚀 五十音順ソートのためのデータ構造
-                  const menuItems: DisplayMenuItem[] = [];
+                  // 🚀 すべてのメニューアイテムを集めてからソート（カレンダーと同じ方式）
+                  const allMenuItems: DisplayMenuItem[] = [];
                   const displayedIds = new Set<string>();
 
-                  // 1. change false（削除）を収集
-                  // commonMenuIds の false
-                  Object.entries(monthlyChangeData.commonMenuIds).forEach(
-                    ([menuId, isAdded]) => {
-                      if (!isAdded) {
-                        menuItems.push({
-                          id: `c-${menuId}`,
-                          title: `${getMenuNameById(menuId)} (削除)`,
-                          type: "deleted",
-                          itemCode: parseInt(menuId, 10) || undefined,
-                          isChange: true,
-                          isAdded: isAdded,
-                        });
-                        displayedIds.add(menuId);
-                      }
-                    }
-                  );
-
-                  // originalMenuIds の false
-                  Object.entries(monthlyChangeData.originalMenuIds).forEach(
-                    ([menuId, isAdded]) => {
-                      if (!isAdded) {
-                        menuItems.push({
-                          id: `c-${menuId}`,
-                          title: `${getMenuNameById(menuId)} (削除)`,
-                          type: "deleted",
-                          originalId: menuId,
-                          isChange: true,
-                          isAdded: isAdded,
-                        });
-                        displayedIds.add(menuId);
-                      }
-                    }
-                  );
-
-                  // 2. 普通のmenu（重複除く）
+                  // 1. 通常の共通メニュー
                   menus.forEach((menu) => {
-                    if (!displayedIds.has(menu.item_code.toString())) {
-                      menuItems.push({
-                        id: menu.item_code.toString(),
+                    const menuIdStr = menu.item_code.toString();
+                    // 削除された場合は削除状態として表示
+                    if (monthlyChangeData.commonMenuIds[menuIdStr] === false) {
+                      allMenuItems.push({
+                        id: `c-${menuIdStr}`,
+                        title: `${menu.title} (削除)`,
+                        type: "deleted",
+                        itemCode: menu.item_code,
+                        isChange: true,
+                        isAdded: false,
+                      });
+                    } else {
+                      allMenuItems.push({
+                        id: menuIdStr,
                         title: menu.title,
                         type: "normal",
                         itemCode: menu.item_code,
                         isChange: false,
                       });
-                      displayedIds.add(menu.item_code.toString());
                     }
+                    displayedIds.add(menuIdStr);
                   });
 
+                  // 2. 通常のオリジナルメニュー
                   originalMenus.forEach((originalMenu) => {
-                    if (!displayedIds.has(originalMenu.id)) {
-                      menuItems.push({
+                    // 削除された場合は削除状態として表示
+                    if (monthlyChangeData.originalMenuIds[originalMenu.id] === false) {
+                      allMenuItems.push({
+                        id: `c-${originalMenu.id}`,
+                        title: `${originalMenu.title} (削除)`,
+                        type: "deleted",
+                        originalId: originalMenu.id,
+                        isChange: true,
+                        isAdded: false,
+                      });
+                    } else {
+                      allMenuItems.push({
                         id: originalMenu.id,
                         title: originalMenu.title,
                         type: "normal",
                         originalId: originalMenu.id,
                         isChange: false,
                       });
-                      displayedIds.add(originalMenu.id);
                     }
+                    displayedIds.add(originalMenu.id);
                   });
 
-                  // 3. change true（追加）（重複除く）
-                  // commonMenuIds の true
+                  // 3. 追加されたメニュー（共通メニュー）
                   Object.entries(monthlyChangeData.commonMenuIds).forEach(
                     ([menuId, isAdded]) => {
                       if (isAdded && !displayedIds.has(menuId)) {
-                        menuItems.push({
+                        allMenuItems.push({
                           id: `c-${menuId}`,
                           title: `${getMenuNameById(menuId)} (追加)`,
                           type: "added",
@@ -242,11 +228,11 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
                     }
                   );
 
-                  // originalMenuIds の true
+                  // 4. 追加されたメニュー（オリジナルメニュー）
                   Object.entries(monthlyChangeData.originalMenuIds).forEach(
                     ([menuId, isAdded]) => {
                       if (isAdded && !displayedIds.has(menuId)) {
-                        menuItems.push({
+                        allMenuItems.push({
                           id: `c-${menuId}`,
                           title: `${getMenuNameById(menuId)} (追加)`,
                           type: "added",
@@ -259,10 +245,15 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
                     }
                   );
 
+                  // 🚀 全体をソートしてから列ごとに分割（カレンダーと同じソート順）
+                  const sortedAllMenuItems = allMenuItems.sort((a, b) =>
+                    a.title.localeCompare(b.title, "ja", { sensitivity: "base" })
+                  );
+
                   // 各列のアイテムを計算
                   const startIndex = columnIndex * 8;
                   const endIndex = (columnIndex + 1) * 8;
-                  const columnItems = menuItems.slice(startIndex, endIndex);
+                  const columnItems = sortedAllMenuItems.slice(startIndex, endIndex);
 
                   return (
                     <div
