@@ -16,6 +16,7 @@ import { Menu, OriginalMenu } from "../src/types/Menu";
 import { useDroppable } from "@dnd-kit/core";
 import { MenuItemList, DisplayMenuItem } from "./MenuItemList";
 import { ChangeMenuService } from "../src/services/ChangeMenuService";
+import { RemainingMenuDialog } from "./RemainingMenuDialog";
 
 const monthMenuRepository = new FirebaseMonthMenuRepository();
 const monthMenuService = new MonthMenuService(monthMenuRepository);
@@ -44,6 +45,8 @@ export type MonthMenuRef = {
 const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
   ({ year, month, onAddMenu, onAddOriginalMenu, onDragEnd, children }, ref) => {
     const [user, setUser] = useState<User | null>(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [remainingItems, setRemainingItems] = useState<DisplayMenuItem[]>([]);
 
     const {
       menus,
@@ -290,7 +293,14 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
                       {/* 最後の列でのみ全体の残り件数を表示 */}
                       {isLastColumn && totalRemainingCount > 0 && (
                         <div className="flex justify-between items-center text-[10px] relative text-gray-500">
-                          <div className="flex-1 truncate pr-6">
+                          <div 
+                            className="flex-1 truncate pr-6 cursor-pointer hover:text-gray-700 hover:underline"
+                            onClick={() => {
+                              const remaining = sortedAllMenuItems.slice(23);
+                              setRemainingItems(remaining);
+                              setIsDialogOpen(true);
+                            }}
+                          >
                             他{totalRemainingCount}件
                           </div>
                           <div className="pr-12"></div>
@@ -316,6 +326,16 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
         </div>
 
         {children}
+        
+        <RemainingMenuDialog
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          items={remainingItems}
+          onDeleteMenu={handleRemoveMenu}
+          onDeleteOriginalMenu={handleRemoveOriginalMenu}
+          onRevertChange={handleRevertChange}
+          title={`残りのメニュー (${remainingItems.length}件)`}
+        />
       </div>
     );
   }
