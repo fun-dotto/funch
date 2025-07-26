@@ -3,6 +3,7 @@
 import React from "react";
 import { DisplayMenuItem } from "./MenuItemList";
 import { MenuItemList } from "./MenuItemList";
+import { Button } from "./ui/button";
 
 type RemainingMenuDialogProps = {
   isOpen: boolean;
@@ -21,24 +22,18 @@ export const RemainingMenuDialog: React.FC<RemainingMenuDialogProps> = ({
   onDeleteMenu,
   onDeleteOriginalMenu,
   onRevertChange,
-  title = "残りのメニュー",
+  title = "月間共通メニュー",
 }) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 max-w-4xl w-full mx-4 max-h-[85vh] overflow-hidden">
-        <div className="flex justify-between items-center mb-6">
+      <div className="bg-white rounded-lg shadow-xl p-6 w-[30%]">
+        <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center transition-colors duration-200 text-xl"
-          >
-            ×
-          </button>
         </div>
 
-        <div className="overflow-y-auto max-h-[65vh] bg-gray-50 rounded-lg p-4">
+        <div className="overflow-y-auto rounded-lg p-4">
           <MenuItemList
             items={items}
             onDeleteMenu={onDeleteMenu}
@@ -54,13 +49,14 @@ export const RemainingMenuDialog: React.FC<RemainingMenuDialogProps> = ({
           )}
         </div>
 
-        <div className="mt-6 flex justify-end">
-          <button
+        <div className="flex justify-center">
+          <Button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200 font-medium"
+            variant="destructive"
+            className="bg-white text-[#990000] border border-[#D87C7C] hover:bg-[#D87C7C]"
           >
             閉じる
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -288,12 +288,16 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
                         onDeleteOriginalMenu={handleRemoveOriginalMenu}
                         onRevertChange={handleRevertChange}
                         variant="monthMenu"
-                        maxItems={isLastColumn && totalRemainingCount > 0 ? maxItemsForColumn : undefined}
+                        maxItems={
+                          isLastColumn && totalRemainingCount > 0
+                            ? maxItemsForColumn
+                            : undefined
+                        }
                       />
                       {/* 最後の列でのみ全体の残り件数を表示 */}
                       {isLastColumn && totalRemainingCount > 0 && (
                         <div className="flex justify-between items-center text-[10px] relative text-gray-500">
-                          <div 
+                          <div
                             className="flex-1 truncate pr-6 cursor-pointer hover:text-gray-700 hover:underline"
                             onClick={() => {
                               const remaining = sortedAllMenuItems.slice(23);
@@ -326,7 +330,7 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
         </div>
 
         {children}
-        
+
         <RemainingMenuDialog
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
@@ -334,7 +338,7 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
           onDeleteMenu={handleRemoveMenu}
           onDeleteOriginalMenu={handleRemoveOriginalMenu}
           onRevertChange={handleRevertChange}
-          title={`残りのメニュー (${remainingItems.length}件)`}
+          title={"月間共通メニュー"}
         />
       </div>
     );
