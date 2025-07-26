@@ -3,11 +3,6 @@ import { User } from "firebase/auth";
 import { Menu, OriginalMenu, MenuItem } from "../types/Menu";
 import { MonthMenuService } from "../services/MonthMenuService";
 import { ChangeMenuService } from "../services/ChangeMenuService";
-import { MenuService } from "../services/MenuService";
-import { FirebaseMenuRepository } from "../repositories/firebase/MenuRepository";
-
-const menuRepository = new FirebaseMenuRepository();
-const menuService = new MenuService(menuRepository);
 
 export const useMonthMenuPresenter = (
   user: User | null,
@@ -35,23 +30,47 @@ export const useMonthMenuPresenter = (
       setError(null);
 
       try {
-        // メニューデータを並行して取得
+        // メニューデータを並行して取得（APIから最新データを取得）
         const [
           monthResult,
-          allMenusResult,
-          allOriginalMenusResult,
+          menuResponse,
+          originalMenuResponse,
           monthlyChange,
         ] = await Promise.all([
           monthMenuService.getMonthMenuData(currentYear, currentMonth),
-          menuService.getAllMenus(),
-          menuService.getOriginalMenus(),
+          fetch("/api/menu"),
+          fetch("/api/original_menu"),
           changeMenuService.getMonthlyChangeData(currentYear, currentMonth),
         ]);
 
+        if (!menuResponse.ok || !originalMenuResponse.ok) {
+          throw new Error("API呼び出しに失敗しました");
+        }
+
+        const menuData = await menuResponse.json();
+        const originalMenuData = await originalMenuResponse.json();
+
         setMenus(monthResult.menus);
         setOriginalMenus(monthResult.originalMenus);
-        setAllMenus(allMenusResult);
-        setAllOriginalMenus(allOriginalMenusResult);
+        setAllMenus(menuData.data.menus.map((item: any) => ({
+          id: item.id,
+          item_code: item.id,
+          title: item.name,
+          price: item.price,
+          image: item.image,
+          category: item.category_id,
+          large: item.large,
+          small: item.small,
+          energy: item.energy,
+        })));
+        setAllOriginalMenus(originalMenuData.data.menus.map((item: any) => ({
+          id: item.id,
+          title: item.name,
+          price: item.price,
+          image: item.image,
+          category: item.category_id,
+          energy: item.energy,
+        })));
         setMonthlyChangeData(monthlyChange);
       } catch (error) {
         console.error("月間メニューデータの取得に失敗しました:", error);
@@ -174,23 +193,47 @@ export const useMonthMenuPresenter = (
     setError(null);
 
     try {
-      // メニューデータを並行して取得
+      // メニューデータを並行して取得（APIから最新データを取得）
       const [
         monthResult,
-        allMenusResult,
-        allOriginalMenusResult,
+        menuResponse,
+        originalMenuResponse,
         monthlyChange,
       ] = await Promise.all([
         monthMenuService.getMonthMenuData(currentYear, currentMonth),
-        menuService.getAllMenus(),
-        menuService.getOriginalMenus(),
+        fetch("/api/menu"),
+        fetch("/api/original_menu"),
         changeMenuService.getMonthlyChangeData(currentYear, currentMonth),
       ]);
 
+      if (!menuResponse.ok || !originalMenuResponse.ok) {
+        throw new Error("API呼び出しに失敗しました");
+      }
+
+      const menuData = await menuResponse.json();
+      const originalMenuData = await originalMenuResponse.json();
+
       setMenus(monthResult.menus);
       setOriginalMenus(monthResult.originalMenus);
-      setAllMenus(allMenusResult);
-      setAllOriginalMenus(allOriginalMenusResult);
+      setAllMenus(menuData.data.menus.map((item: any) => ({
+        id: item.id,
+        item_code: item.id,
+        title: item.name,
+        price: item.price,
+        image: item.image,
+        category: item.category_id,
+        large: item.large,
+        small: item.small,
+        energy: item.energy,
+      })));
+      setAllOriginalMenus(originalMenuData.data.menus.map((item: any) => ({
+        id: item.id,
+        title: item.name,
+        price: item.price,
+        image: item.image,
+        category: item.category_id,
+        energy: item.energy,
+      })));
       setMonthlyChangeData(monthlyChange);
     } catch (error) {
       console.error("月間メニューデータの取得に失敗しました:", error);
@@ -236,6 +279,47 @@ export const useMonthMenuPresenter = (
     }
   };
 
+  // 🚀 メニューデータのみ再取得（オリジナルメニュー追加時に使用）
+  const refreshAllMenusData = async () => {
+    if (!user) return;
+
+    try {
+      const [menuResponse, originalMenuResponse] = await Promise.all([
+        fetch("/api/menu"),
+        fetch("/api/original_menu"),
+      ]);
+
+      if (!menuResponse.ok || !originalMenuResponse.ok) {
+        throw new Error("API呼び出しに失敗しました");
+      }
+
+      const menuData = await menuResponse.json();
+      const originalMenuData = await originalMenuResponse.json();
+
+      setAllMenus(menuData.data.menus.map((item: any) => ({
+        id: item.id,
+        item_code: item.id,
+        title: item.name,
+        price: item.price,
+        image: item.image,
+        category: item.category_id,
+        large: item.large,
+        small: item.small,
+        energy: item.energy,
+      })));
+      setAllOriginalMenus(originalMenuData.data.menus.map((item: any) => ({
+        id: item.id,
+        title: item.name,
+        price: item.price,
+        image: item.image,
+        category: item.category_id,
+        energy: item.energy,
+      })));
+    } catch (error) {
+      console.error("メニューデータの更新に失敗しました:", error);
+    }
+  };
+
   return {
     menus,
     originalMenus,
@@ -249,6 +333,7 @@ export const useMonthMenuPresenter = (
     saveMonthMenuData,
     refreshData,
     refreshMonthlyChangeOnly, // 🚀 新機能
+    refreshAllMenusData, // 🚀 メニューデータ再取得
     getMenuNameById,
   };
 };

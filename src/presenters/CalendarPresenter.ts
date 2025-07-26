@@ -3,11 +3,6 @@ import { User } from "firebase/auth";
 import { Menu, OriginalMenu } from "../types/Menu";
 import { UniqueIdentifier } from "@dnd-kit/core";
 import { CalendarMenuService } from "../services/CalendarService";
-import { MenuService } from "../services/MenuService";
-import { FirebaseMenuRepository } from "../repositories/firebase/MenuRepository";
-
-const menuRepository = new FirebaseMenuRepository();
-const menuService = new MenuService(menuRepository);
 
 export const useCalendarMenuPresenter = (
   user: User | null,
@@ -38,19 +33,43 @@ export const useCalendarMenuPresenter = (
 
       setLoading(true);
       try {
-        // メニューデータを並行して取得
-        const [menuResult, allMenusResult, allOriginalMenusResult] =
+        // メニューデータを並行して取得（APIから最新データを取得）
+        const [menuResult, menuResponse, originalMenuResponse] =
           await Promise.all([
             calendarMenuService.getMonthMenuData(currentYear, currentMonth),
-            menuService.getAllMenus(),
-            menuService.getOriginalMenus(),
+            fetch("/api/menu"),
+            fetch("/api/original_menu"),
           ]);
+
+        if (!menuResponse.ok || !originalMenuResponse.ok) {
+          throw new Error("API呼び出しに失敗しました");
+        }
+
+        const menuData = await menuResponse.json();
+        const originalMenuData = await originalMenuResponse.json();
 
         setMenuData(menuResult.menuData);
         setOriginalMenuData(menuResult.originalMenuData);
         setChangeData(menuResult.changeData);
-        setAllMenus(allMenusResult);
-        setAllOriginalMenus(allOriginalMenusResult);
+        setAllMenus(menuData.data.menus.map((item: any) => ({
+          id: item.id,
+          item_code: item.id,
+          title: item.name,
+          price: item.price,
+          image: item.image,
+          category: item.category_id,
+          large: item.large,
+          small: item.small,
+          energy: item.energy,
+        })));
+        setAllOriginalMenus(originalMenuData.data.menus.map((item: any) => ({
+          id: item.id,
+          title: item.name,
+          price: item.price,
+          image: item.image,
+          category: item.category_id,
+          energy: item.energy,
+        })));
       } catch (error) {
         console.error("メニューデータの取得に失敗しました:", error);
       } finally {
@@ -129,19 +148,43 @@ export const useCalendarMenuPresenter = (
 
     setLoading(true);
     try {
-      // メニューデータを並行して取得
-      const [menuResult, allMenusResult, allOriginalMenusResult] =
+      // メニューデータを並行して取得（APIから最新データを取得）
+      const [menuResult, menuResponse, originalMenuResponse] =
         await Promise.all([
           calendarMenuService.getMonthMenuData(currentYear, currentMonth),
-          menuService.getAllMenus(),
-          menuService.getOriginalMenus(),
+          fetch("/api/menu"),
+          fetch("/api/original_menu"),
         ]);
+
+      if (!menuResponse.ok || !originalMenuResponse.ok) {
+        throw new Error("API呼び出しに失敗しました");
+      }
+
+      const menuData = await menuResponse.json();
+      const originalMenuData = await originalMenuResponse.json();
 
       setMenuData(menuResult.menuData);
       setOriginalMenuData(menuResult.originalMenuData);
       setChangeData(menuResult.changeData);
-      setAllMenus(allMenusResult);
-      setAllOriginalMenus(allOriginalMenusResult);
+      setAllMenus(menuData.data.menus.map((item: any) => ({
+        id: item.id,
+        item_code: item.id,
+        title: item.name,
+        price: item.price,
+        image: item.image,
+        category: item.category_id,
+        large: item.large,
+        small: item.small,
+        energy: item.energy,
+      })));
+      setAllOriginalMenus(originalMenuData.data.menus.map((item: any) => ({
+        id: item.id,
+        title: item.name,
+        price: item.price,
+        image: item.image,
+        category: item.category_id,
+        energy: item.energy,
+      })));
     } catch (error) {
       console.error("メニューデータの取得に失敗しました:", error);
     } finally {
@@ -178,6 +221,47 @@ export const useCalendarMenuPresenter = (
       console.error("変更データの更新に失敗しました:", error);
     } finally {
       setLoading(false); // ローディング終了
+    }
+  };
+
+  // 🚀 メニューデータのみ再取得（オリジナルメニュー追加時に使用）
+  const refreshAllMenusData = async () => {
+    if (!user) return;
+
+    try {
+      const [menuResponse, originalMenuResponse] = await Promise.all([
+        fetch("/api/menu"),
+        fetch("/api/original_menu"),
+      ]);
+
+      if (!menuResponse.ok || !originalMenuResponse.ok) {
+        throw new Error("API呼び出しに失敗しました");
+      }
+
+      const menuData = await menuResponse.json();
+      const originalMenuData = await originalMenuResponse.json();
+
+      setAllMenus(menuData.data.menus.map((item: any) => ({
+        id: item.id,
+        item_code: item.id,
+        title: item.name,
+        price: item.price,
+        image: item.image,
+        category: item.category_id,
+        large: item.large,
+        small: item.small,
+        energy: item.energy,
+      })));
+      setAllOriginalMenus(originalMenuData.data.menus.map((item: any) => ({
+        id: item.id,
+        title: item.name,
+        price: item.price,
+        image: item.image,
+        category: item.category_id,
+        energy: item.energy,
+      })));
+    } catch (error) {
+      console.error("メニューデータの更新に失敗しました:", error);
     }
   };
 
@@ -254,6 +338,7 @@ export const useCalendarMenuPresenter = (
     deleteDailyOriginalMenu,
     refreshData,
     refreshSingleDayChange, // 🚀 新機能
+    refreshAllMenusData, // 🚀 メニューデータ再取得
     revertChange, // 🚀 リバート機能
     getMenuNameById,
     confirmMenuChanges, // 🚀 確定処理

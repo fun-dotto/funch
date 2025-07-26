@@ -115,6 +115,11 @@ export default function Home() {
             currentData.changeData
           );
 
+        // 🚀 オリジナルメニュー追加時は全メニューデータも更新
+        if (typeof menu.id === "string") {
+          await calendarRef.current?.refreshAllMenusData();
+        }
+
         // 🚀 最適化: 該当日のみ更新（全データ再取得なし）
         if (calendarRef.current?.refreshSingleDayChange) {
           await calendarRef.current.refreshSingleDayChange(targetDate);
@@ -145,6 +150,11 @@ export default function Home() {
             currentData.originalMenus,
             currentData.monthlyChangeData
           );
+
+        // 🚀 オリジナルメニュー追加時は全メニューデータも更新
+        if (typeof menu.id === "string") {
+          await monthMenuRef.current?.refreshAllMenusData();
+        }
 
         // 🚀 最適化: 月間変更データのみ更新（全データ再取得なし）
         if (monthMenuRef.current?.refreshMonthlyChangeOnly) {

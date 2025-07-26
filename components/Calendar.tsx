@@ -31,6 +31,7 @@ type CalendarProps = {
 export type CalendarRef = {
   refreshData: () => Promise<void>;
   refreshSingleDayChange: (date: Date) => Promise<void>; // 🚀 最適化関数
+  refreshAllMenusData: () => Promise<void>; // 🚀 メニューデータ再取得
   getCurrentData: (dateId: string) => {
     menuData: any[];
     originalMenuData: any[];
@@ -53,6 +54,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
       deleteDailyOriginalMenu,
       refreshData,
       refreshSingleDayChange,
+      refreshAllMenusData,
       revertChange,
       getMenuNameById,
     } = useCalendarMenuPresenter(
@@ -77,6 +79,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
     useImperativeHandle(ref, () => ({
       refreshData,
       refreshSingleDayChange, // 🚀 最適化関数を公開
+      refreshAllMenusData, // 🚀 メニューデータ再取得を公開
       getCurrentData: (dateId: string) => ({
         menuData: menuData.get(dateId) || [],
         originalMenuData: originalMenuData.get(dateId) || [],

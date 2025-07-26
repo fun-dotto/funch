@@ -33,6 +33,7 @@ type MonthMenuProps = {
 export type MonthMenuRef = {
   refreshData: () => Promise<void>;
   refreshMonthlyChangeOnly: () => Promise<void>; // 🚀 最適化関数
+  refreshAllMenusData: () => Promise<void>; // 🚀 メニューデータ再取得
   getCurrentData: () => {
     menus: any[];
     originalMenus: any[];
@@ -57,6 +58,7 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
       saveMonthMenuData,
       refreshData,
       refreshMonthlyChangeOnly,
+      refreshAllMenusData,
       getMenuNameById,
     } = useMonthMenuPresenter(user, year, month, monthMenuService);
 
@@ -75,6 +77,7 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
     useImperativeHandle(ref, () => ({
       refreshData,
       refreshMonthlyChangeOnly, // 🚀 最適化関数を公開
+      refreshAllMenusData, // 🚀 メニューデータ再取得を公開
       getCurrentData: () => ({
         menus,
         originalMenus,
