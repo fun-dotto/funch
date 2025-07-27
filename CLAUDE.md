@@ -1,225 +1,219 @@
-# CLAUDE.md - Clean Architecture Layer Guidelines
+# CLAUDE.md
 
-## 概要
+このファイルは、このリポジトリでコードを扱う際の Claude Code（claude.ai/code）向けガイダンスを提供します。
 
-このドキュメントは、Firebase を使った Web アプリケーションにおける Clean Architecture の実装指針を定義します。各層の責務を明確に分離し、保守性・テスト性・拡張性を向上させることを目的としています。
+## ルール
 
-## アーキテクチャ構成
+### 📋 ドキュメント管理
 
-```
-┌─────────────────┐
-│   UI Layer      │ ← ユーザーインターフェース
-├─────────────────┤
-│ Presenter Layer │ ← UI制御・状態管理
-├─────────────────┤
-│ Service Layer   │ ← ビジネスロジック
-├─────────────────┤
-│Repository Layer │ ← データアクセス
-└─────────────────┘
-```
+- **必須**: プロジェクトに変更を加える際は、CLAUDE.md の内容に変更が必要かどうかを都度確認すること
+- **必須**: CLAUDE.md の内容が現在のプロジェクト状態と乖離している場合は、必要に応じて更新すること
 
-## 各層の責務定義
+### 🌐 言語・エンコーディング
 
-### 1. UI Layer（UI コンポーネント層）
+- **必須**: 全ての出力は日本語で行うこと
+- **必須**: 日本語をファイルに出力する場合は、UTF-8 エンコーディングを使用すること
+- **必須**: ファイルの最終行は改行すること
 
-**責務**: 画面の描画とユーザーインタラクションの処理
+### 📁 ファイル命名規則
 
-**含むべき処理**:
+- **TypeScript**: `.ts`および`.tsx` のファイル名は、`PascalCase` で命名すること
 
-- JSX/TSX による画面レンダリング
-- ユーザーイベントの受け取り（onClick, onChange など）
-- 表示用データの軽微な加工（日付フォーマット、表示文字列の変換など）
-- ローディング状態、エラー状態の表示
-- フォーム入力値の管理（useState での値保持）
-- モーダル、ドロワーなどの UI 状態管理
+### 💻 TypeScript コーディング規則
 
-**含まないべき処理**:
+- **必須**: `any`型の使用を禁止すること
+- **必須**: 型の安全性を保つため、具体的な型定義を使用すること
+- **推奨**: `unknown`、`object`、`Record<string, unknown>`等の適切な型を使用すること
+- **例外**: 既存のライブラリの型定義が不完全な場合のみ、`// eslint-disable-next-line @typescript-eslint/no-explicit-any`コメントと共に一時的に許可
 
-- データの永続化処理
-- ビジネスルールの実装
-- バリデーション処理
-- 非同期処理の制御
-- エラーハンドリングの詳細
+### 📝 コード生成・ファイル作成時のルール
 
-**ファイル例**:
+- **必須**: ファイルの最終行は改行で終わること
+- **必須**: 不要な空白行やインデントを挿入しないこと
+- **必須**: リスト項目の後に不要な空白やプレースホルダーを残さないこと
+- **必須**: マークダウンファイルでは適切な改行とスペーシングを保つこと
+- **禁止**: テンプレートファイル作成時に `- ` や `1. ` の後に余分なスペースやプレースホルダーを入れること
+- **禁止**: 不完全な構文（閉じられていないタグ、不適切なインデントなど）を残すこと
 
-- `UserListView.tsx`
-- `MenuCalendarView.tsx`
-- `LoginFormView.tsx`
+## 開発コマンド
 
-### 2. Presenter Layer（プレゼンター層）
+- **開発サーバー**: `npm run dev`
+- **本番ビルド**: `npm run build`
+- **リンティング**: `npm run lint`
+- **本番サーバー**: `npm run start`
 
-**責務**: UI と Service の仲介、UI 固有のロジック処理
+## アーキテクチャ概要
 
-**含むべき処理**:
+これは**Next.js 15.3.5**プロジェクトで、**TypeScript**、**Tailwind CSS**、**shadcn/ui**、**Firebase**を使用し、メニュー管理システム向けの**Clean Architecture**アプローチで設計されています。
 
-- Service Layer への処理委譲
-- 非同期処理の制御（loading 状態管理）
-- UI 固有のエラーハンドリング
-- 複数の Service を組み合わせた処理
-- UI 状態の管理（どの画面を表示するかなど）
-- 成功・失敗メッセージの表示制御
-- 確認ダイアログの制御
-- フォームデータの Service への受け渡し
+### レイヤードアーキテクチャ
 
-**含まないべき処理**:
-
-- ビジネスロジック
-- データベース操作
-- バリデーション処理
-- 実際の画面描画
-
-**ファイル例**:
-
-- `UserPresenter.ts`
-- `MenuCalendarPresenter.ts`
-- `LoginPresenter.ts`
-
-### 3. Service Layer（サービス層）
-
-**責務**: ビジネスロジックとドメイン固有の処理
-
-**含むべき処理**:
-
-- ビジネスルールの実装
-- データのバリデーション
-- 複数 Repository の組み合わせ処理
-- トランザクション制御
-- ドメインエンティティの生成・変換
-- 重複チェック、存在チェック
-- 権限チェック
-- 計算処理（合計、平均など）
-- 状態遷移の管理
-- ビジネス例外の発生
-
-**含まないべき処理**:
-
-- Firebase 固有の処理
-- UI 固有の処理
-- 画面制御
-- 外部 API 通信（Repository で実装）
-
-**ファイル例**:
-
-- `UserService.ts`
-- `MenuService.ts`
-- `AuthService.ts`
-
-### 4. Repository Layer（レポジトリ層）
-
-**責務**: データの永続化とデータアクセス
-
-**含むべき処理**:
-
-- Firebase CRUD 操作（create, read, update, delete）
-- Firestore クエリの実行
-- データの型変換（Entity ↔ Firestore Document）
-- バッチ処理
-- リアルタイム更新の監視
-- インデックス最適化
-- 外部 API 通信
-- キャッシュ処理
-- 接続エラーのハンドリング
-
-**含まないべき処理**:
-
-- ビジネスロジック
-- バリデーション
-- UI 制御
-- 複雑な計算処理
-
-**ファイル例**:
-
-- `FirebaseUserRepository.ts`
-- `FirebaseMenuRepository.ts`
-- `LocalStorageRepository.ts`
-
-## 層間の依存関係
-
-### 依存の方向
+プロジェクトは以下の 4 層構造で構成されます：
 
 ```
-UI Layer → Presenter Layer → Service Layer → Repository Layer
+UI Layer (Components)
+    ↓
+Presenter Layer
+    ↓
+Service Layer
+    ↓
+Repository Layer
+    ↓
+External Data Source (Firebase, API)
 ```
 
-### インターフェース設計
+#### 1. UI Layer（UI レイヤー）
 
-- 各層は下位層のインターフェースに依存する
-- 上位層は下位層の具体実装を知らない
-- Repository は interface として定義し、DI で注入する
+- **責務**: ユーザーインターフェースの描画とユーザーインタラクション
+- **技術**: React Components, Next.js App Router, Tailwind CSS, shadcn/ui
+- **場所**: `components/`, `src/app/`
+- **特徴**: プレゼンテーション専用、ビジネスロジックは含まない
 
-## データフロー
+#### 2. Presenter Layer（プレゼンターレイヤー）
 
-### 作成処理のフロー
+- **責務**: UI の状態管理、イベントハンドリング、サービス層との橋渡し
+- **技術**: React Hooks, Custom Hooks
+- **場所**: `src/presenters/`
+- **特徴**: UI とビジネスロジックの分離、テスタブルな状態管理
+
+#### 3. Service Layer（サービスレイヤー）
+
+- **責務**: ビジネスロジック、データ変換、複数リポジトリの組み合わせ
+- **場所**: `src/services/`
+- **特徴**: ドメイン固有のロジック、トランザクション管理
+
+#### 4. Repository Layer（リポジトリレイヤー）
+
+- **責務**: データアクセスの抽象化、Firebase/API クライアントの管理
+- **場所**: `src/repositories/`
+- **特徴**: データソースの詳細を隠蔽、型安全なデータアクセス
+
+### 現在のファイル構造
+
+```
+src/
+├── app/                     # Next.js App Router
+│   ├── api/                 # API Routes
+│   │   ├── daily_menu/      # 日次メニューAPI
+│   │   ├── image/           # 画像API
+│   │   ├── menu/            # メニューAPI
+│   │   ├── monthly_menu/    # 月次メニューAPI
+│   │   └── original_menu/   # オリジナルメニューAPI
+│   ├── globals.css          # グローバルスタイル
+│   ├── layout.tsx           # ルートレイアウト
+│   └── page.tsx             # ホームページ
+├── infrastructure/          # インフラ設定
+│   └── firebase.ts          # Firebase設定
+├── presenters/              # Presenter Layer
+│   ├── CalendarPresenter.ts
+│   ├── MenuListPresenter.ts
+│   ├── MonthMenuPresenter.ts
+│   └── OriginalMenuPresenter.ts
+├── repositories/            # Repository Layer
+│   ├── api/                 # API Repository
+│   ├── firebase/            # Firebase Repository
+│   │   ├── CalendarRepository.ts
+│   │   ├── ImageRepository.ts
+│   │   ├── MenuRepository.ts
+│   │   └── MonthMenuRepository.ts
+│   └── interfaces/          # Repository Interfaces
+│       ├── CalendarMenuRepository.ts
+│       ├── MenuRepository.ts
+│       └── MonthMenuRepository.ts
+├── services/                # Service Layer
+│   ├── CalendarService.ts
+│   ├── ChangeMenuService.ts
+│   ├── ImageService.ts
+│   ├── MenuService.ts
+│   ├── MonthMenuService.ts
+│   ├── OriginalMenuCRUDService.ts
+│   └── OriginalMenuService.ts
+├── types/                   # 型定義
+│   └── Menu.ts
+└── utils/                   # ユーティリティ
+
+components/                  # UI Layer
+├── ui/                      # UI Components
+│   ├── ImageUpload.tsx
+│   ├── PriceInput.tsx
+│   ├── button.tsx
+│   └── checkbox.tsx
+├── Calendar.tsx
+├── Header.tsx
+├── MenuItemList.tsx
+├── MenuList.tsx
+├── MonthMenu.tsx
+├── OriginalMenuEditForm.tsx
+├── OriginalMenuList.tsx
+├── RemainingMenuDialog.tsx
+├── SettingTab.tsx
+└── date.tsx
+```
+
+### コアデータモデル
+
+**Menu スキーマ**: 基本情報（id、title、price）、カテゴリ情報（category）、サイズ情報（large、small）、エネルギー情報（energy）、画像情報（image）を含みます。
+
+**MenuItem スキーマ**: メニューアイテムの詳細情報（item_code、title、price、category_id、image_url、large、small、energy）を持つ表示用の型です。
+
+**OriginalMenu スキーマ**: ユーザーが作成したオリジナルメニューの情報を管理します。
+
+### Firebase 設定
+
+**Firebase 初期化**: プロジェクトは Firebase SDK を統合し、以下の機能を提供します：
+
+**設定ファイル**:
+
+- `src/infrastructure/firebase.ts`: Firebase 初期化設定
+
+**Firebase 機能**:
+
+- **Firestore**: メニューデータの永続化
+- **Storage**: 画像ファイルの保存
+- **Authentication**: ユーザー認証（設定済み）
+
+**必要な環境変数**:
+
+- `NEXT_PUBLIC_FIREBASE_API_KEY`: Firebase API Key
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`: Firebase 認証ドメイン
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID`: Firebase プロジェクト ID
+- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`: Firebase Storage bucket
+- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`: Firebase Messaging sender ID
+- `NEXT_PUBLIC_FIREBASE_APP_ID`: Firebase App ID
+
+### データフロー
+
+#### 作成処理のフロー
 
 1. **UI Layer**: フォームデータを取得
 2. **Presenter Layer**: Service に処理を委譲
 3. **Service Layer**: バリデーション → ビジネスロジック適用
 4. **Repository Layer**: Firebase に保存
 
-### 取得処理のフロー
+#### 取得処理のフロー
 
 1. **UI Layer**: 画面表示時にデータ要求
 2. **Presenter Layer**: Service に処理を委譲
 3. **Service Layer**: 必要に応じてデータ変換
 4. **Repository Layer**: Firebase からデータ取得
 
-### 更新処理のフロー
+#### 更新処理のフロー
 
 1. **UI Layer**: 編集フォームデータを取得
 2. **Presenter Layer**: Service に処理を委譲
 3. **Service Layer**: 更新可能性チェック → 更新処理
 4. **Repository Layer**: Firebase のデータ更新
 
-### 削除処理のフロー
+#### 削除処理のフロー
 
 1. **UI Layer**: 削除確認ダイアログ
 2. **Presenter Layer**: Service に処理を委譲
 3. **Service Layer**: 削除可能性チェック → 削除処理
 4. **Repository Layer**: Firebase からデータ削除
 
-## エラーハンドリング
+### 実装時の注意点
 
-### エラーの種類と処理層
-
-- **ValidationError**: Service Layer で生成、Presenter Layer で UI 用メッセージに変換
-- **BusinessError**: Service Layer で生成、Presenter Layer で UI 用メッセージに変換
-- **NotFoundError**: Repository Layer で生成、Service Layer で適切な処理
-- **NetworkError**: Repository Layer で生成、Presenter Layer で再試行制御
-
-### エラーハンドリングの流れ
-
-1. **Repository Layer**: 技術的エラーを検出・変換
-2. **Service Layer**: ビジネスエラーを検出・生成
-3. **Presenter Layer**: UI 用エラーメッセージに変換・表示制御
-4. **UI Layer**: エラーメッセージを表示
-
-## ファイル構成例
-
-```
-src/
-├── components/           # UI Layer
-│   ├── UserListView.tsx
-│   ├── MenuCalendarView.tsx
-│   └── common/
-├── presenters/          # Presenter Layer
-│   ├── UserPresenter.ts
-│   ├── MenuCalendarPresenter.ts
-│   └── types/
-├── services/            # Service Layer
-│   ├── UserService.ts
-│   ├── MenuService.ts
-│   └── errors/
-├── repositories/        # Repository Layer
-│   ├── interfaces/
-│   ├── firebase/
-│   └── local/
-└── types/              # 共通型定義
-```
-
-## 実装時の注意点
-
-### DO（すべき）
+#### DO（すべき）
 
 - 各層の責務を明確に分離する
 - インターフェースを使って依存関係を管理する
@@ -227,7 +221,7 @@ src/
 - 単一責任の原則を守る
 - 各層でのテストを書く
 
-### DON'T（すべきでない）
+#### DON'T（すべきでない）
 
 - UI Layer でビジネスロジックを実装する
 - Repository Layer でバリデーションを行う
@@ -235,14 +229,61 @@ src/
 - 層をスキップした直接的な依存関係を作る
 - 上位層の詳細を下位層に持ち込む
 
-## まとめ
+### 重要な注意事項
 
-この指針に従うことで、以下の利点が得られます：
+- **パッケージマネージャー**: npm を使用（yarn/pnpm ではない）
+- **Node.js**: 対応バージョンの使用を推奨
+- **開発サーバー**: `npm run dev`で動作
+- **API サーバー**: `http://localhost:3000/api`で動作（Next.js API ルート）
+- **データベース**: Firebase Firestore + Firebase Storage
+- **認証**: Firebase Authentication
 
-1. **保守性**: 各層の責務が明確で変更しやすい
-2. **テスト性**: 各層を独立してテストできる
-3. **拡張性**: 新機能追加時に適切な層に実装できる
-4. **可読性**: コードの意図が明確になる
-5. **再利用性**: 各層のコンポーネントを他の機能でも使用できる
+## 主要な依存関係
 
-各層の責務を守り、依存関係を正しく管理することで、スケーラブルで保守性の高いアプリケーションを構築できます。
+### フロントエンド
+
+- **React**: 18.3.1 - UI ライブラリ
+- **Next.js**: 15.3.5 - React フレームワーク
+- **TypeScript**: 5.5.3 - 型安全性
+- **Tailwind CSS**: 3.4.10 - スタイリング
+
+### UI/UX
+
+- **shadcn/ui**: モダンなUIコンポーネントライブラリ
+- **lucide-react**: 0.525.0 - アイコンライブラリ
+- **react-icons**: 5.3.0 - アイコンライブラリ
+- **@radix-ui**: コンポーネントライブラリ
+- **@dnd-kit/core**: 6.1.0 - ドラッグアンドドロップ
+- **clsx**: 2.1.1 - 条件付きクラス名管理
+- **tailwind-merge**: 3.3.1 - TailwindCSSクラスのマージ
+- **class-variance-authority**: 0.7.1 - バリアント管理
+
+### データベース・認証
+
+- **firebase**: 11.2.0 - Firebase SDK
+- **react-select**: 5.8.2 - セレクトコンポーネント
+- **wanakana**: 5.3.1 - 日本語変換ライブラリ
+
+### 開発
+
+- **ESLint**: 9.8.0 - コード品質チェック
+- **TypeScript ESLint**: 8.0.0 - TypeScript 用 ESLint
+
+### shadcn/ui 設定
+
+**shadcn/ui コンポーネントシステム**: プロジェクトはモダンなUIコンポーネントライブラリ shadcn/ui を使用します：
+
+**設定ファイル**:
+- `components.json`: shadcn/ui 設定（New Yorkスタイル、TypeScript、Tailwind CSS変数使用）
+- `lib/utils.ts`: クラス名結合用ユーティリティ（`cn`関数）
+
+**利用可能なUIコンポーネント**:
+- `Button`: 複数バリアント対応ボタン
+- `Input`: 入力フィールドコンポーネント
+- `Checkbox`: チェックボックスコンポーネント
+- `ImageUpload`: 画像アップロードコンポーネント
+- `PriceInput`: 価格入力コンポーネント
+
+**コンポーネント配置**:
+- `components/ui/`: shadcn/ui コンポーネント
+- `@/components`, `@/lib/utils` などのパスエイリアス設定済み

@@ -1,0 +1,114 @@
+name: 🐛 バグレポート
+description: バグや問題を報告してください
+title: "[Bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        バグを報告していただき、ありがとうございます。以下の情報を記入してください。
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 🐛 バグの概要
+      description: バグの内容を簡潔に説明してください
+      placeholder: 何が起こっているか、何が期待されているかを記述してください
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 🔄 再現手順
+      description: バグを再現するための手順を記載してください
+      placeholder: |
+        1. '...'にアクセスする
+        2. '...'をクリックする
+        3. エラーが発生する
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: ✅ 期待される動作
+      description: 本来どのような動作をするべきかを記載してください
+      placeholder: 正常に動作する場合の挙動を記述してください
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 💥 実際の動作
+      description: 実際に起こった動作を記載してください
+      placeholder: バグが発生した時の実際の挙動を記述してください
+    validations:
+      required: true
+
+  - type: dropdown
+    id: layer
+    attributes:
+      label: 🏗️ 影響する層（Clean Architecture）
+      description: どの層に関連するバグか選択してください
+      options:
+        - UI Layer (Components)
+        - Presenter Layer
+        - Service Layer
+        - Repository Layer
+        - その他・不明
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: environment
+    attributes:
+      label: 🌐 確認した環境
+      description: バグが発生した環境をチェックしてください
+      options:
+        - label: Chrome
+        - label: Safari
+        - label: Firefox
+        - label: Mobile Safari
+        - label: Mobile Chrome
+        - label: その他
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 📸 スクリーンショット・エラーログ
+      description: 可能であれば、スクリーンショットやエラーログを添付してください
+      placeholder: |
+        スクリーンショット、エラーメッセージ、コンソールログなどを貼り付けてください
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 🚨 優先度
+      description: このバグの優先度を選択してください
+      options:
+        - Critical（重大：システムが使用不可）
+        - High（高：主要機能に影響）
+        - Medium（中：一部機能に影響）
+        - Low（低：軽微な問題）
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 💬 追加情報
+      description: その他、関連する情報があれば記載してください
+      placeholder: 関連するIssue、参考リンクなど
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: ✅ 確認事項
+      description: 以下の項目を確認してください
+      options:
+        - label: 既存のIssueで同様の問題が報告されていないことを確認した
+          required: true
+        - label: 最新バージョンで問題が発生することを確認した
+          required: true

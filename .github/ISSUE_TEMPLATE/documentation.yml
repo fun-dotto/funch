@@ -1,0 +1,103 @@
+name: 📚 ドキュメント改善
+description: ドキュメントの追加・修正を提案してください
+title: "[Docs] "
+labels: ["documentation", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ドキュメントの改善提案をしていただき、ありがとうございます。
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: 📝 ドキュメントの種類
+      description: 改善したいドキュメントの種類を選択してください
+      options:
+        - README.md
+        - CLAUDE.md（開発ガイドライン）
+        - funch.md（システム概要）
+        - API ドキュメント
+        - コードコメント
+        - その他
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: ❓ 現在の問題
+      description: ドキュメントの何が不足・不正確・わかりにくいかを説明してください
+      placeholder: |
+        - 情報が古い
+        - 説明が不十分
+        - 例が不適切
+        - 構成がわかりにくい など
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: 💡 改善提案
+      description: どのように改善すべきか具体的に提案してください
+      placeholder: |
+        - 追加すべき情報
+        - 修正すべき内容
+        - 再構成の提案
+        - 新しい例の追加 など
+    validations:
+      required: true
+
+  - type: dropdown
+    id: target
+    attributes:
+      label: 👥 対象読者
+      description: 主にどのような読者向けの改善ですか？
+      options:
+        - 新しい開発者
+        - 既存の開発者
+        - プロジェクト利用者
+        - システム管理者
+        - その他
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 🚨 優先度
+      description: この改善の優先度を選択してください
+      options:
+        - High（高：緊急に修正が必要）
+        - Medium（中：次の更新で修正したい）
+        - Low（低：時間があるときに修正）
+    validations:
+      required: true
+
+  - type: textarea
+    id: content
+    attributes:
+      label: 📄 具体的な内容案
+      description: 可能であれば、具体的な修正内容を提案してください
+      placeholder: |
+        修正後のテキスト案や、追加したい内容を記載してください
+      render: markdown
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 💬 追加情報
+      description: その他、参考になる情報があれば記載してください
+      placeholder: 参考資料、関連するドキュメント、外部リンクなど
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: ✅ 確認事項
+      description: 以下の項目を確認してください
+      options:
+        - label: 既存のIssueで同様の改善が提案されていないことを確認した
+          required: true
+        - label: 最新のドキュメントを確認した上での提案である
+          required: true
