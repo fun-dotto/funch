@@ -13,7 +13,7 @@ import { auth } from "../src/infrastructure/firebase";
 import { useCalendarMenuPresenter } from "../src/presenters/CalendarPresenter";
 import { CalendarMenuService } from "../src/services/CalendarService";
 import { FirebaseCalendarMenuRepository } from "../src/repositories/firebase/CalendarRepository";
-import { HiTrash } from "react-icons/hi";
+import { MenuItemList, DisplayMenuItem } from "./MenuItemList";
 
 const calendarMenuRepository = new FirebaseCalendarMenuRepository();
 const calendarMenuService = new CalendarMenuService(calendarMenuRepository);
@@ -31,6 +31,7 @@ type CalendarProps = {
 export type CalendarRef = {
   refreshData: () => Promise<void>;
   refreshSingleDayChange: (date: Date) => Promise<void>; // 🚀 最適化関数
+  refreshAllMenusData: () => Promise<void>; // 🚀 メニューデータ再取得
   getCurrentData: (dateId: string) => {
     menuData: any[];
     originalMenuData: any[];
@@ -53,6 +54,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
       deleteDailyOriginalMenu,
       refreshData,
       refreshSingleDayChange,
+      refreshAllMenusData,
       revertChange,
       getMenuNameById,
     } = useCalendarMenuPresenter(
@@ -77,6 +79,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
     useImperativeHandle(ref, () => ({
       refreshData,
       refreshSingleDayChange, // 🚀 最適化関数を公開
+      refreshAllMenusData, // 🚀 メニューデータ再取得を公開
       getCurrentData: (dateId: string) => ({
         menuData: menuData.get(dateId) || [],
         originalMenuData: originalMenuData.get(dateId) || [],
@@ -144,33 +147,22 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
       const oneDayChangeData = changeData.get(dateId);
 
       const handleDeleteMenu = async (menuItemCode: number) => {
-        if (window.confirm("このメニューを削除しますか？")) {
-          await deleteDailyMenu(date, menuItemCode);
-        }
+        await deleteDailyMenu(date, menuItemCode);
       };
 
       const handleDeleteOriginalMenu = async (originalMenuId: string) => {
-        if (window.confirm("このオリジナルメニューを削除しますか？")) {
-          await deleteDailyOriginalMenu(date, originalMenuId);
-        }
+        await deleteDailyOriginalMenu(date, originalMenuId);
       };
 
       // 🚀 change要素のリバート処理
-      const handleRevertChange = async (menuId: string, isCommonMenu: boolean) => {
-        if (window.confirm("この変更を取り消しますか？")) {
-          await revertChange(date, menuId, isCommonMenu);
-        }
+      const handleRevertChange = async (
+        menuId: string,
+        isCommonMenu: boolean
+      ) => {
+        await revertChange(date, menuId, isCommonMenu);
       };
 
       // 🚀 五十音順ソートのためのデータ構造
-      interface DisplayMenuItem {
-        id: string;
-        title: string;
-        type: "deleted" | "normal" | "added";
-        itemCode?: number;
-        originalId?: string;
-      }
-
       const menuItems: DisplayMenuItem[] = [];
       const displayedIds = new Set<string>();
 
@@ -182,7 +174,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
             if (!isAdded) {
               menuItems.push({
                 id: `c-${menuId}`,
-                title: getMenuNameById(menuId),
+                title: `${getMenuNameById(menuId)} (削除)`,
                 type: "deleted",
                 itemCode: parseInt(menuId, 10) || undefined,
               });
@@ -197,7 +189,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
             if (!isAdded) {
               menuItems.push({
                 id: `c-${menuId}`,
-                title: getMenuNameById(menuId),
+                title: `${getMenuNameById(menuId)} (削除)`,
                 type: "deleted",
                 originalId: menuId,
               });
@@ -244,7 +236,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
             if (isAdded && !displayedIds.has(menuId)) {
               menuItems.push({
                 id: `c-${menuId}`,
-                title: getMenuNameById(menuId),
+                title: `${getMenuNameById(menuId)} (追加)`,
                 type: "added",
                 itemCode: parseInt(menuId, 10) || undefined,
               });
@@ -259,7 +251,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
             if (isAdded && !displayedIds.has(menuId)) {
               menuItems.push({
                 id: `c-${menuId}`,
-                title: getMenuNameById(menuId),
+                title: `${getMenuNameById(menuId)} (追加)`,
                 type: "added",
                 originalId: menuId,
               });
@@ -269,87 +261,41 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
         );
       }
 
-      // 🚀 五十音順でソート
-      const sortedMenuItems = menuItems.sort((a, b) =>
-        a.title.localeCompare(b.title, "ja", { sensitivity: "base" })
+      return (
+        <div className="flex flex-col">
+          <MenuItemList
+            items={menuItems}
+            onDeleteMenu={handleDeleteMenu}
+            onDeleteOriginalMenu={handleDeleteOriginalMenu}
+            onRevertChange={handleRevertChange}
+            variant="calendar"
+          />
+        </div>
       );
-
-      // ソート後のJSX要素を生成
-      const displayItems = sortedMenuItems.map((item) => {
-        const getClassName = () => {
-          switch (item.type) {
-            case "deleted":
-              return "flex justify-between items-center text-xs relative bg-red-100";
-            case "added":
-              return "flex justify-between items-center text-xs relative bg-green-100";
-            default:
-              return "flex justify-between items-center text-xs relative";
-          }
-        };
-
-        const getDisplayTitle = () => {
-          switch (item.type) {
-            case "deleted":
-              return `${item.title} (削除)`;
-            case "added":
-              return `${item.title} (追加)`;
-            default:
-              return item.title;
-          }
-        };
-
-        const getClickHandler = () => {
-          if (item.type === "normal") {
-            if (item.itemCode) {
-              return () => handleDeleteMenu(item.itemCode!);
-            } else if (item.originalId) {
-              return () => handleDeleteOriginalMenu(item.originalId!);
-            }
-          } else if (item.type === "deleted" || item.type === "added") {
-            // 🚀 change要素のリバート処理
-            const menuId = item.itemCode ? item.itemCode.toString() : item.originalId!;
-            const isCommonMenu = !!item.itemCode; // itemCodeがあれば共通メニュー
-            return () => handleRevertChange(menuId, isCommonMenu);
-          }
-          return undefined;
-        };
-
-        return (
-          <div key={item.id} className={getClassName()}>
-            <div className="flex-1 truncate pr-6">{getDisplayTitle()}</div>
-            <div
-              className="text-black cursor-pointer absolute right-2 hover:text-red-600"
-              onClick={getClickHandler()}
-            >
-              <HiTrash />
-            </div>
-          </div>
-        );
-      });
-
-      return <div className="flex flex-col">{displayItems}</div>;
     };
 
     // 変更があるかどうかをチェック
     const hasAnyChanges = () => {
       // 日替わりメニューの変更をチェック
       for (const [, change] of changeData) {
-        if (change && (
-          Object.keys(change.commonMenuIds).length > 0 ||
-          Object.keys(change.originalMenuIds).length > 0
-        )) {
+        if (
+          change &&
+          (Object.keys(change.commonMenuIds).length > 0 ||
+            Object.keys(change.originalMenuIds).length > 0)
+        ) {
           return true;
         }
       }
-      
+
       // 月間共通メニューの変更をチェック
-      if (monthlyChangeData && (
-        Object.keys(monthlyChangeData.commonMenuIds).length > 0 ||
-        Object.keys(monthlyChangeData.originalMenuIds).length > 0
-      )) {
+      if (
+        monthlyChangeData &&
+        (Object.keys(monthlyChangeData.commonMenuIds).length > 0 ||
+          Object.keys(monthlyChangeData.originalMenuIds).length > 0)
+      ) {
         return true;
       }
-      
+
       return false;
     };
 
@@ -358,17 +304,17 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(
         {/* Date component removed - now handled in page.tsx */}
         <div>
           <div className="my-2 mx-auto">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex w-full items-center gap-2 mb-2">
               <h2 className="text-start text-[24px] font-bold">
                 日替わりメニュー
               </h2>
               {hasAnyChanges() && (
-                <span className="text-red-600 text-sm font-medium">
+                <span className="text-[#F51F1F] text-sm font-medium">
                   変更あり
                 </span>
               )}
             </div>
-            <div className="w-[1000px] relative">
+            <div className="w-full relative">
               {loading && (
                 <div className="absolute inset-0 bg-white bg-opacity-90 z-10 flex items-center justify-center">
                   <span className="text-gray-700 font-medium">

@@ -12,12 +12,15 @@ import { auth } from "../src/infrastructure/firebase";
 import { useMonthMenuPresenter } from "../src/presenters/MonthMenuPresenter";
 import { MonthMenuService } from "../src/services/MonthMenuService";
 import { FirebaseMonthMenuRepository } from "../src/repositories/firebase/MonthMenuRepository";
-import { HiTrash } from "react-icons/hi";
 import { Menu, OriginalMenu } from "../src/types/Menu";
 import { useDroppable } from "@dnd-kit/core";
+import { MenuItemList, DisplayMenuItem } from "./MenuItemList";
+import { ChangeMenuService } from "../src/services/ChangeMenuService";
+import { RemainingMenuDialog } from "./RemainingMenuDialog";
 
 const monthMenuRepository = new FirebaseMonthMenuRepository();
 const monthMenuService = new MonthMenuService(monthMenuRepository);
+const changeMenuService = new ChangeMenuService();
 
 type MonthMenuProps = {
   year: number;
@@ -31,6 +34,7 @@ type MonthMenuProps = {
 export type MonthMenuRef = {
   refreshData: () => Promise<void>;
   refreshMonthlyChangeOnly: () => Promise<void>; // 🚀 最適化関数
+  refreshAllMenusData: () => Promise<void>; // 🚀 メニューデータ再取得
   getCurrentData: () => {
     menus: any[];
     originalMenus: any[];
@@ -41,6 +45,8 @@ export type MonthMenuRef = {
 const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
   ({ year, month, onAddMenu, onAddOriginalMenu, onDragEnd, children }, ref) => {
     const [user, setUser] = useState<User | null>(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [remainingItems, setRemainingItems] = useState<DisplayMenuItem[]>([]);
 
     const {
       menus,
@@ -55,6 +61,7 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
       saveMonthMenuData,
       refreshData,
       refreshMonthlyChangeOnly,
+      refreshAllMenusData,
       getMenuNameById,
     } = useMonthMenuPresenter(user, year, month, monthMenuService);
 
@@ -73,6 +80,7 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
     useImperativeHandle(ref, () => ({
       refreshData,
       refreshMonthlyChangeOnly, // 🚀 最適化関数を公開
+      refreshAllMenusData, // 🚀 メニューデータ再取得を公開
       getCurrentData: () => ({
         menus,
         originalMenus,
@@ -95,21 +103,24 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
     };
 
     const handleRemoveMenu = async (menuItemCode: number) => {
-      if (window.confirm("このメニューを削除しますか？")) {
-        await removeMenu(menuItemCode);
-      }
+      await removeMenu(menuItemCode);
     };
 
     const handleRemoveOriginalMenu = async (originalMenuId: string) => {
-      if (window.confirm("このオリジナルメニューを削除しますか？")) {
-        await removeOriginalMenu(originalMenuId);
-      }
+      await removeOriginalMenu(originalMenuId);
     };
 
-    const handleSave = async () => {
-      if (window.confirm("月間メニューを保存しますか？")) {
-        await saveMonthMenuData();
-      }
+    const handleRevertChange = async (
+      menuId: string,
+      isCommonMenu: boolean
+    ) => {
+      await changeMenuService.removeMonthlyChangeEntry(
+        year,
+        month,
+        menuId,
+        !isCommonMenu
+      );
+      await refreshMonthlyChangeOnly();
     };
 
     if (!user) {
@@ -148,92 +159,71 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
               onAddOriginalMenu={handleAddOriginalMenu}
               onDragEnd={onDragEnd}
             >
-              <div className="flex gap-2 pl-6 pt-3">
+              <div className="flex pl-6 pt-3 pr-3">
                 {[0, 1, 2].map((columnIndex) => {
-                  // 🚀 五十音順ソートのためのデータ構造
-                  interface DisplayMonthMenuItem {
-                    id: string;
-                    title: string;
-                    type: "deleted" | "normal" | "added";
-                    itemCode?: number;
-                    originalId?: string;
-                    isChange: boolean;
-                    isAdded?: boolean;
-                  }
-
-                  const menuItems: DisplayMonthMenuItem[] = [];
+                  // 🚀 すべてのメニューアイテムを集めてからソート（カレンダーと同じ方式）
+                  const allMenuItems: DisplayMenuItem[] = [];
                   const displayedIds = new Set<string>();
 
-                  // 1. change false（削除）を収集
-                  // commonMenuIds の false
-                  Object.entries(monthlyChangeData.commonMenuIds).forEach(
-                    ([menuId, isAdded]) => {
-                      if (!isAdded) {
-                        menuItems.push({
-                          id: `c-${menuId}`,
-                          title: getMenuNameById(menuId),
-                          type: "deleted",
-                          itemCode: parseInt(menuId, 10) || undefined,
-                          isChange: true,
-                          isAdded: isAdded,
-                        });
-                        displayedIds.add(menuId);
-                      }
-                    }
-                  );
-
-                  // originalMenuIds の false
-                  Object.entries(monthlyChangeData.originalMenuIds).forEach(
-                    ([menuId, isAdded]) => {
-                      if (!isAdded) {
-                        menuItems.push({
-                          id: `c-${menuId}`,
-                          title: getMenuNameById(menuId),
-                          type: "deleted",
-                          originalId: menuId,
-                          isChange: true,
-                          isAdded: isAdded,
-                        });
-                        displayedIds.add(menuId);
-                      }
-                    }
-                  );
-
-                  // 2. 普通のmenu（重複除く）
+                  // 1. 通常の共通メニュー
                   menus.forEach((menu) => {
-                    if (!displayedIds.has(menu.item_code.toString())) {
-                      menuItems.push({
-                        id: menu.item_code.toString(),
+                    const menuIdStr = menu.item_code.toString();
+                    // 削除された場合は削除状態として表示
+                    if (monthlyChangeData.commonMenuIds[menuIdStr] === false) {
+                      allMenuItems.push({
+                        id: `c-${menuIdStr}`,
+                        title: `${menu.title} (削除)`,
+                        type: "deleted",
+                        itemCode: menu.item_code,
+                        isChange: true,
+                        isAdded: false,
+                      });
+                    } else {
+                      allMenuItems.push({
+                        id: menuIdStr,
                         title: menu.title,
                         type: "normal",
                         itemCode: menu.item_code,
                         isChange: false,
                       });
-                      displayedIds.add(menu.item_code.toString());
                     }
+                    displayedIds.add(menuIdStr);
                   });
 
+                  // 2. 通常のオリジナルメニュー
                   originalMenus.forEach((originalMenu) => {
-                    if (!displayedIds.has(originalMenu.id)) {
-                      menuItems.push({
+                    // 削除された場合は削除状態として表示
+                    if (
+                      monthlyChangeData.originalMenuIds[originalMenu.id] ===
+                      false
+                    ) {
+                      allMenuItems.push({
+                        id: `c-${originalMenu.id}`,
+                        title: `${originalMenu.title} (削除)`,
+                        type: "deleted",
+                        originalId: originalMenu.id,
+                        isChange: true,
+                        isAdded: false,
+                      });
+                    } else {
+                      allMenuItems.push({
                         id: originalMenu.id,
                         title: originalMenu.title,
                         type: "normal",
                         originalId: originalMenu.id,
                         isChange: false,
                       });
-                      displayedIds.add(originalMenu.id);
                     }
+                    displayedIds.add(originalMenu.id);
                   });
 
-                  // 3. change true（追加）（重複除く）
-                  // commonMenuIds の true
+                  // 3. 追加されたメニュー（共通メニュー）
                   Object.entries(monthlyChangeData.commonMenuIds).forEach(
                     ([menuId, isAdded]) => {
                       if (isAdded && !displayedIds.has(menuId)) {
-                        menuItems.push({
+                        allMenuItems.push({
                           id: `c-${menuId}`,
-                          title: getMenuNameById(menuId),
+                          title: `${getMenuNameById(menuId)} (追加)`,
                           type: "added",
                           itemCode: parseInt(menuId, 10) || undefined,
                           isChange: true,
@@ -244,13 +234,13 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
                     }
                   );
 
-                  // originalMenuIds の true
+                  // 4. 追加されたメニュー（オリジナルメニュー）
                   Object.entries(monthlyChangeData.originalMenuIds).forEach(
                     ([menuId, isAdded]) => {
                       if (isAdded && !displayedIds.has(menuId)) {
-                        menuItems.push({
+                        allMenuItems.push({
                           id: `c-${menuId}`,
-                          title: getMenuNameById(menuId),
+                          title: `${getMenuNameById(menuId)} (追加)`,
                           type: "added",
                           originalId: menuId,
                           isChange: true,
@@ -261,91 +251,65 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
                     }
                   );
 
-                  // 🚀 五十音順でソート
-                  const sortedMenuItems = menuItems.sort((a, b) =>
+                  // 🚀 全体をソートしてから列ごとに分割（カレンダーと同じソート順）
+                  const sortedAllMenuItems = allMenuItems.sort((a, b) =>
                     a.title.localeCompare(b.title, "ja", {
                       sensitivity: "base",
                     })
                   );
 
-                  // ソート後のアイテムを表示用形式に変換
-                  const allItems = sortedMenuItems.map((item) => ({
-                    ...item,
-                    title:
-                      item.type === "deleted"
-                        ? `${item.title} (削除)`
-                        : item.type === "added"
-                        ? `${item.title} (追加)`
-                        : item.title,
-                    type:
-                      item.type === "normal"
-                        ? item.itemCode
-                          ? "menu"
-                          : "originalMenu"
-                        : "change",
-                  }));
-                  const totalItems = allItems.length;
+                  // 各列のアイテムを計算
                   const startIndex = columnIndex * 8;
                   const endIndex = (columnIndex + 1) * 8;
-                  const columnItems = allItems.slice(startIndex, endIndex);
+                  const columnItems = sortedAllMenuItems.slice(
+                    startIndex,
+                    endIndex
+                  );
 
-                  // 23件目まで表示し、24件目に「他X件」を表示
-                  const shouldShowMore =
-                    totalItems > 23 && startIndex + columnItems.length > 23;
-                  const finalDisplayItems = shouldShowMore
-                    ? columnItems.slice(0, 23 - startIndex)
-                    : columnItems;
-                  const remainingCount = totalItems - 23;
+                  // 最後の列で全体の残り件数を計算
+                  const totalRemainingCount =
+                    sortedAllMenuItems.length > 23
+                      ? sortedAllMenuItems.length - 23
+                      : 0;
+                  const isLastColumn = columnIndex === 2;
+                  const maxItemsForColumn =
+                    isLastColumn && totalRemainingCount > 0
+                      ? Math.max(0, 23 - startIndex)
+                      : 8;
 
                   return (
-                    <div key={columnIndex} className="w-full flex flex-col">
-                      {finalDisplayItems.map((item) => {
-                        const getClassName = () => {
-                          if (item.isChange) {
-                            return item.isAdded === false 
-                              ? "flex justify-between items-center text-[10px] relative bg-red-100"  // 削除
-                              : "flex justify-between items-center text-[10px] relative bg-green-100"; // 追加
-                          }
-                          return "flex justify-between items-center text-[10px] relative"; // 通常
-                        };
-
-                        const getClickHandler = () => {
-                          if (!item.isChange) {
-                            if (item.itemCode) {
-                              return () => handleRemoveMenu(item.itemCode!);
-                            } else if (item.originalId) {
-                              return () => handleRemoveOriginalMenu(item.originalId!);
-                            }
-                          }
-                          return undefined;
-                        };
-
-                        return (
+                    <div
+                      key={columnIndex}
+                      className="w-[33.333%] flex flex-col"
+                    >
+                      <MenuItemList
+                        items={columnItems}
+                        onDeleteMenu={handleRemoveMenu}
+                        onDeleteOriginalMenu={handleRemoveOriginalMenu}
+                        onRevertChange={handleRevertChange}
+                        variant="monthMenu"
+                        maxItems={
+                          isLastColumn && totalRemainingCount > 0
+                            ? maxItemsForColumn
+                            : undefined
+                        }
+                      />
+                      {/* 最後の列でのみ全体の残り件数を表示 */}
+                      {isLastColumn && totalRemainingCount > 0 && (
+                        <div className="flex justify-between items-center text-[10px] relative text-gray-500">
                           <div
-                            key={item.id}
-                            className={getClassName()}
+                            className="flex-1 truncate pr-6 cursor-pointer hover:text-gray-700 hover:underline"
+                            onClick={() => {
+                              const remaining = sortedAllMenuItems.slice(23);
+                              setRemainingItems(remaining);
+                              setIsDialogOpen(true);
+                            }}
                           >
-                            <div className="flex-1 truncate pr-6">
-                              {item.title}
-                            </div>
-                            <div
-                              className="text-black cursor-pointer pr-12 hover:text-red-600"
-                              onClick={getClickHandler()}
-                            >
-                              <HiTrash />
-                            </div>
+                            他{totalRemainingCount}件
                           </div>
-                        );
-                      })}
-
-                      {/* 「他X件」の表示 */}
-                      {shouldShowMore &&
-                        startIndex <= 23 &&
-                        startIndex + finalDisplayItems.length === 23 && (
-                          <div className="flex justify-center items-center text-[10px] text-gray-600 py-1">
-                            他{remainingCount}件
-                          </div>
-                        )}
+                          <div className="pr-12"></div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -366,6 +330,16 @@ const MonthMenu = forwardRef<MonthMenuRef, MonthMenuProps>(
         </div>
 
         {children}
+
+        <RemainingMenuDialog
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          items={remainingItems}
+          onDeleteMenu={handleRemoveMenu}
+          onDeleteOriginalMenu={handleRemoveOriginalMenu}
+          onRevertChange={handleRevertChange}
+          title={"月間共通メニュー"}
+        />
       </div>
     );
   }

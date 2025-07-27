@@ -38,18 +38,18 @@ export default function Home() {
   // 🚀 メニュー確定処理
   const handleConfirmMenuChanges = async () => {
     if (!user) return;
-    
+
     try {
       // 全ての変更データを確定
       await changeMenuService.confirmAllChanges();
-      
+
       // 確定後に各コンポーネントのデータを更新
       await calendarRef.current?.refreshData();
       await monthMenuRef.current?.refreshData();
-      
+
       // 月間変更データをリセット
       setMonthlyChangeData({ commonMenuIds: {}, originalMenuIds: {} });
-      
+
       console.log("メニューの確定処理が完了しました");
     } catch (error) {
       console.error("メニュー確定処理に失敗しました:", error);
@@ -89,9 +89,6 @@ export default function Home() {
     const menu = active.data.current.menu as MenuItem;
     const overId = over.id as string;
 
-    console.log("Dropped menu:", menu);
-    console.log("Drop target:", overId);
-
     try {
       // カレンダーへのドロップの場合
       if (overId.includes("/")) {
@@ -103,31 +100,24 @@ export default function Home() {
         // 🚀 現在のデータを取得
         const currentData = calendarRef.current?.getCurrentData(dateId);
         if (!currentData) {
-          console.error('カレンダーデータが取得できません');
+          console.error("カレンダーデータが取得できません");
           setActiveMenu(null);
           return;
         }
 
         // 🚀 重複チェック付き保存
-        const result = await changeMenuService.saveDailyChangeWithDuplicateCheck(
-          targetDate, 
-          menu,
-          currentData.menuData,
-          currentData.originalMenuData,
-          currentData.changeData
-        );
+        const result =
+          await changeMenuService.saveDailyChangeWithDuplicateCheck(
+            targetDate,
+            menu,
+            currentData.menuData,
+            currentData.originalMenuData,
+            currentData.changeData
+          );
 
-        // 結果をログ出力
-        switch(result) {
-          case 'added':
-            console.log(`新規追加: ${menu.name}`);
-            break;
-          case 'revived':
-            console.log(`復活: ${menu.name}`);
-            break;
-          case 'ignored':
-            console.log(`重複のため無視: ${menu.name}`);
-            break;
+        // 🚀 オリジナルメニュー追加時は全メニューデータも更新
+        if (typeof menu.id === "string") {
+          await calendarRef.current?.refreshAllMenusData();
         }
 
         // 🚀 最適化: 該当日のみ更新（全データ再取得なし）
@@ -145,32 +135,25 @@ export default function Home() {
         // 🚀 現在のデータを取得
         const currentData = monthMenuRef.current?.getCurrentData();
         if (!currentData) {
-          console.error('月間メニューデータが取得できません');
+          console.error("月間メニューデータが取得できません");
           setActiveMenu(null);
           return;
         }
 
         // 🚀 重複チェック付き保存
-        const result = await changeMenuService.saveMonthlyChangeWithDuplicateCheck(
-          currentYear,
-          currentMonth,
-          menu,
-          currentData.menus,
-          currentData.originalMenus,
-          currentData.monthlyChangeData
-        );
+        const result =
+          await changeMenuService.saveMonthlyChangeWithDuplicateCheck(
+            currentYear,
+            currentMonth,
+            menu,
+            currentData.menus,
+            currentData.originalMenus,
+            currentData.monthlyChangeData
+          );
 
-        // 結果をログ出力
-        switch(result) {
-          case 'added':
-            console.log(`新規追加: ${menu.name}`);
-            break;
-          case 'revived':
-            console.log(`復活: ${menu.name}`);
-            break;
-          case 'ignored':
-            console.log(`重複のため無視: ${menu.name}`);
-            break;
+        // 🚀 オリジナルメニュー追加時は全メニューデータも更新
+        if (typeof menu.id === "string") {
+          await monthMenuRef.current?.refreshAllMenusData();
         }
 
         // 🚀 最適化: 月間変更データのみ更新（全データ再取得なし）
