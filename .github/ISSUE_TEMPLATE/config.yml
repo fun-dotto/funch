@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 質問・相談
+    url: https://github.com/fun-dotto/funch/discussions
+    about: 一般的な質問や相談はDiscussionsをご利用ください
+  - name: 🔒 セキュリティ問題
+    url: mailto:security@example.com
+    about: セキュリティに関する問題は直接メールでご連絡ください

@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/macos,node
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,node
 
+#TECH_STACK.md
+#CLAUDE_sample.md
+
 ### macOS ###
 # General
 .DS_Store
