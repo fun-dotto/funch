@@ -6,7 +6,7 @@ import { auth } from "../infrastructure/firebase";
 import Header from "../../components/Header";
 import Calendar, { CalendarRef } from "@/components/Calendar";
 import MonthMenu, { MonthMenuRef } from "@/components/MonthMenu";
-import { YearMonthDisplay } from "@/components/date";
+import { YearMonthDisplay } from "@/components/Date";
 import SettingTab from "@/components/SettingTab";
 import {
   DndContext,

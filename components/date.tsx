@@ -94,9 +94,9 @@ export const YearMonthDisplay: React.FC<YearMonthDisplayProps> = ({
         </button>
       </div>
       <div className="pt-4 md:pt-6">
-        <Button 
-          variant="default" 
-          className="bg-[#0089F0] hover:bg-[#0060AB]"
+        <Button
+          variant="default"
+          className="bg-[#990000] hover:bg-[#650000]"
           onClick={onConfirmMenuChanges}
         >
           メニューの確定
